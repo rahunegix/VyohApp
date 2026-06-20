@@ -3,7 +3,7 @@ import { getSeoPageByPath } from "@/lib/seo/service";
 import { buildSeoMetadata } from "@/lib/seo/metadata";
 import { FALLBACK_HOME_SEO } from "@/lib/seo/defaults";
 import { getLatestSuccessStories } from "@/lib/success-stories/service";
-import { SeoLandingContent } from "@/components/seo/seo-landing-content";
+import { HomePageContent } from "@/components/seo/home-page-content";
 import { SeoJsonLdBundle } from "@/components/seo/json-ld-script";
 
 export const dynamic = "force-dynamic";
@@ -25,9 +25,7 @@ export default async function HomePage() {
   return (
     <>
       <SeoJsonLdBundle page={seoPage} />
-      <div className="min-h-dvh bg-gradient-to-b from-primary/5 via-background to-background">
-        <SeoLandingContent page={seoPage} latestStories={latestStories} />
-      </div>
+      <HomePageContent page={seoPage} latestStories={latestStories} />
     </>
   );
 }

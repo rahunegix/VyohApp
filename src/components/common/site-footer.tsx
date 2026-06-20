@@ -28,7 +28,7 @@ export function SiteFooter({ className, variant = "light" }: Props) {
         className
       )}
     >
-      <div className="mx-auto max-w-3xl space-y-3 text-center text-[11px] leading-relaxed sm:text-xs">
+      <div className="mx-auto max-w-3xl space-y-3 text-center text-[11px] leading-relaxed sm:max-w-6xl sm:text-xs">
         <p
           className={cn(
             "font-semibold",

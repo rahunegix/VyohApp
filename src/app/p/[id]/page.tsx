@@ -33,7 +33,7 @@ export default async function PublicProfilePage({
   const { id } = await params;
   const result = await getPublicProfileAvailability(id);
 
-  if (result.status === "banned" || result.status === "not_found") {
+  if (result.status !== "available") {
     return <BannedProfilePage profileId={id} />;
   }
 

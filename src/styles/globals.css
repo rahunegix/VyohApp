@@ -81,14 +81,29 @@ body {
   transform: translateX(-50%);
 }
 
+/* Full-width marketing homepage (/) */
+.app-shell:has(.marketing-page) {
+  max-width: none;
+  box-shadow: none;
+}
+
 @media (min-width: 1024px) {
   html {
     background: #eef0f3;
   }
 
+  html:has(.marketing-page) {
+    background: #ffffff;
+  }
+
   .app-shell {
     max-width: 960px;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 24px 48px rgba(0, 0, 0, 0.08);
+  }
+
+  .app-shell:has(.marketing-page) {
+    max-width: none;
+    box-shadow: none;
   }
 
   .app-main {

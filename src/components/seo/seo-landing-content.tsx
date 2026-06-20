@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Heart, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { SeoPageView } from "@/lib/seo/types";
 import type { SuccessStoryView } from "@/lib/success-stories/types";
 import { FaqSection } from "@/components/seo/faq-section";
@@ -9,45 +9,31 @@ import { AppLogo } from "@/components/common/app-logo";
 
 const ONBOARDING_START = "/onboarding/language";
 
-function HeroCtaBlock({ isHomepage, compact = false }: { isHomepage: boolean; compact?: boolean }) {
+function HeroCtaBlock({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={compact ? "" : "pt-2"}>
-      <Link href={ONBOARDING_START} className="group block w-full sm:w-auto">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-[#d32f2f] to-primary p-[2px] shadow-[0_12px_40px_rgba(198,40,40,0.35)] transition-transform duration-200 hover:scale-[1.02] active:scale-[0.99]">
-          <div className="flex flex-col gap-0.5 rounded-[14px] bg-gradient-to-br from-primary to-[#b71c1c] px-6 py-4 text-center sm:min-w-[280px] sm:text-left">
-            <span className="flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-widest text-white/80 sm:justify-start">
-              <Sparkles className="h-3.5 w-3.5" />
-              Free to join
-            </span>
-            <span className="flex items-center justify-center gap-2 text-lg font-extrabold text-white sm:justify-start sm:text-xl">
-              <Heart className="h-5 w-5 fill-white/90" />
-              Create Your Profile
-              <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
-            </span>
-            <span className="text-xs font-medium text-white/75">
-              Phone OTP · 2 min setup · Start matching today
-            </span>
-          </div>
-        </div>
+    <div className={compact ? "flex justify-center" : "pt-2"}>
+      <Link href={ONBOARDING_START}>
+        <Button size="lg" className="h-12 rounded-xl px-7 text-base font-semibold">
+          Create your profile
+          <ArrowRight className="h-4 w-4" />
+        </Button>
       </Link>
-
       {!compact && (
         <div className="mt-3 flex flex-col items-center gap-2 sm:flex-row sm:justify-start">
           <Link href="/success-stories">
-            <Button variant="outline" size="lg" className="h-11 w-full rounded-2xl sm:w-auto">
+            <Button variant="outline" size="lg" className="h-11 w-full rounded-xl sm:w-auto">
               Success Stories
             </Button>
           </Link>
-          {isHomepage && (
-            <Link href="/login" className="text-sm font-semibold text-muted-foreground hover:text-primary">
-              Already a member? Log in
-            </Link>
-          )}
+          <Link href="/login" className="text-sm font-semibold text-muted-foreground hover:text-primary">
+            Already a member? Log in
+          </Link>
         </div>
       )}
     </div>
   );
 }
+
 export function SeoLandingContent({
   page,
   showHeroCta = true,
@@ -78,7 +64,8 @@ export function SeoLandingContent({
             dangerouslySetInnerHTML={{ __html: page.intro_html }}
           />
         )}
-        {showHeroCta && <HeroCtaBlock isHomepage={page.route_path === "/"} />}      </header>
+        {showHeroCta && <HeroCtaBlock />}
+      </header>
 
       {latestStories.length > 0 && page.route_path === "/" && (
         <section className="rounded-2xl border border-border/60 bg-white p-5 shadow-[var(--shadow-card)]">
@@ -136,16 +123,13 @@ export function SeoLandingContent({
       <FaqSection items={page.faq} />
 
       {showHeroCta && page.route_path === "/" && (
-        <section className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-white to-primary/5 p-6 text-center shadow-[var(--shadow-card)]">
-          <p className="text-sm font-bold uppercase tracking-widest text-primary">Ready to find your match?</p>
-          <p className="mt-2 text-lg font-bold text-foreground">
-            Join thousands of Garhwali & Kumaoni singles on Saathini
+        <section className="rounded-2xl border border-border/60 bg-muted/30 p-6 text-center">
+          <p className="text-lg font-bold text-foreground">Ready to find your match?</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Join Garhwali & Kumaoni singles on Saathini — free to join, 2-minute setup.
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Skip the wait — set up your profile in under 2 minutes with phone OTP.
-          </p>
-          <div className="mt-5 flex justify-center">
-            <HeroCtaBlock isHomepage compact />
+          <div className="mt-5">
+            <HeroCtaBlock compact />
           </div>
         </section>
       )}
