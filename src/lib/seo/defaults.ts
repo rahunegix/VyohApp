@@ -32,8 +32,8 @@ export const FALLBACK_HOME_SEO: SeoPageView = {
       ],
     },
     {
-      title: "A modern alternative to Maangal Platform & Shaadi.com",
-      body: "Many Uttarakhand families search for local alternatives to Maangal Platform, Shaadi.com, and BharatMatrimony.",
+      title: "A modern alternative to Pahadi Maangal Platform & Shaadi Matrimony",
+      body: "Many Uttarakhand families search for local alternatives to Pahadi Maangal Platform, Shaadi.com, and BharatMatrimony.",
       bullets: [
         "Local Uttarakhand discovery filters",
         "Consent-first chat before family intro",
