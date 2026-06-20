@@ -1,0 +1,14 @@
+[
+  { "id": "male-01", "gender": "male", "age": 28, "region": "garhwal", "vibe": "confident software professional" },
+  { "id": "male-02", "gender": "male", "age": 32, "region": "kumaon", "vibe": "friendly government officer look" },
+  { "id": "male-03", "gender": "male", "age": 26, "region": "garhwal", "vibe": "outdoor trekker personality" },
+  { "id": "male-04", "gender": "male", "age": 30, "region": "kumaon", "vibe": "calm teacher energy" },
+  { "id": "male-05", "gender": "male", "age": 29, "region": "garhwal", "vibe": "startup founder casual" },
+  { "id": "male-06", "gender": "male", "age": 27, "region": "kumaon", "vibe": "photographer creative" },
+  { "id": "female-01", "gender": "female", "age": 26, "region": "garhwal", "vibe": "warm counselor personality" },
+  { "id": "female-02", "gender": "female", "age": 24, "region": "kumaon", "vibe": "bright student energy" },
+  { "id": "female-03", "gender": "female", "age": 28, "region": "garhwal", "vibe": "yoga and wellness vibe" },
+  { "id": "female-04", "gender": "female", "age": 25, "region": "kumaon", "vibe": "teacher graceful" },
+  { "id": "female-05", "gender": "female", "age": 27, "region": "garhwal", "vibe": "doctor professional" },
+  { "id": "female-06", "gender": "female", "age": 23, "region": "kumaon", "vibe": "artist soft smile" }
+]

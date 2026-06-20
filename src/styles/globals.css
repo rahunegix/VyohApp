@@ -1,0 +1,229 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: #FF6F00;
+  --color-primary-foreground: #ffffff;
+  --color-primary-muted: #FFF3E6;
+  --color-background: #ffffff;
+  --color-foreground: #1a1a1a;
+  --color-muted: #f5f5f5;
+  --color-muted-foreground: #6b7280;
+  --color-border: #e5e7eb;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-destructive: #dc2626;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1a1a;
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --shadow-soft: 0 2px 16px rgba(0, 0, 0, 0.06);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.08);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-glass: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shadow-float: 0 6px 20px rgba(255, 111, 0, 0.22);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+}
+
+.app-shell {
+  margin: 0 auto;
+  min-height: 100dvh;
+  position: relative;
+  background: var(--color-background);
+  max-width: 480px;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 100dvh;
+  position: relative;
+  --app-nav-offset: 5rem;
+}
+
+.app-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  min-height: 100dvh;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-background);
+}
+
+.app-viewport-height {
+  min-height: calc(100dvh - var(--app-nav-offset));
+}
+
+.app-dock {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  z-index: 30;
+  width: 100%;
+  max-width: 480px;
+  transform: translateX(-50%);
+}
+
+@media (min-width: 1024px) {
+  html {
+    background: #eef0f3;
+  }
+
+  .app-shell {
+    max-width: 960px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 24px 48px rgba(0, 0, 0, 0.08);
+  }
+
+  .app-main {
+    --app-nav-offset: 0px;
+  }
+
+  .app-dock {
+    left: calc((100vw - min(960px, 100vw)) / 2 + 240px);
+    width: calc(min(960px, 100vw) - 240px);
+    max-width: none;
+    transform: none;
+  }
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ── Profile Detail Page ────────────────────────────────────── */
+
+/* Glass-morphism backdrop for floating buttons & overlays */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Animated compatibility ring SVG */
+@keyframes ring-fill {
+  from { stroke-dashoffset: 251.33; }
+}
+
+@keyframes fade-up-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
+
+@keyframes scale-bounce {
+  0%   { transform: scale(0.85); opacity: 0; }
+  60%  { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-ring-fill {
+  animation: ring-fill 1s ease-out forwards;
+}
+
+.animate-fade-up {
+  animation: fade-up-in 0.4s ease-out both;
+}
+
+.animate-scale-bounce {
+  animation: scale-bounce 0.35s ease-out both;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* Stagger delays for floating action buttons */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.10s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.20s; }
+.stagger-5 { animation-delay: 0.25s; }
+
+/* Photo gallery pagination dots */
+.photo-dot {
+  transition: all 0.3s ease;
+}
+
+.photo-dot-active {
+  background: #ffffff;
+  width: 24px;
+  border-radius: 4px;
+}
+
+.photo-dot-inactive {
+  background: rgba(255, 255, 255, 0.45);
+  width: 8px;
+  border-radius: 50%;
+}
+
+/* Tab switcher active pill */
+.tab-pill-active {
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(255, 111, 0, 0.28);
+}
+
+.tab-pill-inactive {
+  background: transparent;
+  color: var(--color-muted-foreground);
+}
+
+/* Profile info detail row hover */
+.detail-row {
+  transition: background 0.2s ease;
+}
+
+.detail-row:hover {
+  background: var(--color-muted);
+}

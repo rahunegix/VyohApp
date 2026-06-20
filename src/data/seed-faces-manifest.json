@@ -1,0 +1,10 @@
+{
+  "generatedAt": "2026-06-18T00:00:00.000Z",
+  "note": "Synthetic AI portraits — not real individuals. Expand with: node scripts/generate-seed-portraits.mjs",
+  "faces": [
+    { "id": "male-01", "gender": "male", "age": 28, "region": "garhwal", "path": "/seed-faces/male-01.png", "aiGenerated": true },
+    { "id": "male-02", "gender": "male", "age": 30, "region": "kumaon", "path": "/seed-faces/male-02.png", "aiGenerated": true },
+    { "id": "female-01", "gender": "female", "age": 26, "region": "garhwal", "path": "/seed-faces/female-01.png", "aiGenerated": true },
+    { "id": "female-02", "gender": "female", "age": 25, "region": "kumaon", "path": "/seed-faces/female-02.png", "aiGenerated": true }
+  ]
+}
