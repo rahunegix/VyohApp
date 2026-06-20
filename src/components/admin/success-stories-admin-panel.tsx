@@ -4,8 +4,11 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ExternalLink, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { AdminModal } from "@/components/admin/admin-modal";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminRichTextEditor } from "@/components/admin/admin-rich-text-editor";
+import { AdminCoverImageField, AdminImageGallery } from "@/components/admin/admin-image-gallery";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +24,7 @@ interface StoryForm {
   quote: string;
   body: string;
   cover_image_url: string;
+  gallery_image_urls: string[];
   alt_text: string;
   is_featured: boolean;
   status: "draft" | "published" | "archived";
@@ -36,6 +40,7 @@ const emptyForm: StoryForm = {
   quote: "",
   body: "",
   cover_image_url: "",
+  gallery_image_urls: [],
   alt_text: "",
   is_featured: false,
   status: "draft",
@@ -81,6 +86,7 @@ export function SuccessStoriesAdminPanel({ initialStories }: { initialStories: S
       quote: story.quote,
       body: story.body ?? "",
       cover_image_url: story.cover_image_url,
+      gallery_image_urls: story.gallery_image_urls ?? [],
       alt_text: story.alt_text ?? "",
       is_featured: story.is_featured,
       status: story.status,
@@ -91,6 +97,15 @@ export function SuccessStoriesAdminPanel({ initialStories }: { initialStories: S
   };
 
   const save = async () => {
+    if (!form.cover_image_url) {
+      setError("Please upload a cover image");
+      return;
+    }
+    if (!form.quote.trim() || form.quote.replace(/<[^>]+>/g, "").trim().length < 10) {
+      setError("Quote must be at least 10 characters");
+      return;
+    }
+
     setLoading(true);
     setError("");
     try {
@@ -105,6 +120,9 @@ export function SuccessStoriesAdminPanel({ initialStories }: { initialStories: S
       if (!json.success) {
         setError(json.error || "Save failed");
         return;
+      }
+      if (json.warning) {
+        alert(json.warning);
       }
       setModalOpen(false);
       router.refresh();
@@ -134,7 +152,7 @@ export function SuccessStoriesAdminPanel({ initialStories }: { initialStories: S
     <>
       <AdminPageHeader
         title="Success stories"
-        description="Add and publish stories shown on the website and welcome screens."
+        description="Add and publish stories with rich text, cover image, and photo gallery."
         search={search}
         onSearchChange={setSearch}
         searchPlaceholder="Search name, slug, type…"
@@ -157,8 +175,24 @@ export function SuccessStoriesAdminPanel({ initialStories }: { initialStories: S
             {filtered.map((story) => (
               <tr key={story.id} className="border-t border-border hover:bg-muted/20">
                 <td className="p-3">
-                  <p className="font-medium">{story.names}</p>
-                  <p className="text-xs text-muted-foreground">{story.slug}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+                      {story.cover_image_url && (
+                        <Image
+                          src={story.cover_image_url}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                          unoptimized
+                        />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">{story.names}</p>
+                      <p className="text-xs text-muted-foreground">{story.slug}</p>
+                    </div>
+                  </div>
                 </td>
                 <td className="p-3 capitalize">{story.story_type}</td>
                 <td className="p-3">
@@ -240,9 +274,6 @@ export function SuccessStoriesAdminPanel({ initialStories }: { initialStories: S
           <Field label="Timeline">
             <Input value={form.timeline} onChange={(e) => setForm({ ...form, timeline: e.target.value })} />
           </Field>
-          <Field label="Cover image URL">
-            <Input value={form.cover_image_url} onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })} />
-          </Field>
           <Field label="Image alt text">
             <Input value={form.alt_text} onChange={(e) => setForm({ ...form, alt_text: e.target.value })} />
           </Field>
@@ -258,12 +289,39 @@ export function SuccessStoriesAdminPanel({ initialStories }: { initialStories: S
             Featured on welcome / home sections
           </label>
         </div>
-        <Field label="Short quote">
+
+        <Field label="Cover image" className="mt-4">
+          <AdminCoverImageField
+            value={form.cover_image_url}
+            onChange={(cover_image_url) => setForm({ ...form, cover_image_url })}
+          />
+        </Field>
+
+        <Field label="Photo gallery" className="mt-4">
+          <AdminImageGallery
+            images={form.gallery_image_urls}
+            onChange={(gallery_image_urls) => setForm({ ...form, gallery_image_urls })}
+            maxImages={8}
+            label="Story gallery"
+            description="Extra photos shown on the story detail page. Upload & crop each image."
+            aspect={4 / 3}
+            cropTitle="Crop gallery photo"
+          />
+        </Field>
+
+        <Field label="Short quote" className="mt-4">
           <Textarea rows={2} value={form.quote} onChange={(e) => setForm({ ...form, quote: e.target.value })} />
         </Field>
-        <Field label="Full story (detail page)">
-          <Textarea rows={5} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} />
+
+        <Field label="Full story (rich text)" className="mt-4">
+          <AdminRichTextEditor
+            value={form.body}
+            onChange={(body) => setForm({ ...form, body })}
+            minHeight={220}
+            placeholder="Write the full success story with headings, lists, and links…"
+          />
         </Field>
+
         {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="outline" onClick={() => setModalOpen(false)}>Cancel</Button>
@@ -274,9 +332,17 @@ export function SuccessStoriesAdminPanel({ initialStories }: { initialStories: S
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <label className="block">
+    <label className={className}>
       <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
       {children}
     </label>

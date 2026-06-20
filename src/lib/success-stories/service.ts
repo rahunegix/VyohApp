@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   FALLBACK_SUCCESS_STORIES,
@@ -6,20 +7,56 @@ import {
   type SuccessStoryView,
 } from "@/lib/success-stories/types";
 
+function logStoryFetchError(context: string, error: unknown) {
+  if (process.env.NODE_ENV === "development") {
+    console.error(`[success-stories] ${context}`, error);
+  }
+}
+
 export async function getPublishedSuccessStories(): Promise<SuccessStoryView[]> {
+  noStore();
   try {
     const admin = createAdminClient();
     const { data, error } = await admin
       .from("success_stories")
       .select("*")
       .eq("status", "published")
-      .order("sort_order", { ascending: true })
-      .order("published_at", { ascending: false });
+      .order("published_at", { ascending: false })
+      .order("created_at", { ascending: false });
 
-    if (error || !data?.length) return FALLBACK_SUCCESS_STORIES;
+    if (error) {
+      logStoryFetchError("getPublishedSuccessStories", error);
+      return FALLBACK_SUCCESS_STORIES;
+    }
+    if (!data?.length) return [];
     return (data as SuccessStoryRecord[]).map(recordToView);
-  } catch {
+  } catch (err) {
+    logStoryFetchError("getPublishedSuccessStories", err);
     return FALLBACK_SUCCESS_STORIES;
+  }
+}
+
+export async function getLatestSuccessStories(limit = 3): Promise<SuccessStoryView[]> {
+  noStore();
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("success_stories")
+      .select("*")
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      logStoryFetchError("getLatestSuccessStories", error);
+      return [];
+    }
+    if (!data?.length) return [];
+    return (data as SuccessStoryRecord[]).map(recordToView);
+  } catch (err) {
+    logStoryFetchError("getLatestSuccessStories", err);
+    return [];
   }
 }
 

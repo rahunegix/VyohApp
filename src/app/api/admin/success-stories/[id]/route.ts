@@ -3,6 +3,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdminApi } from "@/lib/admin/guard";
 import { slugifyStory } from "@/lib/success-stories/types";
 import { successStoryPayloadSchema } from "@/lib/success-stories/schemas";
+import {
+  galleryMigrationHint,
+  isMissingGalleryColumnError,
+  omitGalleryField,
+} from "@/lib/success-stories/db-write";
 
 export async function PATCH(
   request: NextRequest,
@@ -28,6 +33,7 @@ export async function PATCH(
     if (body.quote !== undefined) updates.quote = body.quote;
     if (body.body !== undefined) updates.body = body.body;
     if (body.cover_image_url !== undefined) updates.cover_image_url = body.cover_image_url;
+    if (body.gallery_image_urls !== undefined) updates.gallery_image_urls = body.gallery_image_urls;
     if (body.alt_text !== undefined) updates.alt_text = body.alt_text;
     if (body.is_featured !== undefined) updates.is_featured = body.is_featured;
     if (body.sort_order !== undefined) updates.sort_order = body.sort_order;
@@ -39,18 +45,30 @@ export async function PATCH(
     }
 
     const admin = createAdminClient();
-    const { data, error } = await admin
-      .from("success_stories")
-      .update(updates)
-      .eq("id", id)
-      .select("*")
-      .single();
+    let result = await admin.from("success_stories").update(updates).eq("id", id).select("*").single();
+    let gallerySkipped = false;
 
-    if (error) {
-      return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+    if (result.error && isMissingGalleryColumnError(result.error)) {
+      gallerySkipped = true;
+      result = await admin
+        .from("success_stories")
+        .update(omitGalleryField(updates))
+        .eq("id", id)
+        .select("*")
+        .single();
     }
 
-    return NextResponse.json({ success: true, data });
+    if (result.error) {
+      return NextResponse.json({ success: false, error: result.error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: { ...result.data, gallery_image_urls: result.data?.gallery_image_urls ?? [] },
+      warning: gallerySkipped
+        ? `Gallery photos were not saved. ${galleryMigrationHint()}`
+        : undefined,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid request";
     return NextResponse.json({ success: false, error: message }, { status: 400 });

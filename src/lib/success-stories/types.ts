@@ -14,6 +14,7 @@ export interface SuccessStoryRecord {
   quote: string;
   body: string | null;
   cover_image_url: string;
+  gallery_image_urls: string[];
   alt_text: string | null;
   is_featured: boolean;
   status: SuccessStoryStatus;
@@ -75,6 +76,7 @@ export interface SuccessStoryView {
   body: string;
   src: string;
   alt: string;
+  gallery: string[];
   label: string;
 }
 
@@ -92,6 +94,7 @@ export const FALLBACK_SUCCESS_STORIES: SuccessStoryView[] = [
       "Ankit from Dehradun and Priya from a Garhwali family connected on Saathini through shared values and family preferences. After thoughtful conversations and family introductions, they were engaged within four months.",
     src: "https://images.unsplash.com/photo-1583934270204-75a0e3b05ec5?auto=format&fit=crop&w=900&q=80",
     alt: "Hindu wedding ceremony with sacred fire and rituals",
+    gallery: [],
     label: "Ankit & Priya — Marriage",
   },
   {
@@ -107,6 +110,7 @@ export const FALLBACK_SUCCESS_STORIES: SuccessStoryView[] = [
       "Rohit and Kavya matched in Nainital while both were looking for a serious, long-term relationship. They spent months building trust through consent-first chats before involving their families.",
     src: "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=900&q=80",
     alt: "Indian wedding couple in traditional attire",
+    gallery: [],
     label: "Rohit & Kavya — Relationship",
   },
   {
@@ -122,6 +126,7 @@ export const FALLBACK_SUCCESS_STORIES: SuccessStoryView[] = [
       "Aditya and Ishita began with a verified match in Haridwar. Face verification and clear intent labels helped them feel safe exploring a new connection.",
     src: "https://images.unsplash.com/photo-1522673607200-8d87521a1536?auto=format&fit=crop&w=900&q=80",
     alt: "Indian couple celebrating together",
+    gallery: [],
     label: "Aditya & Ishita — Relationship",
   },
 ];
@@ -139,6 +144,7 @@ export function recordToView(row: SuccessStoryRecord): SuccessStoryView {
     body: row.body ?? row.quote,
     src: row.cover_image_url,
     alt: row.alt_text ?? row.names,
+    gallery: row.gallery_image_urls ?? [],
     label: `${row.names} — ${SUCCESS_STORY_TYPE_SHORT[row.story_type]}`,
   };
 }

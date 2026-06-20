@@ -1011,6 +1011,166 @@ CREATE POLICY "Users can manage own videos" ON storage.objects
 CREATE POLICY "Users can manage own documents" ON storage.objects
   FOR ALL USING (bucket_id = 'documents-private' AND auth.uid()::text = (storage.foldername(name))[1]);
 
+-- ─── Success stories + SEO (migrations 009–010) ─────────────────────────────
+CREATE TYPE success_story_type AS ENUM ('relationship', 'marriage');
+CREATE TYPE success_story_status AS ENUM ('draft', 'published', 'archived');
+CREATE TYPE story_submission_status AS ENUM ('pending', 'approved', 'rejected');
+
+CREATE TABLE success_stories (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  slug TEXT UNIQUE NOT NULL,
+  story_type success_story_type NOT NULL,
+  names TEXT NOT NULL,
+  location TEXT,
+  timeline TEXT,
+  quote TEXT NOT NULL,
+  body TEXT,
+  cover_image_url TEXT NOT NULL,
+  gallery_image_urls TEXT[] NOT NULL DEFAULT '{}',
+  alt_text TEXT,
+  is_featured BOOLEAN NOT NULL DEFAULT FALSE,
+  status success_story_status NOT NULL DEFAULT 'draft',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  published_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_success_stories_status ON success_stories(status);
+CREATE INDEX idx_success_stories_type ON success_stories(story_type);
+CREATE INDEX idx_success_stories_featured ON success_stories(is_featured) WHERE status = 'published';
+
+CREATE TABLE story_submissions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  story_type success_story_type NOT NULL,
+  submitter_name TEXT NOT NULL,
+  partner_name TEXT,
+  email TEXT,
+  phone TEXT,
+  location TEXT,
+  timeline TEXT,
+  title TEXT,
+  story TEXT NOT NULL,
+  photo_urls TEXT[] NOT NULL DEFAULT '{}',
+  consent BOOLEAN NOT NULL DEFAULT FALSE,
+  status story_submission_status NOT NULL DEFAULT 'pending',
+  admin_notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_story_submissions_status ON story_submissions(status);
+CREATE INDEX idx_story_submissions_user ON story_submissions(user_id);
+
+INSERT INTO success_stories (
+  slug, story_type, names, location, timeline, quote, body,
+  cover_image_url, alt_text, is_featured, status, sort_order, published_at
+) VALUES
+(
+  'ankit-priya-marriage', 'marriage', 'Ankit & Priya', 'Dehradun · Garhwal', 'Engaged in 4 months',
+  'Our families met through Saathini after we matched on values and gotra preferences. The mandap felt like it was always meant to be.',
+  'Ankit from Dehradun and Priya from a Garhwali family connected on Saathini through shared values and family preferences.',
+  'https://images.unsplash.com/photo-1583934270204-75a0e3b05ec5?auto=format&fit=crop&w=900&q=80',
+  'Hindu wedding ceremony with sacred fire and rituals', TRUE, 'published', 1, NOW()
+),
+(
+  'rohit-kavya-relationship', 'relationship', 'Rohit & Kavya', 'Nainital · Kumaon', 'Together 18 months',
+  'We chose the serious relationship path first. Saathini helped us build trust before our families got involved — no rush, just clarity.',
+  'Rohit and Kavya matched in Nainital while both were looking for a serious, long-term relationship.',
+  'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=900&q=80',
+  'Indian wedding couple in traditional attire', TRUE, 'published', 2, NOW()
+),
+(
+  'aditya-ishita-relationship', 'relationship', 'Aditya & Ishita', 'Haridwar · Uttarakhand', 'First date in 2 weeks',
+  'Verified profiles and consent-first chats made us comfortable exploring a connection. We are taking it one meaningful step at a time.',
+  'Aditya and Ishita began with a verified match in Haridwar.',
+  'https://images.unsplash.com/photo-1522673607200-8d87521a1536?auto=format&fit=crop&w=900&q=80',
+  'Indian couple celebrating together', TRUE, 'published', 3, NOW()
+)
+ON CONFLICT (slug) DO NOTHING;
+
+CREATE TYPE seo_page_kind AS ENUM ('static', 'programmatic');
+
+CREATE TABLE seo_pages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  route_path TEXT UNIQUE NOT NULL,
+  page_kind seo_page_kind NOT NULL DEFAULT 'static',
+  slug TEXT,
+  title TEXT NOT NULL,
+  meta_description TEXT NOT NULL,
+  meta_keywords TEXT,
+  og_title TEXT,
+  og_description TEXT,
+  og_image_url TEXT,
+  canonical_path TEXT,
+  robots_index BOOLEAN NOT NULL DEFAULT TRUE,
+  robots_follow BOOLEAN NOT NULL DEFAULT TRUE,
+  h1 TEXT,
+  hero_subtitle TEXT,
+  intro_html TEXT,
+  sections JSONB NOT NULL DEFAULT '[]'::jsonb,
+  faq JSONB NOT NULL DEFAULT '[]'::jsonb,
+  focus_keywords TEXT[] NOT NULL DEFAULT '{}',
+  related_links JSONB NOT NULL DEFAULT '[]'::jsonb,
+  is_published BOOLEAN NOT NULL DEFAULT TRUE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_seo_pages_kind ON seo_pages(page_kind);
+CREATE INDEX idx_seo_pages_published ON seo_pages(is_published) WHERE is_published = TRUE;
+CREATE INDEX idx_seo_pages_slug ON seo_pages(slug) WHERE slug IS NOT NULL;
+
+INSERT INTO seo_pages (
+  route_path, page_kind, slug, title, meta_description, meta_keywords,
+  h1, hero_subtitle, intro_html, sections, faq, focus_keywords, related_links,
+  is_published, sort_order
+)
+SELECT * FROM (VALUES
+  ('/'::text, 'static'::seo_page_kind, NULL::text,
+   'Saathini — Uttarakhand Matrimony & Dating | Garhwali & Kumaoni Matches',
+   'Saathini is Uttarakhand''s verified matrimony and dating platform for Garhwali & Kumaoni singles.',
+   'uttarakhand matrimony, garhwali matrimony, kumaoni matrimony, alternative to maangal.com, alternative to shadi.com',
+   'Uttarakhand''s trusted matrimony & dating platform',
+   'Garhwali · Kumaoni · Verified profiles · Hindu marriage & serious relationships',
+   '<p>Saathini connects Uttarakhand singles and families with intent-first matching.</p>',
+   '[]'::jsonb, '[]'::jsonb,
+   ARRAY['uttarakhand matrimony','garhwali matrimony']::text[],
+   '[]'::jsonb, TRUE, 0),
+  ('/welcome', 'static', NULL,
+   'Welcome to Saathini — Start Your Uttarakhand Match Journey',
+   'Join Saathini — verified Uttarakhand matrimony and dating.',
+   'saathini welcome, uttarakhand matrimony signup',
+   'Welcome to Saathini', 'From connection to commitment — built for Uttarakhand',
+   NULL, '[]'::jsonb, '[]'::jsonb, ARRAY['saathini']::text[], '[]'::jsonb, TRUE, 1),
+  ('/matrimony/uttarakhand-matrimony', 'programmatic', 'uttarakhand-matrimony',
+   'Uttarakhand Matrimony — Garhwali & Kumaoni Matrimonial Site | Saathini',
+   'Find verified Uttarakhand matrimony matches on Saathini.',
+   'uttarakhand matrimony, uttarakhand matrimonial site',
+   'Uttarakhand matrimony — verified Pahadi matches',
+   'The dedicated matrimonial platform for Garhwal, Kumaon & diaspora families',
+   NULL, '[]'::jsonb, '[]'::jsonb, ARRAY['uttarakhand matrimony']::text[], '[]'::jsonb, TRUE, 10),
+  ('/matrimony/alternative-maangal-com', 'programmatic', 'alternative-maangal-com',
+   'Alternative to Maangal.com — Uttarakhand Matrimony on Saathini',
+   'Looking for an alternative to Maangal.com? Saathini offers verified Uttarakhand matrimony.',
+   'alternative to maangal.com, maangal.com alternative',
+   'A trusted alternative to Maangal.com for Uttarakhand',
+   'Local focus · Verified profiles · Garhwali & Kumaoni communities',
+   NULL, '[]'::jsonb, '[]'::jsonb, ARRAY['alternative to maangal.com']::text[], '[]'::jsonb, TRUE, 20),
+  ('/matrimony/alternative-shadi-com', 'programmatic', 'alternative-shadi-com',
+   'Alternative to Shaadi.com — Uttarakhand Matrimony | Saathini',
+   'Saathini is a focused alternative to Shaadi.com for Uttarakhand singles.',
+   'alternative to shadi.com, shaadi.com alternative uttarakhand',
+   'Alternative to Shaadi.com — built for Uttarakhand',
+   'Less noise · More local matches · Verified Pahadi profiles',
+   NULL, '[]'::jsonb, '[]'::jsonb, ARRAY['alternative to shadi.com']::text[], '[]'::jsonb, TRUE, 21)
+) AS v(route_path, page_kind, slug, title, meta_description, meta_keywords, h1, hero_subtitle, intro_html, sections, faq, focus_keywords, related_links, is_published, sort_order)
+ON CONFLICT (route_path) DO NOTHING;
+
+-- Full SEO seed (homepage FAQ, all programmatic pages): run migrations/010_seo_system.sql on existing DBs
+
 -- ─── Seed data ───────────────────────────────────────────────────────────────
 INSERT INTO subscription_plans (name, price, billing_cycle, features, active) VALUES
 ('Free', 0, 'monthly', '["Limited likes", "Basic discovery", "Chat requests", "Profile creation"]', true),

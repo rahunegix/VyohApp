@@ -19,7 +19,7 @@ export function StepIndicator({ currentStep, totalSteps, className }: StepIndica
           className={cn(
             "h-1.5 flex-1 rounded-full transition-all duration-500 ease-out",
             i < currentStep 
-              ? "bg-primary shadow-[0_0_8px_rgba(255,111,0,0.35)]" 
+              ? "bg-primary shadow-[0_0_8px_rgba(198,40,40,0.35)]" 
               : i === currentStep 
                 ? "bg-primary/50 relative overflow-hidden" 
                 : "bg-muted"

@@ -23,6 +23,9 @@ CREATE TABLE success_stories (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE success_stories
+  ADD COLUMN IF NOT EXISTS gallery_image_urls TEXT[] NOT NULL DEFAULT '{}';
+
 CREATE INDEX idx_success_stories_status ON success_stories(status);
 CREATE INDEX idx_success_stories_type ON success_stories(story_type);
 CREATE INDEX idx_success_stories_featured ON success_stories(is_featured) WHERE status = 'published';

@@ -14,6 +14,7 @@ import {
 import { WELCOME_SUCCESS_STORIES } from "@/lib/constants/success-stories";
 import { SuccessStoryShowcase } from "@/components/auth/success-story-showcase";
 import { cn } from "@/lib/helpers/utils";
+import type { SuccessStoryView } from "@/lib/success-stories/types";
 
 export type AuthVisualVariant = "welcome" | "login" | "onboarding";
 
@@ -200,7 +201,7 @@ function PhotoCollage({
             className={cn(
               "relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-all",
               i === activeIndex
-                ? "border-primary shadow-[0_0_12px_rgba(255,111,0,0.45)]"
+                ? "border-primary shadow-[0_0_12px_rgba(198,40,40,0.45)]"
                 : "border-white/15 opacity-75 hover:opacity-100"
             )}
           >
@@ -215,13 +216,21 @@ function PhotoCollage({
 export function AuthVisualPanel({
   variant = "welcome",
   className,
+  featuredStories,
 }: {
   variant?: AuthVisualVariant;
   className?: string;
+  featuredStories?: SuccessStoryView[];
 }) {
   const copy = VARIANT_COPY[variant];
   const images = getAuthVisualImages(variant);
-  const backdrop = variant === "welcome" ? WELCOME_SUCCESS_STORIES[0] : images[0];
+  const welcomeStories =
+    featuredStories !== undefined ? featuredStories : WELCOME_SUCCESS_STORIES;
+  const storyVariants: AuthVisualVariant[] = ["welcome", "onboarding", "login"];
+  const showStoryShowcase =
+    welcomeStories.length > 0 && storyVariants.includes(variant);
+  const backdrop =
+    showStoryShowcase && welcomeStories[0] ? welcomeStories[0] : images[0];
 
   return (
     <div
@@ -261,9 +270,9 @@ export function AuthVisualPanel({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          {variant === "welcome" ? (
-            <SuccessStoryShowcase stories={WELCOME_SUCCESS_STORIES} theme="dark" />
-          ) : (
+          {showStoryShowcase ? (
+            <SuccessStoryShowcase stories={welcomeStories} theme="dark" />
+          ) : variant === "welcome" ? null : (
             <PhotoCollage images={images} />
           )}
         </motion.div>

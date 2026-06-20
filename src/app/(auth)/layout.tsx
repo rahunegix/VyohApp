@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
 import { AuthVisualPanel, type AuthVisualVariant } from "@/components/auth/auth-visual-panel";
+import { useLatestSuccessStories } from "@/hooks/use-latest-success-stories";
 import { useLanguageStore } from "@/store/language";
 import { useEffect } from "react";
 
@@ -15,6 +16,7 @@ function getVisualVariant(pathname: string): AuthVisualVariant {
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { hydrate } = useLanguageStore();
+  const { stories } = useLatestSuccessStories(3);
   const isWelcome = pathname === "/welcome";
   const isOnboarding = pathname.startsWith("/onboarding");
   const showSwitcher = !isWelcome && !isOnboarding;
@@ -41,6 +43,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="mx-auto flex h-dvh max-h-dvh w-full max-w-[960px] flex-col overflow-hidden bg-white shadow-[var(--shadow-elevated)] lg:h-auto lg:min-h-[640px] lg:max-h-[90dvh] lg:flex-row lg:rounded-[2rem] lg:border lg:border-border/50">
         <AuthVisualPanel
           variant={variant}
+          featuredStories={stories}
           className="hidden lg:flex lg:w-[min(420px,44%)] lg:shrink-0 lg:rounded-l-[2rem]"
         />
         <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:max-h-[90dvh] lg:min-h-[640px] lg:rounded-r-[2rem]">

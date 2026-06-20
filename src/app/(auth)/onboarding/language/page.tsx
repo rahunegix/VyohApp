@@ -5,9 +5,11 @@ import { motion } from "framer-motion";
 import { Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthBackButton } from "@/components/auth/auth-back-button";
+import { SuccessStoryShowcase } from "@/components/auth/success-story-showcase";
 import { AppLogo } from "@/components/common/app-logo";
 import { LanguageOptionCard } from "@/components/common/language-switcher";
 import { LANGUAGES } from "@/lib/i18n/languages";
+import { useLatestSuccessStories } from "@/hooks/use-latest-success-stories";
 import { useLanguageStore } from "@/store/language";
 import { useTranslation } from "@/hooks/use-translation";
 
@@ -15,6 +17,7 @@ export default function LanguageSelectPage() {
   const router = useRouter();
   const { language, setLanguage } = useLanguageStore();
   const { t, hydrated } = useTranslation();
+  const { stories } = useLatestSuccessStories(3);
 
   if (!hydrated) return null;
 
@@ -22,7 +25,7 @@ export default function LanguageSelectPage() {
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-white">
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain hide-scrollbar px-6 pt-6 pb-4 lg:px-10 lg:py-12">
           <div className="mb-6 flex items-center justify-between lg:mb-8">
-            <AuthBackButton href="/welcome" dark={false} />
+            <AuthBackButton href="/" dark={false} />
             <AppLogo className="h-7 w-auto max-w-[128px]" />
           </div>
 
@@ -38,6 +41,20 @@ export default function LanguageSelectPage() {
             <h1 className="text-2xl font-extrabold tracking-tight lg:text-3xl">{t("choose_language")}</h1>
             <p className="mt-2 text-muted-foreground">{t("choose_subtitle")}</p>
           </motion.div>
+
+          {stories.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              className="mt-6 lg:hidden"
+            >
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest text-primary">
+                Success stories
+              </p>
+              <SuccessStoryShowcase stories={stories} theme="light" compact />
+            </motion.div>
+          )}
 
           <motion.div
             initial={{ opacity: 0, y: 16 }}

@@ -1,7 +1,7 @@
 export const APP_NAME = "Saathini";
 export const APP_TAGLINE = "From Connection to Commitment";
 export const LOGO_PATH = "/images/saathini_logo.svg";
-export const PRIMARY_COLOR = "#FF6F00";
+export const PRIMARY_COLOR = "#C62828";
 export const MOBILE_CONTENT_WIDTH = 480;
 export const DESKTOP_SHELL_WIDTH = 960;
 export const DESKTOP_SIDEBAR_WIDTH = 240;

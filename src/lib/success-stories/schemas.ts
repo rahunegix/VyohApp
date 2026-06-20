@@ -9,6 +9,7 @@ export const successStoryPayloadSchema = z.object({
   quote: z.string().min(10),
   body: z.string().optional().nullable(),
   cover_image_url: z.string().url(),
+  gallery_image_urls: z.array(z.string().url()).optional(),
   alt_text: z.string().optional().nullable(),
   is_featured: z.boolean().optional(),
   status: z.enum(["draft", "published", "archived"]).optional(),

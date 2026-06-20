@@ -6,6 +6,18 @@ import { createAdminClient } from "@/lib/supabase/admin";
 const AUTH_ROUTES = ["/welcome", "/login", "/otp"];
 const ONBOARDING_ROUTES = ["/onboarding", "/verification"];
 const ADMIN_LOGIN = "/admin/login";
+const MARKETING_ROUTES = [
+  "/matrimony",
+  "/success-stories",
+  "/share-your-story",
+  "/help",
+  "/trust-center",
+  "/p/",
+];
+
+function isMarketingRoute(path: string) {
+  return MARKETING_ROUTES.some((r) => path.startsWith(r));
+}
 
 function isAdminPanelRoute(path: string) {
   return path.startsWith("/admin") && !path.startsWith(ADMIN_LOGIN);
@@ -23,6 +35,7 @@ export async function middleware(request: NextRequest) {
     path === "/" ||
     AUTH_ROUTES.some((r) => path.startsWith(r)) ||
     ONBOARDING_ROUTES.some((r) => path.startsWith(r)) ||
+    isMarketingRoute(path) ||
     path.startsWith(ADMIN_LOGIN) ||
     path.startsWith("/api/auth") ||
     path.startsWith("/api/payments/callback") ||
@@ -92,6 +105,7 @@ export async function middleware(request: NextRequest) {
     }
   } else if (
     !isOnboardingRoute &&
+    !isMarketingRoute(path) &&
     !path.startsWith("/api") &&
     !isAdminPanelRoute(path) &&
     !path.startsWith("/sw.js")

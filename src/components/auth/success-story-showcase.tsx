@@ -121,8 +121,6 @@ export function SuccessStoryShowcase({
   sectionLabel?: string;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const active = stories[activeIndex] ?? stories[0];
-  const sideStories = stories.filter((_, i) => i !== activeIndex).slice(0, 2);
 
   useEffect(() => {
     if (stories.length <= 1) return;
@@ -131,6 +129,11 @@ export function SuccessStoryShowcase({
     }, 5000);
     return () => window.clearInterval(timer);
   }, [stories.length]);
+
+  if (!stories.length) return null;
+
+  const active = stories[activeIndex] ?? stories[0];
+  const sideStories = stories.filter((_, i) => i !== activeIndex).slice(0, 2);
 
   const frameClass =
     theme === "dark"
@@ -257,7 +260,7 @@ export function SuccessStoryShowcase({
             className={cn(
               "relative h-14 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-all",
               i === activeIndex
-                ? "border-primary shadow-[0_0_12px_rgba(255,111,0,0.35)]"
+                ? "border-primary shadow-[0_0_12px_rgba(198,40,40,0.35)]"
                 : theme === "dark"
                   ? "border-white/15 opacity-75 hover:opacity-100"
                   : "border-border opacity-80 hover:opacity-100"

@@ -11,6 +11,8 @@ interface AdminPhotoCropModalProps {
   imageSrc: string | null;
   onClose: () => void;
   onConfirm: (blob: Blob) => Promise<void> | void;
+  aspect?: number;
+  title?: string;
 }
 
 export function AdminPhotoCropModal({
@@ -18,6 +20,8 @@ export function AdminPhotoCropModal({
   imageSrc,
   onClose,
   onConfirm,
+  aspect = 4 / 5,
+  title = "Crop photo",
 }: AdminPhotoCropModalProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -45,7 +49,7 @@ export function AdminPhotoCropModal({
   };
 
   return (
-    <AdminModal open={open && !!imageSrc} title="Crop photo" onClose={onClose} wide>
+    <AdminModal open={open && !!imageSrc} title={title} onClose={onClose} wide>
       {imageSrc && (
         <>
           <div className="relative h-[min(60vh,420px)] overflow-hidden rounded-xl bg-black">
@@ -53,7 +57,7 @@ export function AdminPhotoCropModal({
               image={imageSrc}
               crop={crop}
               zoom={zoom}
-              aspect={4 / 5}
+              aspect={aspect}
               onCropChange={setCrop}
               onZoomChange={setZoom}
               onCropComplete={onCropComplete}
