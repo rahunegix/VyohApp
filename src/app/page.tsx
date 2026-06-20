@@ -5,7 +5,6 @@ import { FALLBACK_HOME_SEO } from "@/lib/seo/defaults";
 import { getLatestSuccessStories } from "@/lib/success-stories/service";
 import { SeoLandingContent } from "@/components/seo/seo-landing-content";
 import { SeoJsonLdBundle } from "@/components/seo/json-ld-script";
-import { SiteFooter } from "@/components/common/site-footer";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +27,6 @@ export default async function HomePage() {
       <SeoJsonLdBundle page={seoPage} />
       <div className="min-h-dvh bg-gradient-to-b from-primary/5 via-background to-background">
         <SeoLandingContent page={seoPage} latestStories={latestStories} />
-        <SiteFooter />
       </div>
     </>
   );

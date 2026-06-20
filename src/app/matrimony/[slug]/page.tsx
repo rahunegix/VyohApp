@@ -4,7 +4,6 @@ import { getSeoPageBySlug } from "@/lib/seo/service";
 import { buildSeoMetadata } from "@/lib/seo/metadata";
 import { SeoLandingContent } from "@/components/seo/seo-landing-content";
 import { SeoJsonLdBundle } from "@/components/seo/json-ld-script";
-import { SiteFooter } from "@/components/common/site-footer";
 
 export async function generateMetadata({
   params,
@@ -31,7 +30,6 @@ export default async function ProgrammaticMatrimonyPage({
       <SeoJsonLdBundle page={page} />
       <div className="min-h-dvh bg-gradient-to-b from-primary/5 via-background to-background">
         <SeoLandingContent page={page} />
-        <SiteFooter />
       </div>
     </>
   );
