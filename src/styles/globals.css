@@ -30,6 +30,13 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Keep controls consistent across web + mobile */
+button,
+select,
+[role="combobox"] {
+  border-radius: 6px !important;
+}
+
 html {
   scroll-behavior: smooth;
 }

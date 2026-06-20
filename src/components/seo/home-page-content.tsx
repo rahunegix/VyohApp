@@ -2,11 +2,17 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowRight,
+  BadgeCheck,
   CheckCircle2,
+  CirclePlay,
+  Compass,
   Heart,
+  MessageCircleHeart,
   MapPin,
+  ShieldCheck,
   Shield,
   Sparkles,
+  Stars,
   Users,
 } from "lucide-react";
 import type { SeoPageView } from "@/lib/seo/types";
@@ -18,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import { APP_TAGLINE } from "@/lib/constants";
 
 const ONBOARDING_START = "/onboarding/language";
+const HERO_IMAGE_URL =
+  "https://okcyohdpvoobhjiuspkr.supabase.co/storage/v1/object/public/profile-photos-public/admin/success-stories/1781970690439-36ed89e4.jpg";
 
 const TRUST_ITEMS = [
   { icon: Shield, label: "Phone & face verified" },
@@ -26,12 +34,53 @@ const TRUST_ITEMS = [
 ];
 
 const SECTION_ICONS = [Heart, Users, Shield, Sparkles];
+const STATS = [
+  { value: "13", label: "Districts covered" },
+  { value: "2 min", label: "Average signup time" },
+  { value: "100%", label: "Consent-first matching" },
+];
+const NAV_LINKS = [
+  { href: "#features", label: "Features" },
+  { href: "#how-it-works", label: "How it works" },
+  { href: "#stories", label: "Stories" },
+  { href: "#faq", label: "FAQ" },
+];
+const QUICK_FEATURES = [
+  {
+    icon: ShieldCheck,
+    title: "Verified first",
+    body: "Phone and identity checks keep matching safer and more genuine.",
+  },
+  {
+    icon: MessageCircleHeart,
+    title: "Intent-first chat",
+    body: "Start with respectful, consent-first conversations before family introductions.",
+  },
+  {
+    icon: Compass,
+    title: "Local community focus",
+    body: "Built around Garhwali and Kumaoni culture, districts, and family preferences.",
+  },
+];
+const HOW_IT_WORKS = [
+  { step: "01", title: "Create profile", body: "Join free using OTP and complete your basics in under 2 minutes." },
+  { step: "02", title: "Get quality matches", body: "Discover compatible singles by intent, region, and trust indicators." },
+  { step: "03", title: "Connect with confidence", body: "Chat respectfully, involve family when ready, and move forward." },
+];
 
-function PrimaryCta({ className }: { className?: string }) {
+function PrimaryCta({ className, nav = false }: { className?: string; nav?: boolean }) {
   return (
     <Link href={ONBOARDING_START} className={className}>
-      <Button size="lg" className="h-12 rounded-xl px-7 text-base font-semibold shadow-[var(--shadow-float)]">
-        Create your profile
+      <Button
+        size="lg"
+        className={
+          nav
+            ? "h-10 rounded-[6px] bg-[linear-gradient(120deg,#c62828,#a71f1f)] px-4 text-sm font-semibold text-white shadow-[var(--shadow-float)] hover:brightness-105"
+            : "h-12 rounded-[6px] bg-[linear-gradient(120deg,#c62828,#a71f1f)] px-7 text-base font-semibold text-white shadow-[var(--shadow-float)] hover:brightness-105"
+        }
+      >
+        {nav ? "Start free" : "Create your profile"}
+        {nav && <Sparkles className="h-4 w-4" />}
         <ArrowRight className="h-4 w-4" />
       </Button>
     </Link>
@@ -40,33 +89,48 @@ function PrimaryCta({ className }: { className?: string }) {
 
 function SiteNav() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-white/90 backdrop-blur-md safe-top">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 lg:px-8">
-        <Link href="/" aria-label="Saathini home">
-          <AppLogo className="h-9" priority />
-        </Link>
-        <nav className="hidden items-center gap-8 sm:flex">
-          <Link
-            href="/success-stories"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Success Stories
-          </Link>
-          <Link
-            href="/login"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Log in
-          </Link>
-        </nav>
-        <PrimaryCta className="hidden sm:block" />
-        <Link href={ONBOARDING_START} className="sm:hidden">
-          <Button size="sm" className="h-9 rounded-lg px-4 font-semibold">
-            Join free
-          </Button>
-        </Link>
+    <>
+      <div className="border-b border-border/50 bg-gradient-to-r from-primary/5 via-background to-primary/5 px-5 py-2 text-center text-xs text-muted-foreground">
+        Free to join today - verified matching built for Garhwali and Kumaoni families.
       </div>
-    </header>
+      <header className="sticky top-0 z-40 border-b border-border/40 bg-white/70 backdrop-blur-xl safe-top">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 lg:px-8">
+          <Link href="/" aria-label="Saathini home">
+            <AppLogo className="h-9" priority />
+          </Link>
+          <nav className="hidden items-center gap-2 md:flex">
+            {NAV_LINKS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                {item.label}
+              </Link>
+            ))}
+            <Link
+              href="/success-stories"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              Success Stories
+            </Link>
+          </nav>
+          <div className="flex items-center gap-2">
+            <Link href="/login" className="hidden sm:block">
+              <Button variant="ghost" size="sm" className="h-10 rounded-[6px] px-4 font-semibold">
+                Log in
+              </Button>
+            </Link>
+            <PrimaryCta nav className="hidden sm:block" />
+            <Link href={ONBOARDING_START} className="sm:hidden">
+              <Button size="sm" className="h-9 rounded-[6px] px-4 font-semibold">
+                Join free
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </header>
+    </>
   );
 }
 
@@ -77,22 +141,35 @@ export function HomePageContent({
   page: SeoPageView;
   latestStories?: SuccessStoryView[];
 }) {
-  const heroStory = latestStories[0];
+  const heroImageSrc = HERO_IMAGE_URL;
+  const heroImageAlt = "Indian couple celebrating together";
 
   return (
-    <div className="marketing-page bg-background">
+    <div className="marketing-page relative isolate overflow-hidden bg-background">
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-[radial-gradient(circle_at_10%_0%,rgba(198,40,40,0.18),transparent_45%),radial-gradient(circle_at_85%_5%,rgba(198,40,40,0.1),transparent_30%)]" />
       <SiteNav />
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border/40">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(198,40,40,0.08),transparent)]" />
-        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-8 lg:py-20">
+        <div className="pointer-events-none absolute -left-20 top-16 h-56 w-56 rounded-full bg-primary/15 blur-3xl animate-pulse-soft" />
+        <div className="pointer-events-none absolute -right-24 top-20 h-64 w-64 rounded-full bg-rose-300/25 blur-3xl animate-pulse-soft" />
+        <svg
+          aria-hidden
+          className="pointer-events-none absolute right-[6%] top-10 hidden h-40 w-40 text-primary/20 lg:block"
+          viewBox="0 0 160 160"
+          fill="none"
+        >
+          <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 6" />
+          <circle cx="80" cy="80" r="46" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M80 20V140M20 80H140" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-8 lg:py-24">
           <div className="space-y-6">
-            <p className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+            <p className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3 py-1 text-xs font-semibold text-primary shadow-[var(--shadow-soft)]">
               <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              Uttarakhand matrimony & dating
+              Premium Uttarakhand matrimony platform
             </p>
-            <h1 className="text-3xl font-extrabold leading-[1.15] tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+            <h1 className="text-3xl font-black leading-[1.08] tracking-tight text-foreground sm:text-4xl lg:text-6xl">
               {page.h1 || page.title}
             </h1>
             {page.hero_subtitle && (
@@ -119,22 +196,38 @@ export function HomePageContent({
             <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center">
               <PrimaryCta />
               <Link href="/success-stories">
-                <Button variant="outline" size="lg" className="h-12 w-full rounded-xl sm:w-auto">
-                  Read success stories
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-12 w-full rounded-[6px] border-border/70 bg-white/70 backdrop-blur sm:w-auto"
+                >
+                  <CirclePlay className="h-4 w-4" />
+                  View success stories
                 </Button>
               </Link>
             </div>
             <p className="text-xs text-muted-foreground">
               Free to join · Phone OTP verification · {APP_TAGLINE}
             </p>
+            <div className="grid grid-cols-1 gap-3 pt-3 sm:grid-cols-3">
+              {STATS.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-xl border border-border/60 bg-white/85 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur"
+                >
+                  <p className="text-lg font-extrabold text-foreground">{stat.value}</p>
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-[var(--shadow-elevated)] sm:aspect-[5/6]">
-              {heroStory ? (
+            <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-border/60 bg-muted shadow-[var(--shadow-elevated)] sm:aspect-[5/6]">
+              {heroImageSrc ? (
                 <Image
-                  src={heroStory.src}
-                  alt={heroStory.alt}
+                  src={heroImageSrc}
+                  alt={heroImageAlt}
                   fill
                   priority
                   sizes="(max-width: 1024px) 100vw, 50vw"
@@ -158,17 +251,44 @@ export function HomePageContent({
                 </p>
               </div>
             </div>
-            <div className="absolute -bottom-4 -left-4 hidden rounded-xl border border-border/60 bg-white p-4 shadow-[var(--shadow-card)] lg:block">
-              <p className="text-2xl font-extrabold text-primary">13</p>
-              <p className="text-xs font-medium text-muted-foreground">districts covered</p>
+            <div className="absolute -bottom-6 -left-5 hidden max-w-[220px] rounded-2xl border border-border/60 bg-white/90 p-4 shadow-[var(--shadow-card)] backdrop-blur lg:block">
+              <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-primary">
+                <BadgeCheck className="h-3.5 w-3.5" />
+                Safety first
+              </p>
+              <p className="mt-1 text-sm font-medium text-foreground">We review trust indicators before profiles go live.</p>
+            </div>
+            <div className="absolute -top-6 -right-4 hidden rounded-2xl border border-primary/20 bg-white/90 px-4 py-3 shadow-[var(--shadow-card)] backdrop-blur lg:block">
+              <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
+                <Stars className="h-3.5 w-3.5" />
+                Modern + traditional
+              </p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Quick value cards */}
+      <section className="border-b border-border/40 py-8 lg:py-10">
+        <div className="mx-auto grid max-w-6xl gap-4 px-5 sm:grid-cols-3 lg:px-8">
+          {QUICK_FEATURES.map(({ icon: Icon, title, body }) => (
+            <article
+              key={title}
+              className="rounded-2xl border border-border/60 bg-white/80 p-5 shadow-[var(--shadow-soft)] backdrop-blur transition-transform duration-200 hover:-translate-y-0.5"
+            >
+              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                <Icon className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="text-base font-bold text-foreground">{title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       {/* Feature sections from SEO content */}
       {page.sections.length > 0 && (
-        <section className="border-b border-border/40 bg-muted/30 py-14 lg:py-20">
+        <section id="features" className="border-b border-border/40 bg-muted/30 py-14 lg:py-20">
           <div className="mx-auto max-w-6xl px-5 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <p className="text-xs font-bold uppercase tracking-widest text-primary">Why Saathini</p>
@@ -207,9 +327,30 @@ export function HomePageContent({
         </section>
       )}
 
+      {/* How it works */}
+      <section id="how-it-works" className="border-b border-border/40 py-14 lg:py-20">
+        <div className="mx-auto max-w-6xl px-5 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-xs font-bold uppercase tracking-widest text-primary">Simple process</p>
+            <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-foreground lg:text-3xl">
+              Find your match in 3 clear steps
+            </h2>
+          </div>
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {HOW_IT_WORKS.map((item) => (
+              <article key={item.step} className="rounded-2xl border border-border/60 bg-white p-6 shadow-[var(--shadow-soft)]">
+                <p className="text-xs font-bold tracking-[0.2em] text-primary">{item.step}</p>
+                <h3 className="mt-2 text-lg font-bold text-foreground">{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Success stories */}
       {latestStories.length > 0 && (
-        <section className="py-14 lg:py-20">
+        <section id="stories" className="py-14 lg:py-20">
           <div className="mx-auto max-w-6xl px-5 lg:px-8">
             <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -259,7 +400,7 @@ export function HomePageContent({
 
       {/* FAQ */}
       {page.faq.length > 0 && (
-        <section className="py-14 lg:py-20">
+        <section id="faq" className="py-14 lg:py-20">
           <div className="mx-auto max-w-3xl px-5 lg:px-8">
             <FaqSection items={page.faq} />
           </div>
@@ -267,7 +408,7 @@ export function HomePageContent({
       )}
 
       {/* Bottom CTA */}
-      <section className="border-t border-primary/20 bg-primary">
+      <section className="border-t border-primary/20 bg-[linear-gradient(120deg,#9f1f1f,#c62828,#8f1a1a)]">
         <div className="mx-auto max-w-6xl px-5 py-14 text-center lg:px-8 lg:py-16">
           <h2 className="text-2xl font-extrabold tracking-tight text-white lg:text-3xl">
             Ready to find your match?
@@ -280,7 +421,7 @@ export function HomePageContent({
               <Button
                 size="lg"
                 variant="secondary"
-                className="h-12 rounded-xl bg-white px-8 text-base font-semibold text-primary hover:bg-white/95"
+                className="h-12 rounded-[6px] bg-white px-8 text-base font-semibold text-primary hover:bg-white/95"
               >
                 Get started — it&apos;s free
                 <ArrowRight className="h-4 w-4" />
@@ -290,7 +431,7 @@ export function HomePageContent({
               <Button
                 size="lg"
                 variant="ghost"
-                className="h-12 rounded-xl text-white hover:bg-white/10 hover:text-white"
+                className="h-12 rounded-[6px] text-white hover:bg-white/10 hover:text-white"
               >
                 Already a member? Log in
               </Button>
@@ -309,7 +450,7 @@ export function HomePageContent({
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/30 hover:text-primary"
+                  className="rounded-xl border border-border bg-white px-4 py-2.5 text-[9px] font-medium text-foreground transition-colors hover:border-primary/30 hover:text-primary"
                 >
                   {link.label}
                 </Link>
