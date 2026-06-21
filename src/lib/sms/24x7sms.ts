@@ -3,8 +3,6 @@
  * Docs: https://www.24x7sms.com/downloads/24X7SMS_http_API2.0.pdf
  */
 
-import { getWebOtpOrigin } from "@/lib/auth/otp-autofill";
-
 export interface SMSResponse {
   success: boolean;
   message?: string;
@@ -15,15 +13,19 @@ export interface SMSResponse {
 
 export type OtpSmsClient = "web" | "android";
 
-/** DLT body — first {#var#} = OTP in message text. */
-const SMS_OTP_BODY =
-  "<#>{#var#} is your SAATHINI (Uttarakhandi Matrimonial & Dating Platform) login OTP code. Do not share this code with anyone. It is valid for 5 minutes. If you did not request this, please ignore this message. - Team SAATHINI";
+/** DLT template — both {#var#} = OTP. Matches 24x7SMS portal registration. */
+const SMS_OTP_TEMPLATE =
+  "<#>{#var#} is your SAATHINI (Uttarakhandi Matrimonial & Dating Platform) login OTP code. Do not share this code with anyone. It is valid for 5 minutes. If you did not request this, please ignore this message. - Team SAATHINI @www.saathini.com #{#var#}";
 
-function fillOtpBody(otp: string): string {
+function fillOtpTemplate(otp: string): string {
   const marker = "{#var#}";
-  const first = SMS_OTP_BODY.indexOf(marker);
-  if (first === -1) return SMS_OTP_BODY;
-  return SMS_OTP_BODY.slice(0, first) + otp + SMS_OTP_BODY.slice(first + marker.length);
+  const first = SMS_OTP_TEMPLATE.indexOf(marker);
+  if (first === -1) return SMS_OTP_TEMPLATE;
+
+  let message =
+    SMS_OTP_TEMPLATE.slice(0, first) + otp + SMS_OTP_TEMPLATE.slice(first + marker.length);
+  message = message.replace(marker, otp);
+  return message;
 }
 
 export function formatPhoneNumber(phone: string): string {
@@ -86,22 +88,16 @@ function parseSmsResponse(trimmedResult: string): SMSResponse {
 }
 
 export function buildOtpMessage(otp: string, client: OtpSmsClient = "web"): string {
-  const origin = getWebOtpOrigin() || "www.saathini.com";
-  const body = fillOtpBody(otp);
-  const webBinding = `@${origin} #${otp}`;
+  const message = fillOtpTemplate(otp);
 
   if (client === "android") {
     const androidHash = process.env.SMS_OTP_ANDROID_HASH?.trim();
-    let message = `${body} ${webBinding}`;
     if (androidHash) {
-      message += ` <# ${androidHash}`;
+      return `${message} <# ${androidHash}`;
     }
-    return message;
   }
 
-  // Chrome Web OTP: last line must start with @ (newline before binding).
-  // This @domain #otp line is required by Google — not optional decoration.
-  return `${body}\r\n${webBinding}`;
+  return message;
 }
 
 export async function sendOTP(

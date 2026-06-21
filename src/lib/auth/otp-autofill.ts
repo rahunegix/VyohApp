@@ -38,3 +38,35 @@ export function getWebOtpOrigin(): string | null {
     return null;
   }
 }
+
+/** Expected Web OTP host in the browser (client-side). */
+export function getClientWebOtpOrigin(): string {
+  if (typeof window === "undefined") return "";
+  return window.location.hostname;
+}
+
+export function getExpectedClientWebOtpOrigin(): string {
+  const publicUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (publicUrl) {
+    try {
+      return new URL(publicUrl).hostname;
+    } catch {
+      /* fall through */
+    }
+  }
+  return "www.saathini.com";
+}
+
+export function isWebOtpOriginMatch(): boolean {
+  if (typeof window === "undefined") return true;
+  return getClientWebOtpOrigin() === getExpectedClientWebOtpOrigin();
+}
+
+export function supportsWebOtpApi(): boolean {
+  return typeof window !== "undefined" && "OTPCredential" in window;
+}
+
+export function isMobileBrowser(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}

@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { AuthScreenLayout } from "@/components/auth/auth-screen-layout";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/auth/phone";
 import { OTP_LENGTH, OTP_TTL_MINUTES } from "@/lib/auth/otp-config";
+import {
+  getClientWebOtpOrigin,
+  getExpectedClientWebOtpOrigin,
+  isMobileBrowser,
+} from "@/lib/auth/otp-autofill";
 import { APP_NAME } from "@/lib/constants";
 import { useTranslation } from "@/hooks/use-translation";
 import { useOtpAutofill } from "@/hooks/use-otp-autofill";
@@ -17,9 +22,12 @@ export default function OtpPage() {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [resending, setResending] = useState(false);
+  const [autoFilling, setAutoFilling] = useState(false);
+  const [hint, setHint] = useState("");
   const [error, setError] = useState("");
   const [phone, setPhone] = useState("");
   const [listenKey, setListenKey] = useState(0);
+  const [smsSent, setSmsSent] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const sendStartedRef = useRef(false);
 
@@ -55,6 +63,7 @@ export default function OtpPage() {
     (incoming: string) => {
       const digits = incoming.replace(/\D/g, "").slice(0, OTP_LENGTH);
       setCode(digits);
+      setHint("");
       if (digits.length === OTP_LENGTH) {
         void handleVerify(digits);
       }
@@ -62,19 +71,26 @@ export default function OtpPage() {
     [handleVerify]
   );
 
-  const { handleAutofillInput, handlePaste } = useOtpAutofill({
+  const {
+    webOtpSupported,
+    originMatches,
+    requestWebOtp,
+    pasteFromClipboard,
+    handleAutofillInput,
+    handlePaste,
+  } = useOtpAutofill({
     enabled: Boolean(phone),
     listenKey,
     onCode: applyCode,
   });
 
-  // Start Web OTP listener first, then send SMS from this page (critical for Chrome popup).
   useEffect(() => {
     if (!phone || sendStartedRef.current) return;
     sendStartedRef.current = true;
 
     const alreadySent = sessionStorage.getItem("saathini_otp_sent") === phone;
     if (alreadySent) {
+      setSmsSent(true);
       inputRef.current?.focus();
       return;
     }
@@ -84,6 +100,8 @@ export default function OtpPage() {
       .then(({ phone: e164 }) => {
         sessionStorage.setItem("saathini_phone_e164", e164);
         sessionStorage.setItem("saathini_otp_sent", phone);
+        setSmsSent(true);
+        setHint("SMS aane ke baad neeche Auto-fill dabayein, ya code paste karein.");
       })
       .catch((err) => {
         sendStartedRef.current = false;
@@ -109,15 +127,46 @@ export default function OtpPage() {
     }
   };
 
+  const handleAutoFill = async () => {
+    setAutoFilling(true);
+    setError("");
+    setHint("");
+    const result = await requestWebOtp();
+    setAutoFilling(false);
+
+    if (result.ok) return;
+
+    if (result.reason === "unsupported") {
+      setHint("Auto-fill ke liye phone par Chrome browser use karein.");
+    } else if (result.reason === "origin") {
+      setHint(`Site ${getExpectedClientWebOtpOrigin()} par kholo (abhi: ${getClientWebOtpOrigin()}).`);
+    } else if (result.reason === "denied") {
+      setHint("Allow dabayein jab Chrome pooche, ya code manually paste karein.");
+    } else {
+      setHint("SMS se 4-digit code copy karke Paste dabayein.");
+    }
+  };
+
+  const handlePasteClick = async () => {
+    setError("");
+    const pasted = await pasteFromClipboard();
+    if (!pasted) {
+      setHint("SMS se OTP copy karein (3989), phir Paste dubara dabayein.");
+    }
+  };
+
   const handleResend = async () => {
     if (!phone || resending) return;
     setResending(true);
     setError("");
+    setHint("");
     setCode("");
     setListenKey((k) => k + 1);
     try {
       await sendPhoneOtp(phone, "web");
       sessionStorage.setItem("saathini_otp_sent", phone);
+      setSmsSent(true);
+      setHint("Naya SMS aaya? Auto-fill dabayein ya Paste karein.");
       inputRef.current?.focus();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("resend_failed"));
@@ -127,6 +176,7 @@ export default function OtpPage() {
   };
 
   const isComplete = code.length === OTP_LENGTH;
+  const showAutoFill = webOtpSupported && originMatches && isMobileBrowser();
 
   if (!hydrated) return null;
 
@@ -135,11 +185,7 @@ export default function OtpPage() {
       title="Verify it's you"
       subtitle={
         <>
-          {sending ? (
-            <>Sending code to{" "}</>
-          ) : (
-            <>We sent a code to{" "}</>
-          )}
+          {sending ? <>Sending code to{" "}</> : <>We sent a code to{" "}</>}
           <span className="font-bold text-primary">+91 {phone || "••••••••••"}</span>. Enter it
           here to join {APP_NAME}.
         </>
@@ -169,9 +215,16 @@ export default function OtpPage() {
         </>
       }
     >
+      {!originMatches && (
+        <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm text-amber-900">
+          Auto-fill ke liye{" "}
+          <span className="font-semibold">{getExpectedClientWebOtpOrigin()}</span> par kholo.
+        </p>
+      )}
+
       <form
         id="otp-form"
-        className="mx-auto w-full max-w-xs"
+        className="mx-auto w-full max-w-xs space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
           void handleVerify();
@@ -196,18 +249,40 @@ export default function OtpPage() {
           className="ui-otp-box ui-otp-single w-full text-center text-2xl font-bold tracking-[0.55em] sm:h-[4.25rem]"
           aria-label="One-time verification code"
         />
+
+        {smsSent && !sending ? (
+          <div className="flex flex-col gap-2 sm:flex-row">
+            {showAutoFill ? (
+              <Button
+                type="button"
+                variant="secondary"
+                className="flex-1"
+                loading={autoFilling}
+                onClick={handleAutoFill}
+              >
+                Auto-fill from SMS
+              </Button>
+            ) : null}
+            <Button type="button" variant="secondary" className="flex-1" onClick={handlePasteClick}>
+              Paste code
+            </Button>
+          </div>
+        ) : null}
       </form>
 
-      {error && (
-        <p className="mt-4 text-center text-sm font-semibold text-destructive lg:text-left">
+      {hint ? (
+        <p className="mt-3 text-center text-sm font-medium text-primary lg:text-left">{hint}</p>
+      ) : null}
+
+      {error ? (
+        <p className="mt-3 text-center text-sm font-semibold text-destructive lg:text-left">
           {error}
         </p>
-      )}
+      ) : null}
 
       <p className="mt-6 text-center text-xs text-muted-foreground lg:text-left">
-        Code expires in {OTP_TTL_MINUTES} minutes. On your phone, open{" "}
-        <span className="font-medium">Chrome → www.saathini.com</span> and stay on this screen
-        when the SMS arrives.
+        Code expires in {OTP_TTL_MINUTES} minutes. Indian SMS par Chrome auto-fill hamesha kaam
+        nahi karta — SMS se 4 digits copy karke Paste sabse reliable hai.
       </p>
     </AuthScreenLayout>
   );
