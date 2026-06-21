@@ -2,13 +2,13 @@ import { formatPhoneE164, normalizePhoneStorage } from "@/lib/auth/session";
 
 export { formatPhoneE164 };
 
-export async function sendPhoneOtp(phone: string) {
+export async function sendPhoneOtp(phone: string, client: "web" | "android" = "web") {
   const formatted = formatPhoneE164(phone);
 
   const res = await fetch("/api/auth/send-otp", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phone: formatted }),
+    body: JSON.stringify({ phone: formatted, client }),
   });
 
   const json = await res.json();

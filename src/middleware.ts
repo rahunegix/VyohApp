@@ -23,6 +23,15 @@ function isAdminPanelRoute(path: string) {
 }
 
 export async function middleware(request: NextRequest) {
+  const host = request.nextUrl.hostname;
+
+  // Web OTP SMS binds to www.saathini.com — keep apex on the same host.
+  if (host === "saathini.com") {
+    const url = request.nextUrl.clone();
+    url.hostname = "www.saathini.com";
+    return NextResponse.redirect(url, 308);
+  }
+
   const response = NextResponse.next({ request });
   const path = request.nextUrl.pathname;
 

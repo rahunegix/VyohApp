@@ -11,11 +11,15 @@ export interface SMSResponse {
   batchId?: string;
 }
 
-/** Approved DLT template — must match portal registration exactly.
- *  Both {#var#} = OTP (second powers Web OTP: @www.saathini.com #1234).
- *  Android app hash is appended after the template: " <# {hash}". */
-const SMS_OTP_TEMPLATE =
-  "<#>{#var#} is your SAATHINI (Uttarakhandi Matrimonial & Dating Platform) login OTP code. Do not share this code with anyone. It is valid for 5 minutes. If you did not request this, please ignore this message. - Team SAATHINI @www.saathini.com #{#var#}";
+import { getWebOtpOrigin } from "@/lib/auth/otp-autofill";
+
+export type OtpSmsClient = "web" | "android";
+
+/** Approved DLT body — first {#var#} = OTP digits.
+ *  Web: `@origin #otp` on its own last line (Web OTP requirement).
+ *  Android: same binding inline + ` <# {hash}` at end (SMS Retriever). */
+const SMS_OTP_BODY =
+  "<#>{#var#} is your SAATHINI (Uttarakhandi Matrimonial & Dating Platform) login OTP code. Do not share this code with anyone. It is valid for 5 minutes. If you did not request this, please ignore this message. - Team SAATHINI";
 
 export function formatPhoneNumber(phone: string): string {
   let formatted = phone.replace(/[^0-9]/g, "");
@@ -76,24 +80,35 @@ function parseSmsResponse(trimmedResult: string): SMSResponse {
   return { success: false, error: trimmedResult || "Failed to send SMS" };
 }
 
-export function buildOtpMessage(otp: string): string {
-  const androidHash = process.env.SMS_OTP_ANDROID_HASH?.trim();
+export function buildOtpMessage(otp: string, client: OtpSmsClient = "web"): string {
+  const origin = getWebOtpOrigin() || "www.saathini.com";
   const marker = "{#var#}";
-  const first = SMS_OTP_TEMPLATE.indexOf(marker);
-  if (first === -1) return SMS_OTP_TEMPLATE;
+  const first = SMS_OTP_BODY.indexOf(marker);
+  const body =
+    first === -1
+      ? SMS_OTP_BODY
+      : SMS_OTP_BODY.slice(0, first) + otp + SMS_OTP_BODY.slice(first + marker.length);
 
-  let message =
-    SMS_OTP_TEMPLATE.slice(0, first) + otp + SMS_OTP_TEMPLATE.slice(first + marker.length);
-  message = message.replace(marker, otp);
+  const binding = `@${origin} #${otp}`;
 
-  if (androidHash) {
-    message += ` <# ${androidHash}`;
+  if (client === "android") {
+    const androidHash = process.env.SMS_OTP_ANDROID_HASH?.trim();
+    let message = `${body} ${binding}`;
+    if (androidHash) {
+      message += ` <# ${androidHash}`;
+    }
+    return message;
   }
 
-  return message;
+  // Chrome Web OTP: @host #code must be the last line with nothing after it.
+  return `${body}\n\n${binding}`;
 }
 
-export async function sendOTP(phone: string, otp: string): Promise<SMSResponse> {
+export async function sendOTP(
+  phone: string,
+  otp: string,
+  client: OtpSmsClient = "web"
+): Promise<SMSResponse> {
   try {
     const apiKey = process.env.SMS_API_KEY;
     const senderId = process.env.SMS_SENDER_ID || "SATINI";
@@ -111,7 +126,7 @@ export async function sendOTP(phone: string, otp: string): Promise<SMSResponse> 
     }
 
     const formattedPhone = formatPhoneNumber(phone);
-    const message = buildOtpMessage(otp);
+    const message = buildOtpMessage(otp, client);
 
     const params = new URLSearchParams({
       APIKEY: apiKey,

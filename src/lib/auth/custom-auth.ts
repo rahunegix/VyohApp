@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendOTP } from "@/lib/sms/24x7sms";
+import { sendOTP, type OtpSmsClient } from "@/lib/sms/24x7sms";
 import {
   createAccessToken,
   generateOtp,
@@ -12,7 +12,7 @@ import {
   MAX_OTP_ATTEMPTS,
 } from "@/lib/auth/session";
 
-export async function sendLoginOtp(phone: string) {
+export async function sendLoginOtp(phone: string, client: OtpSmsClient = "web") {
   const normalizedPhone = normalizePhoneStorage(phone);
   const admin = createAdminClient();
   const otp = generateOtp();
@@ -44,7 +44,7 @@ export async function sendLoginOtp(phone: string) {
     });
   }
 
-  const sms = await sendOTP(normalizedPhone, otp);
+  const sms = await sendOTP(normalizedPhone, otp, client);
   if (!sms.success) {
     throw new Error(sms.error || "Failed to send OTP SMS");
   }

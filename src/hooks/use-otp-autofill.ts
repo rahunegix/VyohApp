@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { extractOtpCode } from "@/lib/auth/otp-autofill";
 import { OTP_LENGTH } from "@/lib/auth/otp-config";
 
@@ -17,19 +17,24 @@ function normalizeWebOtpCode(raw: string): string | null {
   return extractOtpCode(trimmed);
 }
 
+function supportsWebOtp() {
+  return typeof window !== "undefined" && "OTPCredential" in window;
+}
+
 /** Web OTP autofill via SMS (Chrome Android) + keyboard one-time-code suggestions. */
 export function useOtpAutofill({ enabled = true, listenKey = 0, onCode }: Options) {
   const handledRef = useRef(false);
   const onCodeRef = useRef(onCode);
+  const [visibilityRetry, setVisibilityRetry] = useState(0);
   onCodeRef.current = onCode;
 
   useEffect(() => {
     handledRef.current = false;
+    setVisibilityRetry(0);
   }, [enabled, listenKey]);
 
-  useEffect(() => {
-    if (!enabled || typeof window === "undefined") return;
-    if (!("OTPCredential" in window)) return;
+  const listenForSmsOtp = useCallback(() => {
+    if (!enabled || !supportsWebOtp()) return undefined;
 
     const controller = new AbortController();
 
@@ -48,11 +53,31 @@ export function useOtpAutofill({ enabled = true, listenKey = 0, onCode }: Option
           onCodeRef.current(code);
         }
       })
-      .catch(() => {
-        /* User dismissed, unsupported, or origin/SMS mismatch */
+      .catch((err) => {
+        if (process.env.NODE_ENV === "development" && err instanceof Error && err.name !== "AbortError") {
+          console.debug("[WebOTP]", err.message);
+        }
       });
 
     return () => controller.abort();
+  }, [enabled]);
+
+  useEffect(() => {
+    const cleanup = listenForSmsOtp();
+    return () => cleanup?.();
+  }, [listenForSmsOtp, listenKey, visibilityRetry]);
+
+  // Re-arm when user returns from the SMS app (Chrome Android).
+  useEffect(() => {
+    if (!enabled || !supportsWebOtp()) return;
+
+    const onVisible = () => {
+      if (document.visibilityState !== "visible" || handledRef.current) return;
+      setVisibilityRetry((n) => n + 1);
+    };
+
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
   }, [enabled, listenKey]);
 
   const handleAutofillInput = (value: string) => {
@@ -75,6 +100,7 @@ export function useOtpAutofill({ enabled = true, listenKey = 0, onCode }: Option
 
   return {
     otpLength: OTP_LENGTH,
+    webOtpSupported: supportsWebOtp(),
     handleAutofillInput,
     handlePaste,
   };

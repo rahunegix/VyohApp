@@ -26,6 +26,7 @@ export default function OtpPage() {
   const [listenKey, setListenKey] = useState(0);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const autofillRef = useRef<HTMLInputElement | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
   const lastIndex = OTP_LENGTH - 1;
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export default function OtpPage() {
   const handleVerify = useCallback(
     async (codeOverride?: string) => {
       const code = codeOverride ?? otp.join("");
-      if (code.length !== OTP_LENGTH || loading) return;
+      if (code.length !== OTP_LENGTH || loading || !phone) return;
       setLoading(true);
       setError("");
       try {
@@ -64,16 +65,15 @@ export default function OtpPage() {
     [handleVerify, lastIndex]
   );
 
-  useEffect(() => {
-    if (!phone) return;
-    autofillRef.current?.focus();
-  }, [phone, listenKey]);
-
   const { handleAutofillInput, handlePaste } = useOtpAutofill({
-    enabled: Boolean(phone),
+    enabled: true,
     listenKey,
     onCode: applyCode,
   });
+
+  useEffect(() => {
+    autofillRef.current?.focus();
+  }, [listenKey]);
 
   const handleChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
@@ -83,6 +83,9 @@ export default function OtpPage() {
     if (value && index < lastIndex) {
       inputRefs.current[index + 1]?.focus();
       setFocusedIndex(index + 1);
+    }
+    if (newOtp.join("").length === OTP_LENGTH) {
+      void handleVerify(newOtp.join(""));
     }
   };
 
@@ -106,6 +109,7 @@ export default function OtpPage() {
   };
 
   const handleResend = async () => {
+    if (!phone) return;
     setResending(true);
     setError("");
     setOtp(EMPTY_OTP);
@@ -114,7 +118,7 @@ export default function OtpPage() {
     autofillRef.current?.focus();
     setFocusedIndex(0);
     try {
-      await sendPhoneOtp(phone);
+      await sendPhoneOtp(phone, "web");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("resend_failed"));
     } finally {
@@ -161,50 +165,66 @@ export default function OtpPage() {
         </>
       }
     >
-      {/* Dedicated one-time-code field for SMS keyboard autofill (Web OTP uses the hook). */}
-      <div className="mx-auto max-w-[280px]">
+      <form
+        ref={formRef}
+        id="otp-form"
+        className="mx-auto max-w-[280px]"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void handleVerify();
+        }}
+      >
+        {/* Primary field for Web OTP + iOS/Android keyboard autofill */}
         <input
           ref={autofillRef}
           type="text"
           inputMode="numeric"
           autoComplete="one-time-code"
           name="one-time-code"
+          maxLength={OTP_LENGTH}
+          value={otp.join("")}
           onChange={(e) => {
-            handleAutofillInput(e.target.value);
-            e.target.value = "";
+            const digits = e.target.value.replace(/\D/g, "").slice(0, OTP_LENGTH);
+            setOtp(codeToDigitArray(digits));
+            if (digits.length === OTP_LENGTH) {
+              handleAutofillInput(digits);
+            }
           }}
-          className="absolute h-px w-px overflow-hidden opacity-0"
+          className="sr-only"
           aria-label="One-time verification code"
         />
 
         <div className="flex justify-center gap-3 lg:justify-start" onPaste={handleContainerPaste}>
-        {otp.map((digit, i) => {
-          const filled = digit !== "";
-          const focused = focusedIndex === i;
-          return (
-            <input
-              key={i}
-              ref={(el) => {
-                inputRefs.current[i] = el;
-              }}
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              maxLength={1}
-              value={digit}
-              onChange={(e) => handleChange(i, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(i, e)}
-              onFocus={() => setFocusedIndex(i)}
-              className={cn(
-                "ui-otp-box sm:h-[4.25rem] sm:w-[3.5rem]",
-                filled && "ui-otp-box-filled",
-                !filled && focused && "border-primary bg-primary/5"
-              )}
-            />
-          );
-        })}
+          {otp.map((digit, i) => {
+            const filled = digit !== "";
+            const focused = focusedIndex === i;
+            return (
+              <input
+                key={i}
+                ref={(el) => {
+                  inputRefs.current[i] = el;
+                }}
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleChange(i, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(i, e)}
+                onFocus={() => {
+                  setFocusedIndex(i);
+                  autofillRef.current?.focus();
+                }}
+                className={cn(
+                  "ui-otp-box sm:h-[4.25rem] sm:w-[3.5rem]",
+                  filled && "ui-otp-box-filled",
+                  !filled && focused && "border-primary bg-primary/5"
+                )}
+              />
+            );
+          })}
         </div>
-      </div>
+      </form>
 
       {error && (
         <p className="mt-4 text-center text-sm font-semibold text-destructive lg:text-left">
@@ -213,7 +233,8 @@ export default function OtpPage() {
       )}
 
       <p className="mt-6 text-center text-xs text-muted-foreground lg:text-left">
-        Code expires in {OTP_TTL_MINUTES} minutes. Never share your OTP with anyone.
+        Code expires in {OTP_TTL_MINUTES} minutes. Use Chrome on your phone at{" "}
+        <span className="font-medium">www.saathini.com</span> for SMS auto-fill.
       </p>
     </AuthScreenLayout>
   );
