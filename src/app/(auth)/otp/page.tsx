@@ -23,8 +23,9 @@ export default function OtpPage() {
   const [error, setError] = useState("");
   const [phone, setPhone] = useState("");
   const [focusedIndex, setFocusedIndex] = useState(0);
+  const [listenKey, setListenKey] = useState(0);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const hiddenAutofillRef = useRef<HTMLInputElement | null>(null);
+  const autofillRef = useRef<HTMLInputElement | null>(null);
   const lastIndex = OTP_LENGTH - 1;
 
   useEffect(() => {
@@ -63,8 +64,14 @@ export default function OtpPage() {
     [handleVerify, lastIndex]
   );
 
-  const { handleHiddenInput, handlePaste } = useOtpAutofill({
+  useEffect(() => {
+    if (!phone) return;
+    autofillRef.current?.focus();
+  }, [phone, listenKey]);
+
+  const { handleAutofillInput, handlePaste } = useOtpAutofill({
     enabled: Boolean(phone),
+    listenKey,
     onCode: applyCode,
   });
 
@@ -102,8 +109,9 @@ export default function OtpPage() {
     setResending(true);
     setError("");
     setOtp(EMPTY_OTP);
+    setListenKey((k) => k + 1);
     inputRefs.current[0]?.focus();
-    hiddenAutofillRef.current?.focus();
+    autofillRef.current?.focus();
     setFocusedIndex(0);
     try {
       await sendPhoneOtp(phone);
@@ -153,22 +161,23 @@ export default function OtpPage() {
         </>
       }
     >
-      {/* Hidden field for iOS/Android SMS autofill + paste target */}
-      <input
-        ref={hiddenAutofillRef}
-        type="text"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        aria-hidden
-        tabIndex={-1}
-        className="pointer-events-none absolute h-px w-px opacity-0"
-        onChange={(e) => handleHiddenInput(e.target.value)}
-      />
+      {/* Dedicated one-time-code field for SMS keyboard autofill (Web OTP uses the hook). */}
+      <div className="mx-auto max-w-[280px]">
+        <input
+          ref={autofillRef}
+          type="text"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          name="one-time-code"
+          onChange={(e) => {
+            handleAutofillInput(e.target.value);
+            e.target.value = "";
+          }}
+          className="absolute h-px w-px overflow-hidden opacity-0"
+          aria-label="One-time verification code"
+        />
 
-      <div
-        className="flex justify-center gap-3 lg:justify-start"
-        onPaste={handleContainerPaste}
-      >
+        <div className="flex justify-center gap-3 lg:justify-start" onPaste={handleContainerPaste}>
         {otp.map((digit, i) => {
           const filled = digit !== "";
           const focused = focusedIndex === i;
@@ -180,7 +189,7 @@ export default function OtpPage() {
               }}
               type="text"
               inputMode="numeric"
-              autoComplete={i === 0 ? "one-time-code" : "off"}
+              autoComplete="off"
               maxLength={1}
               value={digit}
               onChange={(e) => handleChange(i, e.target.value)}
@@ -194,6 +203,7 @@ export default function OtpPage() {
             />
           );
         })}
+        </div>
       </div>
 
       {error && (

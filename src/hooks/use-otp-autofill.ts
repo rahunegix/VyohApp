@@ -6,18 +6,26 @@ import { OTP_LENGTH } from "@/lib/auth/otp-config";
 
 type Options = {
   enabled?: boolean;
+  /** Bump after resend to re-listen for the next SMS. */
+  listenKey?: number;
   onCode: (code: string) => void;
 };
 
-/** Web OTP autofill via SMS (Chrome Android) + iOS/Android keyboard suggestions. */
-export function useOtpAutofill({ enabled = true, onCode }: Options) {
+function normalizeWebOtpCode(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (new RegExp(`^\\d{${OTP_LENGTH}}$`).test(trimmed)) return trimmed;
+  return extractOtpCode(trimmed);
+}
+
+/** Web OTP autofill via SMS (Chrome Android) + keyboard one-time-code suggestions. */
+export function useOtpAutofill({ enabled = true, listenKey = 0, onCode }: Options) {
   const handledRef = useRef(false);
   const onCodeRef = useRef(onCode);
   onCodeRef.current = onCode;
 
   useEffect(() => {
     handledRef.current = false;
-  }, [enabled]);
+  }, [enabled, listenKey]);
 
   useEffect(() => {
     if (!enabled || typeof window === "undefined") return;
@@ -32,25 +40,24 @@ export function useOtpAutofill({ enabled = true, onCode }: Options) {
       } as CredentialRequestOptions)
       .then((credential) => {
         if (handledRef.current) return;
-        const code =
-          credential && "code" in credential
-            ? extractOtpCode(String((credential as OTPCredential).code))
-            : null;
+        if (!credential || !("code" in credential)) return;
+
+        const code = normalizeWebOtpCode(String((credential as OTPCredential).code));
         if (code) {
           handledRef.current = true;
           onCodeRef.current(code);
         }
       })
       .catch(() => {
-        /* User dismissed or browser unsupported — ignore */
+        /* User dismissed, unsupported, or origin/SMS mismatch */
       });
 
     return () => controller.abort();
-  }, [enabled]);
+  }, [enabled, listenKey]);
 
-  const handleHiddenInput = (value: string) => {
+  const handleAutofillInput = (value: string) => {
     if (handledRef.current) return;
-    const code = extractOtpCode(value);
+    const code = normalizeWebOtpCode(value);
     if (code) {
       handledRef.current = true;
       onCodeRef.current(code);
@@ -68,7 +75,7 @@ export function useOtpAutofill({ enabled = true, onCode }: Options) {
 
   return {
     otpLength: OTP_LENGTH,
-    handleHiddenInput,
+    handleAutofillInput,
     handlePaste,
   };
 }

@@ -12,7 +12,8 @@ export interface SMSResponse {
 }
 
 /** Approved DLT template — must match portal registration exactly.
- *  First {#var#} = OTP digits. Second {#var#} = Android SMS hash (SMS_OTP_ANDROID_HASH). */
+ *  Both {#var#} = OTP (second powers Web OTP: @www.saathini.com #1234).
+ *  Android app hash is appended after the template: " <# {hash}". */
 const SMS_OTP_TEMPLATE =
   "<#>{#var#} is your SAATHINI (Uttarakhandi Matrimonial & Dating Platform) login OTP code. Do not share this code with anyone. It is valid for 5 minutes. If you did not request this, please ignore this message. - Team SAATHINI @www.saathini.com #{#var#}";
 
@@ -77,14 +78,19 @@ function parseSmsResponse(trimmedResult: string): SMSResponse {
 
 export function buildOtpMessage(otp: string): string {
   const androidHash = process.env.SMS_OTP_ANDROID_HASH?.trim();
-  const tail = androidHash || otp;
-
   const marker = "{#var#}";
   const first = SMS_OTP_TEMPLATE.indexOf(marker);
   if (first === -1) return SMS_OTP_TEMPLATE;
 
-  const head = SMS_OTP_TEMPLATE.slice(0, first) + otp + SMS_OTP_TEMPLATE.slice(first + marker.length);
-  return head.replace(marker, tail);
+  let message =
+    SMS_OTP_TEMPLATE.slice(0, first) + otp + SMS_OTP_TEMPLATE.slice(first + marker.length);
+  message = message.replace(marker, otp);
+
+  if (androidHash) {
+    message += ` <# ${androidHash}`;
+  }
+
+  return message;
 }
 
 export async function sendOTP(phone: string, otp: string): Promise<SMSResponse> {
