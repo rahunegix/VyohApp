@@ -2,6 +2,7 @@
 
 import {
   User, Compass, Sparkles, Camera, Heart, Users, Lock,
+  type LucideIcon,
 } from "lucide-react";
 import { SettingsMenuGroup, SettingsMenuDivider, SettingsMenuRow } from "@/components/ui/settings-menu";
 import { getLocalizedGenders } from "@/lib/i18n";
@@ -13,7 +14,7 @@ const MENU_ITEMS: {
   href: string;
   labelKey: StringKey;
   descKey: StringKey;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: LucideIcon;
 }[] = [
   { href: "/profile/edit/basic-info", labelKey: "basic_info", descKey: "edit_menu_basic_desc", icon: User },
   { href: "/profile/edit/intent", labelKey: "edit_menu_intent", descKey: "edit_menu_intent_desc", icon: Compass },
