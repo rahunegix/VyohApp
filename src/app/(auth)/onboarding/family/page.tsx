@@ -16,6 +16,7 @@ import {
   GOTRA_OPTIONS,
   MARRIAGE_TIMELINE_OPTIONS,
 } from "@/lib/constants";
+import { SelectionChip } from "@/components/ui/selection-chip";
 import { useOnboardingStore } from "@/store";
 import { useTranslation } from "@/hooks/use-translation";
 import type { StringKey } from "@/lib/i18n";
@@ -27,13 +28,7 @@ const FAMILY_TYPES = [
 ] as const;
 
 const selectClass =
-  "mt-1 flex h-12 w-full rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
-
-function chipClass(selected: boolean, compact = false) {
-  return `${compact ? "h-9 min-w-[2.25rem] px-3" : "px-4 py-2"} rounded-full text-sm font-medium transition-colors ${
-    selected ? "bg-primary text-white" : "bg-muted text-foreground hover:bg-muted/80"
-  }`;
-}
+  "mt-1 flex h-12 w-full rounded-full border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
 
 function parseCount(value?: string): number {
   if (!value) return -1;
@@ -99,14 +94,12 @@ function ChipGroup({
       </label>
       <div className="mt-2 flex flex-wrap gap-2">
         {options.map((item) => (
-          <button
+          <SelectionChip
             key={item.value}
-            type="button"
+            selected={value === item.value}
             onClick={() => onSelect(item.value)}
-            className={chipClass(value === item.value)}
-          >
-            {t(item.key)}
-          </button>
+            label={t(item.key)}
+          />
         ))}
       </div>
     </div>
@@ -221,14 +214,12 @@ function ParentSection({
       </p>
       <div className="flex flex-wrap gap-2">
         {statusOptions.map((item) => (
-          <button
+          <SelectionChip
             key={item.value}
-            type="button"
+            selected={status === item.value}
             onClick={() => onStatusChange(item.value)}
-            className={chipClass(status === item.value)}
-          >
-            {t(item.key)}
-          </button>
+            label={t(item.key)}
+          />
         ))}
       </div>
       {status === "working" && (
@@ -314,7 +305,7 @@ export default function FamilyPage() {
         <Button
           onClick={() => router.push("/onboarding/preview")}
           disabled={!canContinue}
-          className="h-13 w-full rounded-2xl text-[17px] font-bold shadow-lg"
+          className="h-13 w-full text-[17px] font-bold shadow-lg"
           size="lg"
         >
           {t("preview_profile")}
@@ -459,14 +450,12 @@ export default function FamilyPage() {
             <label className="text-sm font-medium">{t("family_type")}</label>
             <div className="mt-2 flex flex-wrap gap-2">
               {FAMILY_TYPES.map((item) => (
-                <button
+                <SelectionChip
                   key={item.value}
-                  type="button"
+                  selected={familyBackground.family_type === item.value}
                   onClick={() => setFamilyBackground("family_type", item.value)}
-                  className={chipClass(familyBackground.family_type === item.value)}
-                >
-                  {t(item.key)}
-                </button>
+                  label={t(item.key)}
+                />
               ))}
             </div>
           </div>

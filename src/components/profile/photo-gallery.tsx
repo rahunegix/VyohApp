@@ -13,6 +13,8 @@ export interface PhotoGalleryProps {
   className?: string;
   /** Prevents parent links/buttons from firing when swiping or tapping photos */
   isolateInteractions?: boolean;
+  /** Hide built-in bottom gradient when parent renders its own overlay */
+  hideBottomGradient?: boolean;
 }
 
 export function PhotoGallery({
@@ -20,6 +22,7 @@ export function PhotoGallery({
   name,
   className,
   isolateInteractions = false,
+  hideBottomGradient = false,
 }: PhotoGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -93,11 +96,14 @@ export function PhotoGallery({
   }
 
   return (
-    <div
-      className={cn("relative aspect-[4/5] w-full overflow-hidden bg-muted", className)}
-      onClick={handleTap}
-      onPointerDown={handlePointerDown}
-    >
+      <div
+        className={cn(
+          "relative aspect-[4/5] w-full overflow-hidden bg-muted",
+          className
+        )}
+        onClick={handleTap}
+        onPointerDown={handlePointerDown}
+      >
       <AnimatePresence initial={false} mode="wait">
         <motion.div
           key={currentIndex}
@@ -124,7 +130,9 @@ export function PhotoGallery({
         </motion.div>
       </AnimatePresence>
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none z-10" />
+      {!hideBottomGradient && (
+        <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+      )}
 
       {/* Top Pagination & Counter */}
       {totalPhotos > 1 && (

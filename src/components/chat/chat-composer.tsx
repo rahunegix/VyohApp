@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Send, Image as ImageIcon, Plus } from "lucide-react";
+import { Crown, Mic, Send, Smile } from "lucide-react";
 import { cn } from "@/lib/helpers/utils";
 
 interface ChatComposerProps {
@@ -10,6 +10,9 @@ interface ChatComposerProps {
   onSend: () => void;
   placeholder?: string;
   disabled?: boolean;
+  /** Free limit reached — show premium lock */
+  locked?: boolean;
+  onLockedInteract?: () => void;
   className?: string;
 }
 
@@ -17,8 +20,10 @@ export function ChatComposer({
   value,
   onChange,
   onSend,
-  placeholder = "Message…",
+  placeholder = "Your message",
   disabled = false,
+  locked = false,
+  onLockedInteract,
   className,
 }: ChatComposerProps) {
   const ref = useRef<HTMLTextAreaElement>(null);
@@ -27,61 +32,107 @@ export function ChatComposer({
     const el = ref.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 96)}px`;
   }, [value]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      if (locked) {
+        onLockedInteract?.();
+        return;
+      }
       if (value.trim() && !disabled) onSend();
     }
   };
 
+  const handleSendClick = () => {
+    if (locked) {
+      onLockedInteract?.();
+      return;
+    }
+    if (value.trim() && !disabled) onSend();
+  };
+
   const hasContent = value.trim().length > 0;
+  const isDisabled = disabled || locked;
 
   return (
     <div
       className={cn(
-        "app-dock shrink-0 border-t border-border/50 bg-background/80 px-3 py-3 backdrop-blur-xl safe-bottom",
+        "app-dock shrink-0 border-t border-border/40 bg-white px-4 py-3 safe-bottom",
+        locked && "bg-primary/[0.03]",
         className
       )}
     >
-      <div className="mx-auto flex max-w-[480px] items-end gap-2 lg:max-w-2xl">
-        <button 
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted/60 text-muted-foreground transition-colors hover:text-foreground active:bg-muted"
+      {locked && (
+        <button
           type="button"
+          onClick={onLockedInteract}
+          className="mb-2.5 flex w-full items-center justify-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/10"
         >
-          <Plus className="h-5 w-5" />
+          <Crown className="h-3.5 w-3.5" />
+          Upgrade to send more messages
         </button>
+      )}
 
-        <div className="relative flex-1">
+      <div className="mx-auto flex max-w-[480px] items-center gap-2.5 lg:max-w-2xl">
+        <div className="relative min-w-0 flex-1">
           <textarea
             ref={ref}
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => !locked && onChange(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={placeholder}
+            onFocus={() => locked && onLockedInteract?.()}
+            placeholder={locked ? "Premium required to continue chatting" : placeholder}
             rows={1}
-            disabled={disabled}
-            className="max-h-[120px] min-h-[40px] w-full resize-none rounded-[20px] border border-border/60 bg-white px-4 py-2.5 text-[15px] leading-snug text-foreground placeholder:text-muted-foreground shadow-sm focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50"
+            disabled={isDisabled}
+            readOnly={locked}
+            className={cn(
+              "block max-h-24 min-h-[46px] w-full resize-none rounded-full border border-border/70 bg-white",
+              "py-3 pl-4 pr-11 text-[15px] leading-snug text-foreground shadow-sm",
+              "placeholder:text-muted-foreground/70",
+              "focus:border-primary/35 focus:outline-none focus:ring-2 focus:ring-primary/15",
+              "disabled:opacity-50",
+              locked && "cursor-pointer bg-muted/30"
+            )}
           />
+          <button
+            type="button"
+            disabled={isDisabled}
+            className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground disabled:opacity-40"
+            aria-label="Open emoji picker"
+          >
+            <Smile className="h-[18px] w-[18px]" strokeWidth={2} />
+          </button>
         </div>
 
-        {hasContent ? (
+        {hasContent && !locked ? (
           <button
-            onClick={onSend}
+            type="button"
+            onClick={handleSendClick}
             disabled={disabled}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-md transition-transform active:scale-90 disabled:opacity-50"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-[var(--shadow-float)] transition-transform active:scale-95 disabled:opacity-50"
             aria-label="Send message"
           >
-            <Send className="h-4 w-4 ml-0.5" />
+            <Send className="h-[18px] w-[18px]" strokeWidth={2.25} />
           </button>
         ) : (
-          <button 
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
+          <button
             type="button"
+            onClick={locked ? onLockedInteract : undefined}
+            disabled={disabled && !locked}
+            className={cn(
+              "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/70 bg-white text-primary shadow-sm transition-colors active:scale-95 disabled:opacity-50",
+              locked ? "border-primary/30 bg-primary/10" : "hover:border-primary/25 hover:bg-primary/5"
+            )}
+            aria-label={locked ? "Upgrade to send messages" : "Voice message"}
           >
-            <ImageIcon className="h-5 w-5" />
+            {locked ? (
+              <Crown className="h-[18px] w-[18px]" strokeWidth={2.25} />
+            ) : (
+              <Mic className="h-[18px] w-[18px]" strokeWidth={2.25} />
+            )}
           </button>
         )}
       </div>

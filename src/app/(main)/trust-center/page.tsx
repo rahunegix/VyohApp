@@ -17,9 +17,9 @@ export default function TrustCenterPage() {
 
   if (!hydrated || !overview) {
     return (
-      <div>
+      <div className="min-h-screen bg-muted/20 pb-24">
         <PageHeader showBack backHref="/profile" title={t("trust_center")} />
-        <p className="px-4 py-12 text-center text-sm text-muted-foreground animate-pulse">
+        <p className="animate-pulse px-4 py-12 text-center text-sm text-muted-foreground">
           {t("loading_profile")}
         </p>
       </div>
@@ -27,8 +27,13 @@ export default function TrustCenterPage() {
   }
 
   return (
-    <div>
-      <PageHeader showBack backHref="/profile" title={t("trust_center")} subtitle={t("trust_center_subtitle")} />
+    <div className="min-h-screen bg-muted/20 pb-24">
+      <PageHeader
+        showBack
+        backHref="/profile"
+        title={t("trust_center")}
+        subtitle={t("trust_center_subtitle")}
+      />
       <div className="px-4 py-4">
         <TrustCenterPanel overview={overview} reportCount={0} />
       </div>

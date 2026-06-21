@@ -1,5 +1,8 @@
 export const APP_NAME = "Saathini";
 export const APP_TAGLINE = "From Connection to Commitment";
+export const SUPPORT_PHONE = "8439221651";
+export const SUPPORT_PHONE_DISPLAY = "+91 84392 21651";
+export const MAX_HELP_CHAT_QUESTIONS = 15;
 export const LOGO_PATH = "/images/saathini_logo.svg";
 export const PRIMARY_COLOR = "#C62828";
 export const MOBILE_CONTENT_WIDTH = 480;

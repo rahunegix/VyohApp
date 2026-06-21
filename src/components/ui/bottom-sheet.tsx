@@ -14,6 +14,11 @@ interface BottomSheetProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   className?: string;
+  /** default: ~88dvh max | tall: ~92dvh | full: nearly full screen on mobile */
+  size?: "default" | "tall" | "full";
+  /** Center title like reference dating apps */
+  centeredTitle?: boolean;
+  showClose?: boolean;
 }
 
 export function BottomSheet({
@@ -24,6 +29,9 @@ export function BottomSheet({
   children,
   footer,
   className,
+  size = "default",
+  centeredTitle = false,
+  showClose = true,
 }: BottomSheetProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -50,6 +58,13 @@ export function BottomSheet({
 
   if (!mounted) return null;
 
+  const maxHeightClass =
+    size === "full"
+      ? "max-h-[min(96dvh,720px)]"
+      : size === "tall"
+        ? "max-h-[min(92dvh,700px)]"
+        : "max-h-[min(88dvh,680px)]";
+
   return createPortal(
     <AnimatePresence>
       {open && (
@@ -60,11 +75,11 @@ export function BottomSheet({
           <motion.button
             type="button"
             aria-label="Close"
-            className="absolute inset-0 bg-black/55 backdrop-blur-[3px]"
+            className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.22 }}
             onClick={() => onOpenChange(false)}
           />
 
@@ -73,49 +88,59 @@ export function BottomSheet({
             aria-modal="true"
             aria-labelledby={title ? "bottom-sheet-title" : undefined}
             className={cn(
-              "relative z-10 flex w-full max-w-[480px] flex-col overflow-hidden",
-              "max-h-[min(88dvh,680px)] rounded-t-[1.75rem] bg-white",
-              "shadow-[0_-16px_48px_rgba(0,0,0,0.2)]",
+              "relative z-10 flex w-full max-w-[480px] flex-col overflow-hidden bg-white",
+              maxHeightClass,
+              "rounded-t-[var(--radius-sheet)] shadow-[0_-20px_60px_rgba(0,0,0,0.18)]",
               className
             )}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 34, stiffness: 400 }}
+            transition={{ type: "spring", damping: 32, stiffness: 380 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="shrink-0 border-b border-border/60 bg-white px-5 pb-4 pt-2">
-              <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-muted-foreground/25" />
-              <div className="flex items-start gap-3">
-                <div className="min-w-0 flex-1">
+            <div className="shrink-0 bg-white px-5 pb-4 pt-3">
+              <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-muted-foreground/20" />
+              <div
+                className={cn(
+                  "flex items-start gap-3",
+                  centeredTitle && "flex-col items-center text-center"
+                )}
+              >
+                <div className={cn("min-w-0 flex-1", centeredTitle && "w-full")}>
                   {title && (
-                    <h2 id="bottom-sheet-title" className="text-xl font-semibold leading-tight">
+                    <h2
+                      id="bottom-sheet-title"
+                      className="text-xl font-bold leading-tight tracking-tight"
+                    >
                       {title}
                     </h2>
                   )}
                   {description && (
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
                       {description}
                     </p>
                   )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => onOpenChange(false)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted/80 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  aria-label="Close"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                {showClose && !centeredTitle && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenChange(false)}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted/80 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    aria-label="Close"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 hide-scrollbar">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-2 hide-scrollbar">
               {children}
             </div>
 
             {footer && (
-              <div className="shrink-0 border-t border-border/60 bg-white px-5 pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.06)] pb-[max(1rem,env(safe-area-inset-bottom,0px))]">
+              <div className="shrink-0 border-t border-border/40 bg-white px-5 pt-3 shadow-[0_-12px_32px_rgba(0,0,0,0.06)] pb-[max(1rem,env(safe-area-inset-bottom,0px))]">
                 {footer}
               </div>
             )}
@@ -124,5 +149,33 @@ export function BottomSheet({
       )}
     </AnimatePresence>,
     document.body
+  );
+}
+
+/** Full-width pill Done button for bottom sheet footers */
+export function BottomSheetDoneButton({
+  onClick,
+  label = "Done",
+  disabled,
+  loading,
+}: {
+  onClick: () => void;
+  label?: string;
+  disabled?: boolean;
+  loading?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled || loading}
+      className="ui-btn-pill flex h-14 w-full items-center justify-center bg-primary text-base font-bold text-white transition-all hover:bg-primary/90 disabled:opacity-50"
+    >
+      {loading ? (
+        <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+      ) : (
+        label
+      )}
+    </button>
   );
 }

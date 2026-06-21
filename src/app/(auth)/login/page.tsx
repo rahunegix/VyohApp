@@ -4,13 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { motion } from "framer-motion";
-import { Phone, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { AuthBackButton } from "@/components/auth/auth-back-button";
+import { AuthScreenLayout } from "@/components/auth/auth-screen-layout";
 import { phoneSchema } from "@/lib/validation/schemas";
 import { sendPhoneOtp } from "@/lib/auth/phone";
+import { APP_NAME } from "@/lib/constants";
 import { useTranslation } from "@/hooks/use-translation";
 import { z } from "zod";
 import { cn } from "@/lib/helpers/utils";
@@ -45,73 +43,53 @@ export default function LoginPage() {
   if (!hydrated) return null;
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-white lg:overflow-y-auto">
-      <div className="flex flex-1 flex-col px-6 pb-10 pt-6 safe-top lg:justify-center lg:px-10 lg:py-12">
-        <AuthBackButton href="/onboarding/language" className="mb-6 lg:mb-8" />
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 lg:h-16 lg:w-16"
+    <AuthScreenLayout
+      backHref="/onboarding/language"
+      title={t("mobile_number")}
+      subtitle={
+        <>
+          {t("otp_send_desc")} {APP_NAME} will send a 4-digit OTP to verify your number for
+          Uttarakhand matrimony &amp; dating.
+        </>
+      }
+      footer={
+        <Button type="submit" form="login-form" loading={loading} size="lg" className="w-full">
+          {t("continue")}
+        </Button>
+      }
+    >
+      <form id="login-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div
+          className={cn(
+            "flex items-center gap-0 overflow-hidden rounded-full border-2 bg-white shadow-sm transition-colors",
+            errors.phone || error ? "border-destructive" : "border-border/60 focus-within:border-primary"
+          )}
         >
-          <Phone className="h-7 w-7 text-primary lg:h-8 lg:w-8" />
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <h1 className="text-2xl font-extrabold pt-2 tracking-tight text-foreground lg:text-3xl">
-            {t("welcome_saathini")}
-          </h1>
-          <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{t("otp_send_desc")}</p>
-        </motion.div>
-
-        <motion.form
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          onSubmit={handleSubmit(onSubmit)}
-          className="mt-8 flex flex-1 flex-col lg:mt-10 lg:flex-none"
-        >
-          <div className="flex-1 lg:flex-none">
-            <label className="mb-3 ml-1 block text-xs font-bold uppercase tracking-wider text-foreground">
-              {t("mobile_number")}
-            </label>
-            <div className="flex gap-3">
-              <div className="flex h-14 w-[72px] shrink-0 items-center justify-center rounded-[1.25rem] border border-border/50 bg-muted/60 text-[15px] font-bold shadow-sm">
-                +91
-              </div>
-              <Input
-                {...register("phone")}
-                type="tel"
-                placeholder="98765 43210"
-                className={cn(
-                  "h-14 w-full rounded-[1.25rem] border-2 bg-white px-5 text-lg font-bold tracking-widest shadow-sm transition-colors",
-                  errors.phone
-                    ? "border-destructive focus-visible:ring-destructive"
-                    : "border-border/60 focus-visible:border-primary focus-visible:ring-primary/20"
-                )}
-                maxLength={10}
-              />
-            </div>
-            {errors.phone && (
-              <p className="mt-2.5 ml-1 text-sm font-medium text-destructive">{errors.phone.message}</p>
-            )}
-            {error && (
-              <p className="mt-2.5 ml-1 text-sm font-medium text-destructive">{error}</p>
-            )}
-
-            <div className="mt-6 flex items-start gap-3 rounded-2xl border border-emerald-200/60 bg-emerald-50/80 p-4">
-              <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-              <p className="text-xs leading-relaxed text-emerald-900/80">
-                Your number is used only for verification. We never share it without your consent.
-              </p>
-            </div>
+          <div className="flex shrink-0 items-center gap-1.5 border-r border-border/60 px-4 py-3.5 text-[15px] font-bold text-foreground">
+            <span aria-hidden>🇮🇳</span>
+            <span>+91</span>
           </div>
+          <input
+            {...register("phone")}
+            type="tel"
+            inputMode="numeric"
+            placeholder="98765 43210"
+            maxLength={10}
+            className="min-w-0 flex-1 bg-transparent px-4 py-3.5 text-lg font-semibold tracking-wide outline-none placeholder:font-medium placeholder:text-muted-foreground"
+          />
+        </div>
 
-          <Button type="submit" loading={loading} className="mt-8 h-14 w-full rounded-2xl text-[17px] font-bold shadow-lg lg:mt-10">
-            {t("send_otp")}
-          </Button>
-        </motion.form>
-      </div>
-    </div>
+        {(errors.phone || error) && (
+          <p className="text-center text-sm font-medium text-destructive lg:text-left">
+            {errors.phone?.message || error}
+          </p>
+        )}
+
+        <p className="text-center text-xs leading-relaxed text-muted-foreground lg:text-left">
+          By continuing, {APP_NAME} sends an SMS with a verification code. Message rates may apply.
+          Your number stays private until you choose to share it.
+        </p>
+      </form>
+    </AuthScreenLayout>
   );
 }

@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { SelectionChip } from "@/components/ui/selection-chip";
 import { OnboardingStepShell, OnboardingStepHeading } from "@/components/onboarding/onboarding-step-shell";
 import { useOnboardingStore } from "@/store";
 import { useTranslation } from "@/hooks/use-translation";
@@ -74,7 +75,7 @@ export default function LifestylePage() {
       footer={
         <Button
           onClick={() => router.push("/onboarding/family")}
-          className="h-13 w-full rounded-2xl text-[17px] font-bold shadow-lg"
+          className="h-13 w-full text-[17px] font-bold shadow-lg"
           size="lg"
         >
           {t("continue")}
@@ -83,24 +84,18 @@ export default function LifestylePage() {
     >
       <OnboardingStepHeading title={t("lifestyle_title")} subtitle={t("lifestyle_subtitle")} />
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         {lifestyleOptions.map((section) => (
-          <div key={section.key} className="rounded-2xl border border-border/50 bg-muted/20 p-4">
+          <div key={section.key} className="rounded-2xl border border-border/50 bg-white p-4 shadow-[var(--shadow-soft)]">
             <p className="mb-3 text-sm font-semibold text-foreground">{section.label}</p>
             <div className="flex flex-wrap gap-2">
               {section.options.map((opt) => (
-                <button
+                <SelectionChip
                   key={opt.v}
-                  type="button"
+                  selected={lifestyle[section.key] === opt.v}
                   onClick={() => setLifestyle(section.key, opt.v)}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all active:scale-95 ${
-                    lifestyle[section.key] === opt.v
-                      ? "bg-primary text-white shadow-sm"
-                      : "bg-white text-foreground shadow-sm hover:bg-primary/5"
-                  }`}
-                >
-                  {opt.l}
-                </button>
+                  label={opt.l}
+                />
               ))}
             </div>
           </div>

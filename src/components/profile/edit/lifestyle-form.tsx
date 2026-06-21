@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateProfileLifestyle } from "@/services/actions";
 import { useTranslation } from "@/hooks/use-translation";
-import { chipClass, EditSectionShell } from "@/components/profile/edit/shared";
+import { SelectionChip } from "@/components/ui/selection-chip";
+import { EditSectionShell } from "@/components/profile/edit/shared";
 import type { Profile } from "@/types";
 
 export function EditLifestyleForm({
@@ -63,14 +64,12 @@ export function EditLifestyleForm({
             <p className="text-sm font-medium mb-2">{section.label}</p>
             <div className="flex flex-wrap gap-2">
               {section.options.map((opt) => (
-                <button
+                <SelectionChip
                   key={opt.v}
-                  type="button"
+                  selected={lifestyle[section.key] === opt.v}
                   onClick={() => setLifestyle((prev) => ({ ...prev, [section.key]: opt.v }))}
-                  className={chipClass(lifestyle[section.key] === opt.v)}
-                >
-                  {opt.l}
-                </button>
+                  label={opt.l}
+                />
               ))}
             </div>
           </div>

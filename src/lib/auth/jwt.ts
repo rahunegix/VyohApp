@@ -6,7 +6,7 @@ const JWT_SECRET = new TextEncoder().encode(
 
 export const ACCESS_TOKEN_TTL = "15m";
 export const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-export const OTP_TTL_MS = 10 * 60 * 1000;
+export { OTP_TTL_MS } from "@/lib/auth/otp-config";
 export const MAX_OTP_ATTEMPTS = 5;
 
 export interface TokenPayload {

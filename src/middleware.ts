@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isDevOtpBypass } from "@/lib/auth/dev";
 import { getAuthPayload, ACCESS_COOKIE } from "@/lib/auth/api-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -26,10 +25,6 @@ function isAdminPanelRoute(path: string) {
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request });
   const path = request.nextUrl.pathname;
-
-  if (isDevOtpBypass) {
-    return response;
-  }
 
   const isPublic =
     path === "/" ||

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/common/page-header";
 import { Switch } from "@/components/ui/switch";
+import { SettingsMenuGroup, SettingsMenuDivider } from "@/components/ui/settings-menu";
+import { cn } from "@/lib/helpers/utils";
 
 const NOTIFICATION_SETTINGS = [
   { key: "interests", label: "Interests", desc: "When someone sends interest in your profile" },
@@ -22,28 +24,28 @@ export default function NotificationsPage() {
   });
 
   return (
-    <div>
-      <PageHeader showBack backHref="/settings" title="Notifications" />
-      <div className="px-4 py-4 space-y-1">
-        {NOTIFICATION_SETTINGS.map((item) => (
-          <div
-            key={item.key}
-            className="flex items-center justify-between gap-4 rounded-xl p-4 hover:bg-muted/50"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium">{item.label}</p>
-              <p className="text-xs text-muted-foreground">{item.desc}</p>
+    <div className="min-h-screen bg-muted/20 pb-24">
+      <PageHeader showBack backHref="/settings" title="Notifications" subtitle="Choose what you hear about" />
+
+      <SettingsMenuGroup className="mx-4 mt-4">
+        {NOTIFICATION_SETTINGS.map((item, i) => (
+          <div key={item.key}>
+            {i > 0 && <SettingsMenuDivider />}
+            <div className="flex items-center justify-between gap-4 px-4 py-4">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold">{item.label}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{item.desc}</p>
+              </div>
+              <Switch
+                checked={settings[item.key]}
+                onCheckedChange={(checked) => setSettings((s) => ({ ...s, [item.key]: checked }))}
+                aria-label={item.label}
+                className={cn(settings[item.key] && "data-[state=checked]:bg-primary")}
+              />
             </div>
-            <Switch
-              checked={settings[item.key]}
-              onCheckedChange={(checked) =>
-                setSettings((s) => ({ ...s, [item.key]: checked }))
-              }
-              aria-label={item.label}
-            />
           </div>
         ))}
-      </div>
+      </SettingsMenuGroup>
     </div>
   );
 }

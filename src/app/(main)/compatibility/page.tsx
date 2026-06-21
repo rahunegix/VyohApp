@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
+import { ChevronRight, Shield } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { CompatibilitySection } from "@/components/profile/compatibility-section";
 import { ListSkeleton } from "@/components/ui/skeleton";
@@ -16,27 +17,27 @@ const containerVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
+    transition: { staggerChildren: 0.08 },
+  },
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.95, y: 10 },
-  show: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  hidden: { opacity: 0, scale: 0.98, y: 10 },
+  show: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
 };
 
 export default function CompatibilityPage() {
-  const [matches, setMatches] = useState<(DiscoverProfile & { compatibility: ReturnType<typeof calculateCompatibility> })[]>([]);
+  const [matches, setMatches] = useState<
+    (DiscoverProfile & { compatibility: ReturnType<typeof calculateCompatibility> })[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const enriched = DEMO_PROFILES
-      .map((p) => ({ ...p, compatibility: calculateCompatibility(DEMO_CURRENT_PROFILE, p) }))
-      .sort((a, b) => b.compatibility.score - a.compatibility.score);
-    
-    // Simulate loading for premium feel
+    const enriched = DEMO_PROFILES.map((p) => ({
+      ...p,
+      compatibility: calculateCompatibility(DEMO_CURRENT_PROFILE, p),
+    })).sort((a, b) => b.compatibility.score - a.compatibility.score);
+
     setTimeout(() => {
       setMatches(enriched);
       setLoading(false);
@@ -45,50 +46,68 @@ export default function CompatibilityPage() {
 
   return (
     <div className="min-h-screen bg-muted/20 pb-24">
-      <div className="bg-white sticky top-0 z-30 shadow-sm">
+      <div className="sticky top-0 z-30 bg-white shadow-sm">
         <PageHeader title="Compatibility Hub" subtitle="Deep insights into your best matches" />
       </div>
+
+      {!loading && (
+        <div className="mx-4 mt-4 flex items-start gap-3 rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/5 to-transparent p-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Shield className="h-5 w-5" />
+          </div>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Ranked by values, lifestyle, location, and intent — tailored for Uttarakhand matrimony on Saathini.
+          </p>
+        </div>
+      )}
 
       {loading ? (
         <div className="px-4 py-6">
           <ListSkeleton count={3} />
         </div>
       ) : (
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="px-4 py-6 space-y-5"
+          className="space-y-4 px-4 py-6"
         >
           {matches.map((profile) => (
             <motion.div key={profile.id} variants={itemVariants}>
-              <div className="rounded-[1.5rem] bg-card overflow-hidden shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)] group">
+              <div className="overflow-hidden rounded-[1.5rem] border border-border/50 bg-white shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)]">
                 <Link href={`/matches/${profile.id}`} className="block">
-                  {/* Header Area */}
-                  <div className="flex items-center gap-4 p-4 pb-0">
-                    <div className="relative h-16 w-16 rounded-2xl overflow-hidden bg-muted shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                  <div className="flex items-center gap-4 p-4 pb-3">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-muted shadow-sm ring-2 ring-white">
                       {profile.photos[0] && (
-                        <Image src={profile.photos[0].url} alt={profile.full_name} fill className="object-cover" sizes="64px" />
+                        <Image
+                          src={profile.photos[0].url}
+                          alt={profile.full_name}
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-lg truncate text-foreground">{profile.full_name}, {profile.age}</p>
-                      <p className="text-sm font-medium text-muted-foreground truncate mt-0.5">{profile.district}</p>
-                      <div className="mt-1.5 inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-lg font-bold text-foreground">
+                        {profile.full_name}, {profile.age}
+                      </p>
+                      <p className="mt-0.5 truncate text-sm font-medium text-muted-foreground">{profile.district}</p>
+                      <span className="mt-2 inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                         {getIntentLabel(profile.intent)}
-                      </div>
+                      </span>
                     </div>
+                    <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground/50" />
                   </div>
                 </Link>
 
-                {/* Compatibility Ring Area */}
-                <div className="p-4">
+                <div className="border-t border-border/40 px-4 py-3">
                   <CompatibilitySection
                     score={profile.compatibility.score}
                     name={profile.full_name.split(" ")[0]}
                     strongMatches={profile.compatibility.strong_matches}
                     warnings={profile.compatibility.mismatch_warnings}
-                    className="border-0 shadow-none p-0 bg-transparent"
+                    className="border-0 bg-transparent p-0 shadow-none"
                   />
                 </div>
               </div>

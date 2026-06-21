@@ -17,25 +17,25 @@ const FEATURES = [
     icon: Heart,
     title: "Modern Dating",
     desc: "Explore connections with intent and respect",
-    color: "text-rose-500 bg-rose-500/10",
+    color: "text-primary bg-primary/10",
   },
   {
     icon: Users,
     title: "Hindu Marriage",
     desc: "Family values, rituals, and lifelong commitment",
-    color: "text-amber-600 bg-amber-500/10",
+    color: "text-amber-700 bg-amber-500/10",
   },
   {
     icon: Shield,
     title: "Verified Profiles",
     desc: "Phone, face & trust score for safe matching",
-    color: "text-emerald-600 bg-emerald-500/10",
+    color: "text-success bg-success/10",
   },
   {
     icon: Sparkles,
     title: "AI Compatibility",
     desc: "Smart matches rooted in Pahadi culture",
-    color: "text-violet-600 bg-violet-500/10",
+    color: "text-primary bg-primary/10",
   },
 ];
 
@@ -95,7 +95,7 @@ export function WelcomePageClient({
               />
             </div>
             <div className="absolute -top-[10%] -right-[10%] h-[50vh] w-[50vh] rounded-full bg-primary/40 blur-[100px]" />
-            <div className="absolute top-[40%] -left-[20%] h-[60vh] w-[60vh] rounded-full bg-orange-500/30 blur-[120px]" />
+            <div className="absolute top-[40%] -left-[20%] h-[60vh] w-[60vh] rounded-full bg-primary/20 blur-[120px]" />
             <div className="absolute inset-0 bg-gradient-to-b from-[#12080c]/70 via-[#12080c]/85 to-[#12080c]" />
           </div>
         ) : null}
@@ -171,7 +171,7 @@ export function WelcomePageClient({
                     transition={{ delay: 0.35 + i * 0.08 }}
                     className="rounded-2xl border border-white/10 bg-white/10 p-3.5 backdrop-blur-md lg:border-border/50 lg:bg-muted/30 lg:backdrop-blur-none"
                   >
-                    <div className={`mb-2 flex h-9 w-9 items-center justify-center rounded-xl ${f.color}`}>
+                    <div className={`mb-2 flex h-9 w-9 items-center justify-center rounded-full ${f.color}`}>
                       <Icon className="h-4 w-4" />
                     </div>
                     <p className="text-sm font-bold text-white lg:text-foreground">{f.title}</p>
@@ -193,7 +193,7 @@ export function WelcomePageClient({
             <Link href="/onboarding/language" className="block">
               <Button
                 size="lg"
-                className="group h-14 w-full rounded-2xl text-lg font-bold shadow-xl lg:h-13 lg:shadow-lg"
+                className="group h-14 w-full text-lg font-bold shadow-xl lg:h-13 lg:shadow-lg"
               >
                 Get Started
                 <ChevronRight className="ml-1 h-5 w-5 transition-transform group-hover:translate-x-0.5" />

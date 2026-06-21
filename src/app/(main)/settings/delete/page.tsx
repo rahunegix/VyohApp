@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AlertTriangle } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,33 +21,40 @@ export default function DeleteAccountPage() {
   };
 
   return (
-    <div>
-      <PageHeader showBack backHref="/settings" title="Delete Account" />
+    <div className="min-h-screen bg-muted/20 pb-24">
+      <PageHeader showBack backHref="/settings" title="Delete Account" subtitle="This cannot be undone" />
 
-      <div className="px-6 py-6">
-        <div className="rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
-          This action is permanent. Your profile, messages, and all data will be deleted. This cannot be undone.
+      <div className="mx-4 mt-4 space-y-6 px-2">
+        <div className="flex items-start gap-3 rounded-2xl border border-destructive/20 bg-destructive/5 p-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            <AlertTriangle className="h-5 w-5" />
+          </div>
+          <p className="text-sm leading-relaxed text-destructive">
+            This action is permanent. Your profile, messages, and all data will be deleted. This cannot be undone.
+          </p>
         </div>
 
-        <p className="mt-6 text-sm text-muted-foreground">
-          Type <strong>DELETE</strong> to confirm:
-        </p>
-        <Input
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          className="mt-2"
-          placeholder="DELETE"
-        />
+        <div className="rounded-2xl border border-border/50 bg-white p-4 shadow-[var(--shadow-soft)]">
+          <p className="text-sm text-muted-foreground">
+            Type <strong className="text-foreground">DELETE</strong> to confirm:
+          </p>
+          <Input
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            className="mt-3 rounded-full"
+            placeholder="DELETE"
+          />
 
-        <Button
-          variant="destructive"
-          onClick={handleDelete}
-          loading={loading}
-          disabled={confirm !== "DELETE"}
-          className="mt-6 w-full"
-        >
-          Delete My Account
-        </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            loading={loading}
+            disabled={confirm !== "DELETE"}
+            className="mt-4 w-full"
+          >
+            Delete My Account
+          </Button>
+        </div>
       </div>
     </div>
   );

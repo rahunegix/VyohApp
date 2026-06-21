@@ -25,7 +25,7 @@ import { z } from "zod";
 type FormValues = z.infer<typeof basicInfoFormSchema>;
 
 const selectClass =
-  "mt-1 flex h-12 w-full rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
+  "mt-1 flex h-12 w-full rounded-full border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
 
 function resolveSelectValue(
   select: string,
@@ -173,7 +173,7 @@ export default function BasicInfoPage() {
       title={t("basic_info")}
       currentStep={5}
       footer={
-        <Button type="submit" form="onboarding-basic-info" className="h-13 w-full rounded-2xl text-[17px] font-bold shadow-lg" size="lg">
+        <Button type="submit" form="onboarding-basic-info" className="h-13 w-full text-[17px] font-bold shadow-lg" size="lg">
           {t("continue")}
         </Button>
       }

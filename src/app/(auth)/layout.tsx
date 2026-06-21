@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { LanguageSwitcher } from "@/components/common/language-switcher";
+import { HelpChatTrigger } from "@/components/common/help-chat-widget";
 import { AuthVisualPanel, type AuthVisualVariant } from "@/components/auth/auth-visual-panel";
 import { useLatestSuccessStories } from "@/hooks/use-latest-success-stories";
 import { useLanguageStore } from "@/store/language";
@@ -33,8 +34,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="relative h-dvh max-h-dvh overflow-hidden bg-muted/30 lg:min-h-dvh lg:max-h-none lg:overflow-visible lg:flex lg:items-stretch lg:justify-center lg:p-6">
       {showSwitcher && (
-        <div className="pointer-events-none fixed right-0 top-4 z-50 p-4  lg:absolute lg:right-8 lg:top-8">
-          <div className="pointer-events-auto">
+        <div className="pointer-events-none fixed right-0 top-4 z-50 p-4 lg:absolute lg:right-8 lg:top-8">
+          <div className="pointer-events-auto flex items-center gap-2">
+            <HelpChatTrigger />
             <LanguageSwitcher />
           </div>
         </div>

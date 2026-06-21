@@ -13,7 +13,7 @@ import type { IdDocumentType } from "@/types";
 import { IdCard, Upload, ShieldCheck } from "lucide-react";
 
 const selectClass =
-  "mt-1 flex h-12 w-full rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
+  "mt-1 flex h-12 w-full rounded-full border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
 
 async function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -75,11 +75,11 @@ export default function IdVerificationPage() {
 
   if (alreadyVerified) {
     return (
-      <div>
+      <div className="min-h-screen bg-muted/20 pb-24">
         <PageHeader showBack backHref="/trust-center" title={t("verify_id")} />
-        <div className="px-6 py-12 text-center">
+        <div className="mx-4 mt-12 rounded-2xl border border-success/20 bg-success/10 px-6 py-12 text-center">
           <ShieldCheck className="mx-auto h-12 w-12 text-success" />
-          <p className="mt-4 font-medium">{t("verify_id_done")}</p>
+          <p className="mt-4 font-semibold text-success">{t("verify_id_done")}</p>
         </div>
       </div>
     );
@@ -87,13 +87,13 @@ export default function IdVerificationPage() {
 
   if (pending || submitted) {
     return (
-      <div>
+      <div className="min-h-screen bg-muted/20 pb-24">
         <PageHeader showBack backHref="/trust-center" title={t("verify_id")} />
-        <div className="px-6 py-8 text-center space-y-3">
+        <div className="mx-4 mt-8 space-y-4 rounded-2xl border border-border/50 bg-white px-6 py-8 text-center shadow-[var(--shadow-soft)]">
           <IdCard className="mx-auto h-12 w-12 text-primary" />
-          <h2 className="text-lg font-semibold">{t("verify_id_submitted_title")}</h2>
+          <h2 className="text-lg font-bold">{t("verify_id_submitted_title")}</h2>
           <p className="text-sm text-muted-foreground">{t("verify_id_submitted_desc")}</p>
-          <Button onClick={() => router.push("/trust-center")} className="w-full mt-4">
+          <Button onClick={() => router.push("/trust-center")} className="mt-2 w-full">
             {t("back_to_trust_center")}
           </Button>
         </div>
@@ -102,10 +102,9 @@ export default function IdVerificationPage() {
   }
 
   return (
-    <div>
-      <PageHeader showBack backHref="/trust-center" title={t("verify_id")} />
-      <div className="px-4 py-4 space-y-5 pb-8">
-        <p className="text-sm text-muted-foreground">{t("verify_id_desc")}</p>
+    <div className="min-h-screen bg-muted/20 pb-24">
+      <PageHeader showBack backHref="/trust-center" title={t("verify_id")} subtitle={t("verify_id_desc")} />
+      <div className="space-y-5 px-4 py-4 pb-8">
 
         <div>
           <label className="text-sm font-medium">{t("id_document_type")}</label>
@@ -136,7 +135,7 @@ export default function IdVerificationPage() {
           optional
         />
 
-        <div className="rounded-xl bg-muted/50 p-4 text-xs text-muted-foreground space-y-1">
+        <div className="rounded-2xl border border-border/50 bg-primary/5 p-4 text-xs leading-relaxed text-muted-foreground space-y-1">
           <p>• {t("id_privacy_1")}</p>
           <p>• {t("id_privacy_2")}</p>
         </div>
@@ -170,7 +169,7 @@ function UploadField({
         {label}
         {optional && <span className="text-muted-foreground font-normal"> ({hint})</span>}
       </label>
-      <label className="mt-2 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/30 px-4 py-8 transition-colors hover:border-primary/40 hover:bg-primary/5">
+      <label className="mt-2 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 px-4 py-8 transition-colors hover:border-primary hover:bg-primary/10">
         <Upload className="h-6 w-6 text-muted-foreground" />
         <span className="text-sm text-muted-foreground text-center">
           {file ? file.name : hint}

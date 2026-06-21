@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Check, CheckCheck, Shield, MapPin, X, HeartHandshake } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn, formatRelativeTime, getInitials } from "@/lib/helpers/utils";
 import { formatProfileLocation } from "@/lib/helpers/formatters";
 import type { ChatRequest, Conversation, DiscoverProfile, Profile } from "@/types";
@@ -31,7 +32,7 @@ function ProfileAvatar({
     <div className={cn("relative shrink-0", sizeClass)}>
       <div
         className={cn(
-          "relative h-full w-full overflow-hidden rounded-2xl bg-primary/10 shadow-sm ring-2 ring-white",
+          "relative h-full w-full overflow-hidden rounded-full bg-primary/10 shadow-sm ring-2 ring-white",
           unread && "ring-primary/30"
         )}
       >
@@ -53,9 +54,10 @@ function ProfileAvatar({
 interface ChatListItemProps {
   conversation: Conversation;
   href: string;
+  variant?: "card" | "grouped";
 }
 
-export function ChatListItem({ conversation, href }: ChatListItemProps) {
+export function ChatListItem({ conversation, href, variant = "card" }: ChatListItemProps) {
   const profile = conversation.other_profile as DiscoverProfile | undefined;
   const unread = (conversation.unread_count ?? 0) > 0;
   const isVerified = profile && "verification" in profile && profile.verification?.face_verified;
@@ -69,10 +71,18 @@ export function ChatListItem({ conversation, href }: ChatListItemProps) {
       <Link
         href={href}
         className={cn(
-          "group flex items-center gap-3.5 rounded-2xl border p-3.5 transition-all active:scale-[0.99]",
-          unread
-            ? "border-primary/20 bg-white shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)]"
-            : "border-transparent bg-white/90 shadow-[var(--shadow-soft)] hover:border-border/50 hover:shadow-[var(--shadow-card)]"
+          "group flex items-center gap-3.5 transition-all active:scale-[0.99]",
+          variant === "grouped"
+            ? cn(
+                "border-b border-border/40 px-4 py-3.5 last:border-b-0 hover:bg-muted/30",
+                unread && "bg-primary/[0.03]"
+              )
+            : cn(
+                "rounded-2xl border p-3.5",
+                unread
+                  ? "border-primary/20 bg-white shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)]"
+                  : "border-transparent bg-white/90 shadow-[var(--shadow-soft)] hover:border-border/50 hover:shadow-[var(--shadow-card)]"
+              )
         )}
       >
         <ProfileAvatar profile={profile} unread={unread} />
@@ -127,28 +137,28 @@ export function MessageBubble({ text, isOwn, timestamp, status }: MessageBubbleP
     <motion.div
       initial={{ opacity: 0, y: 10, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      className={cn("flex w-full mb-1", isOwn ? "justify-end" : "justify-start")}
+      className={cn("mb-3 flex w-full flex-col", isOwn ? "items-end" : "items-start")}
     >
       <div
         className={cn(
-          "relative max-w-[75%] px-4 py-2.5 text-[15px] leading-relaxed shadow-sm",
+          "max-w-[78%] px-4 py-2.5 text-[15px] leading-relaxed",
           isOwn
-            ? "rounded-2xl rounded-tr-sm bg-primary text-white"
-            : "rounded-2xl rounded-tl-sm border border-border/50 bg-white text-foreground"
+            ? "rounded-[1.125rem] rounded-br-md bg-muted/80 text-foreground"
+            : "rounded-[1.125rem] rounded-bl-md bg-primary/10 text-foreground"
         )}
       >
         <p>{text}</p>
-        <div
-          className={cn(
-            "mt-1 flex items-center gap-1 text-[10px] font-medium tracking-wide",
-            isOwn ? "justify-end text-white/80" : "text-muted-foreground"
-          )}
-        >
-          <span>{timestamp}</span>
-          {isOwn && status === "read" && <CheckCheck className="h-3.5 w-3.5 text-blue-200" strokeWidth={2.5} />}
-          {isOwn && status === "delivered" && <CheckCheck className="h-3.5 w-3.5" strokeWidth={2.5} />}
-          {isOwn && status === "sent" && <Check className="h-3.5 w-3.5" strokeWidth={2.5} />}
-        </div>
+      </div>
+      <div
+        className={cn(
+          "mt-1 flex items-center gap-1 px-1 text-[11px] font-medium text-muted-foreground",
+          isOwn && "flex-row-reverse"
+        )}
+      >
+        <span>{timestamp}</span>
+        {isOwn && status === "read" && <CheckCheck className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />}
+        {isOwn && status === "delivered" && <CheckCheck className="h-3.5 w-3.5 text-muted-foreground/60" strokeWidth={2.5} />}
+        {isOwn && status === "sent" && <Check className="h-3.5 w-3.5 text-muted-foreground/60" strokeWidth={2.5} />}
       </div>
     </motion.div>
   );
@@ -156,8 +166,8 @@ export function MessageBubble({ text, isOwn, timestamp, status }: MessageBubbleP
 
 export function TypingIndicator() {
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-1 flex justify-start">
-      <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-border/50 bg-white px-4 py-3 shadow-sm">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-3 flex justify-start">
+      <div className="flex items-center gap-1.5 rounded-[1.125rem] rounded-bl-md bg-primary/10 px-4 py-3">
         {[0, 1, 2].map((i) => (
           <motion.span
             key={i}
@@ -216,22 +226,19 @@ export function ChatRequestCard({
         </div>
 
         <div className="flex gap-2.5">
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={onReject}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border/60 bg-white py-2.5 text-sm font-semibold text-muted-foreground transition-all hover:border-destructive/30 hover:bg-destructive/5 hover:text-destructive active:scale-[0.98]"
+            className="flex-1 border-border/60 text-muted-foreground hover:border-destructive/30 hover:bg-destructive/5 hover:text-destructive"
           >
             <X className="h-4 w-4" />
             Decline
-          </button>
-          <button
-            type="button"
-            onClick={onAccept}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98]"
-          >
+          </Button>
+          <Button type="button" onClick={onAccept} className="flex-1">
             <HeartHandshake className="h-4 w-4" />
             Accept
-          </button>
+          </Button>
         </div>
       </div>
     </motion.div>

@@ -11,6 +11,10 @@ export interface SMSResponse {
   batchId?: string;
 }
 
+/** Approved DLT template — must match portal registration exactly. */
+const SMS_OTP_TEMPLATE =
+  "<#>{#var#} is your SAATHINI (Uttarakhandi Matrimonial & Dating Platform) login OTP code. Do not share this code with anyone. It is valid for 5 minutes. If you did not request this, please ignore this message. - Team SAATHINI";
+
 export function formatPhoneNumber(phone: string): string {
   let formatted = phone.replace(/[^0-9]/g, "");
 
@@ -38,6 +42,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   "INVALID Username or Password": "Invalid SMS API key.",
   "INSUFFICIENT_CREDIT": "Insufficient SMS credits.",
   "Template Does Not Match": "Message does not match approved DLT template.",
+  TEMPLATE_NOT_MATCHED: "Message does not match approved DLT template.",
   "No Templates Approved": "No DLT templates approved on your account.",
   BLOCKED: "Phone number or country is blocked.",
 };
@@ -45,7 +50,8 @@ const ERROR_MESSAGES: Record<string, string> = {
 function parseSmsResponse(trimmedResult: string): SMSResponse {
   if (
     trimmedResult.includes(":") &&
-    !trimmedResult.toUpperCase().includes("INVALID")
+    !trimmedResult.toUpperCase().includes("INVALID") &&
+    !trimmedResult.toUpperCase().includes("TEMPLATE")
   ) {
     const parts = trimmedResult.split(":");
     if (parts.length >= 3) {
@@ -68,33 +74,40 @@ function parseSmsResponse(trimmedResult: string): SMSResponse {
   return { success: false, error: trimmedResult || "Failed to send SMS" };
 }
 
-function getOtpMessage(otp: string): string {
-  const template =
-    process.env.SMS_OTP_TEMPLATE ??
-    "<#>{#var#} is your Saathini login code. Valid for 10 minutes. Do not share it with anyone. - InfoTheme {#var#}";
-  return template.replace(/\{#var#\}/g, otp);
+export function buildOtpMessage(otp: string): string {
+  return SMS_OTP_TEMPLATE.replace("{#var#}", otp);
 }
 
 export async function sendOTP(phone: string, otp: string): Promise<SMSResponse> {
   try {
     const apiKey = process.env.SMS_API_KEY;
-    const senderId = process.env.SMS_SENDER_ID || "InfoTheme";
+    const senderId = process.env.SMS_SENDER_ID || "SATINI";
     const serviceName = process.env.SMS_SERVICE_NAME || "TEMPLATE_BASE";
-    const dltTemplateId =
-      process.env.SMS_DLT_TEMPLATE_ID || "1307173504924789355";
-    const apiUrl = "https://smsapi.24x7sms.com/api_2.0/SendSMS.aspx";
+    const dltTemplateId = process.env.SMS_DLT_TEMPLATE_ID;
+    const apiUrl =
+      process.env.SMS_API_URL || "https://smsapi.24x7sms.com/api_2.0/SendSMS.aspx";
 
     if (!apiKey) {
       return { success: false, error: "SMS service not configured: SMS_API_KEY missing" };
     }
 
+    if (!dltTemplateId) {
+      return { success: false, error: "SMS service not configured: SMS_DLT_TEMPLATE_ID missing" };
+    }
+
     const formattedPhone = formatPhoneNumber(phone);
-    const message = getOtpMessage(otp);
-    const encodedMessage = encodeURIComponent(message);
+    const message = buildOtpMessage(otp);
 
-    const url = `${apiUrl}?APIKEY=${apiKey}&MobileNo=${formattedPhone}&SenderID=${senderId}&Message=${encodedMessage}&ServiceName=${serviceName}&DLTTemplateID=${dltTemplateId}`;
+    const params = new URLSearchParams({
+      APIKEY: apiKey,
+      MobileNo: formattedPhone,
+      SenderID: senderId,
+      Message: message,
+      ServiceName: serviceName,
+      DLTTemplateID: dltTemplateId,
+    });
 
-    const response = await fetch(url, {
+    const response = await fetch(`${apiUrl}?${params.toString()}`, {
       method: "GET",
       headers: { "Content-Type": "text/plain" },
     });
@@ -114,18 +127,24 @@ export async function sendSMS(
 ): Promise<SMSResponse> {
   try {
     const apiKey = process.env.SMS_API_KEY;
-    const senderId = process.env.SMS_SENDER_ID || "InfoTheme";
-    const apiUrl = "https://smsapi.24x7sms.com/api_2.0/SendSMS.aspx";
+    const senderId = process.env.SMS_SENDER_ID || "SATINI";
+    const apiUrl =
+      process.env.SMS_API_URL || "https://smsapi.24x7sms.com/api_2.0/SendSMS.aspx";
 
     if (!apiKey) {
       return { success: false, error: "SMS service not configured" };
     }
 
     const formattedPhone = formatPhoneNumber(phone);
-    const encodedMessage = encodeURIComponent(message);
-    const url = `${apiUrl}?APIKEY=${apiKey}&MobileNo=${formattedPhone}&SenderID=${senderId}&Message=${encodedMessage}&ServiceName=${serviceName}`;
+    const params = new URLSearchParams({
+      APIKEY: apiKey,
+      MobileNo: formattedPhone,
+      SenderID: senderId,
+      Message: message,
+      ServiceName: serviceName,
+    });
 
-    const response = await fetch(url, { method: "GET" });
+    const response = await fetch(`${apiUrl}?${params.toString()}`, { method: "GET" });
     return parseSmsResponse((await response.text()).trim());
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to send SMS";

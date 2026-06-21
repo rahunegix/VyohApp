@@ -15,7 +15,6 @@ import {
 import { updateProfileFamily } from "@/services/actions";
 import { useTranslation } from "@/hooks/use-translation";
 import {
-  chipClass,
   parseCount,
   ChipGroup,
   SiblingSelect,
@@ -24,6 +23,7 @@ import {
   FAMILY_TYPES,
   EditSectionShell,
 } from "@/components/profile/edit/shared";
+import { SelectionChip } from "@/components/ui/selection-chip";
 import type { Profile } from "@/types";
 
 export function EditFamilyForm({
@@ -136,9 +136,12 @@ export function EditFamilyForm({
           <label className="text-sm font-medium">{t("family_type")}</label>
           <div className="mt-2 flex flex-wrap gap-2">
             {FAMILY_TYPES.map((item) => (
-              <button key={item.value} type="button" onClick={() => setFamily("family_type", item.value)} className={chipClass(familyBackground.family_type === item.value)}>
-                {t(item.key)}
-              </button>
+              <SelectionChip
+                key={item.value}
+                selected={familyBackground.family_type === item.value}
+                onClick={() => setFamily("family_type", item.value)}
+                label={t(item.key)}
+              />
             ))}
           </div>
         </div>

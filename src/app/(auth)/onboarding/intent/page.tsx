@@ -1,19 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Heart, Gem } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SelectCard } from "@/components/common/step-indicator";
+import { SelectPillRow } from "@/components/ui/selection-chip";
 import { StaggerChildren, StaggerItem } from "@/components/common/page-transition";
 import { OnboardingStepShell, OnboardingStepHeading } from "@/components/onboarding/onboarding-step-shell";
 import { getLocalizedIntents } from "@/lib/i18n";
 import { useOnboardingStore } from "@/store";
 import { useTranslation } from "@/hooks/use-translation";
-
-const icons = {
-  serious: <Heart className="h-5 w-5" />,
-  marriage: <Gem className="h-5 w-5" />,
-} as const;
 
 export default function IntentPage() {
   const router = useRouter();
@@ -31,7 +25,7 @@ export default function IntentPage() {
         <Button
           onClick={() => router.push("/onboarding/gender")}
           disabled={!intent}
-          className="h-13 w-full rounded-2xl text-[17px] font-bold shadow-lg"
+          className="h-13 w-full text-[17px] font-bold shadow-lg"
           size="lg"
         >
           {t("continue")}
@@ -42,12 +36,11 @@ export default function IntentPage() {
       <StaggerChildren className="space-y-3">
         {intents.map((i) => (
           <StaggerItem key={i.value}>
-            <SelectCard
+            <SelectPillRow
               selected={intent === i.value}
               onClick={() => setIntent(i.value)}
-              title={i.label}
+              label={i.label}
               description={i.description}
-              icon={icons[i.value as keyof typeof icons]}
             />
           </StaggerItem>
         ))}

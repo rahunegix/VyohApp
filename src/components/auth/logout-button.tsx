@@ -37,16 +37,17 @@ export function LogoutButton({ variant = "button", className }: LogoutButtonProp
         onClick={handleLogout}
         disabled={loading}
         className={cn(
-          "flex w-full items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)] active:scale-[0.98] disabled:opacity-50",
+          "flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-destructive/5 active:bg-destructive/10 disabled:opacity-50",
           className
         )}
       >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
           <LogOut className="h-5 w-5" />
         </div>
-        <span className="flex-1 text-[15px] font-semibold text-destructive">
-          {loading ? "Signing out…" : "Log out"}
-        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-destructive">{loading ? "Signing out…" : "Log out"}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Sign out on this device</p>
+        </div>
       </button>
     );
   }
@@ -57,7 +58,7 @@ export function LogoutButton({ variant = "button", className }: LogoutButtonProp
       variant="outline"
       loading={loading}
       onClick={handleLogout}
-      className={cn("w-full text-destructive border-destructive/30 hover:bg-destructive/5", className)}
+      className={cn("w-full border-destructive/30 text-destructive hover:bg-destructive/5", className)}
     >
       <LogOut className="h-4 w-4" />
       {loading ? "Signing out…" : "Log out"}

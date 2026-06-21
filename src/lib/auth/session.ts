@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { randomBytes, randomInt } from "crypto";
+import { OTP_LENGTH } from "@/lib/auth/otp-config";
 export {
   createAccessToken,
   verifyAccessToken,
@@ -11,9 +12,12 @@ export {
   MAX_OTP_ATTEMPTS,
   type TokenPayload,
 } from "@/lib/auth/jwt";
+export { OTP_LENGTH, OTP_TTL_MINUTES } from "@/lib/auth/otp-config";
 
 export function generateOtp(): string {
-  return String(randomInt(100000, 999999));
+  const min = 10 ** (OTP_LENGTH - 1);
+  const max = 10 ** OTP_LENGTH - 1;
+  return String(randomInt(min, max + 1));
 }
 
 export function generateRefreshToken(): string {

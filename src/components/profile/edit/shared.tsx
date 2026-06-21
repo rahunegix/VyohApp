@@ -1,23 +1,19 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { SelectionChip } from "@/components/ui/selection-chip";
 import { SIBLING_COUNT_SELECT_OPTIONS, PARENT_FIELD_OPTIONS } from "@/lib/constants";
 import type { StringKey } from "@/lib/i18n";
 
 export const selectClass =
-  "mt-1 flex h-12 w-full rounded-xl border border-border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
+  "mt-1 flex h-12 w-full rounded-full border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
 
 export const FAMILY_TYPES = [
   { value: "nuclear", key: "family_nuclear" },
   { value: "joint", key: "family_joint" },
   { value: "extended", key: "family_extended" },
 ] as const;
-
-export function chipClass(selected: boolean) {
-  return `rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-    selected ? "bg-primary text-white" : "bg-muted text-foreground hover:bg-muted/80"
-  }`;
-}
 
 export function parseCount(value?: string): number {
   if (!value) return -1;
@@ -43,14 +39,12 @@ export function ChipGroup({
       <label className="text-sm font-medium">{label}</label>
       <div className="mt-2 flex flex-wrap gap-2">
         {options.map((item) => (
-          <button
+          <SelectionChip
             key={item.value}
-            type="button"
+            selected={value === item.value}
             onClick={() => onSelect(item.value)}
-            className={chipClass(value === item.value)}
-          >
-            {t(item.key)}
-          </button>
+            label={t(item.key)}
+          />
         ))}
       </div>
     </div>
@@ -80,7 +74,9 @@ export function SiblingSelect({
       <select value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={selectClass}>
         <option value="">{t("select")}</option>
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>{t(opt.key)}</option>
+          <option key={opt.value} value={opt.value}>
+            {t(opt.key)}
+          </option>
         ))}
       </select>
     </div>
@@ -106,7 +102,9 @@ export function FieldSelect({
       <select value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={selectClass}>
         <option value="">{t("select")}</option>
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>{t(opt.key)}</option>
+          <option key={opt.value} value={opt.value}>
+            {t(opt.key)}
+          </option>
         ))}
       </select>
     </div>
@@ -145,18 +143,16 @@ export function ParentBlock({
   t: (key: StringKey | string) => string;
 }) {
   return (
-    <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
+    <div className="space-y-3 rounded-2xl border border-border/60 bg-muted/20 p-4">
       <p className="text-sm font-semibold">{title}</p>
       <div className="flex flex-wrap gap-2">
         {statusOptions.map((item) => (
-          <button
+          <SelectionChip
             key={item.value}
-            type="button"
+            selected={status === item.value}
             onClick={() => onStatusChange(item.value)}
-            className={chipClass(status === item.value)}
-          >
-            {t(item.key)}
-          </button>
+            label={t(item.key)}
+          />
         ))}
       </div>
       {status === "working" && (
@@ -211,16 +207,12 @@ export function EditSectionShell({
   saveLabel: string;
 }) {
   return (
-    <div className="px-4 py-4 pb-8 space-y-4">
+    <div className="space-y-4 px-4 py-4 pb-8">
       {children}
-      {error && <p className="text-sm text-destructive text-center">{error}</p>}
-      <button
-        type="submit"
-        disabled={saving}
-        className="flex h-12 w-full items-center justify-center rounded-xl bg-primary text-sm font-semibold text-white disabled:opacity-60"
-      >
-        {saving ? "…" : saveLabel}
-      </button>
+      {error && <p className="text-center text-sm text-destructive">{error}</p>}
+      <Button type="submit" loading={saving} className="h-12 w-full font-semibold">
+        {saveLabel}
+      </Button>
     </div>
   );
 }

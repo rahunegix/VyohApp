@@ -32,7 +32,7 @@ export default function VerificationPage() {
           {done && (
             <Button
               onClick={() => router.push("/onboarding/basic-info")}
-              className="h-13 w-full rounded-2xl text-[17px] font-bold shadow-lg"
+              className="h-13 w-full text-[17px] font-bold shadow-lg"
               size="lg"
             >
               {t("continue")}
@@ -41,7 +41,7 @@ export default function VerificationPage() {
           <Button
             variant="ghost"
             onClick={() => router.push("/onboarding/basic-info")}
-            className="w-full rounded-xl"
+            className="w-full"
           >
             {t("skip_for_now")}
           </Button>
@@ -70,7 +70,7 @@ export default function VerificationPage() {
       </div>
 
       {!done && (
-        <Button onClick={handleRecord} loading={recording} className="w-full rounded-2xl" size="lg">
+        <Button onClick={handleRecord} loading={recording} className="w-full" size="lg">
           {recording ? t("recording") : t("start_verification")}
         </Button>
       )}

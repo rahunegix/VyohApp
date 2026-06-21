@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { HelpChatTrigger } from "@/components/common/help-chat-widget";
 import { cn } from "@/lib/helpers/utils";
 
 interface PageHeaderProps {
@@ -11,6 +12,7 @@ interface PageHeaderProps {
   showBack?: boolean;
   backHref?: string;
   rightAction?: React.ReactNode;
+  showHelp?: boolean;
   className?: string;
   transparent?: boolean;
 }
@@ -22,9 +24,12 @@ export function PageHeader({
   showBack = false,
   backHref = "..",
   rightAction,
+  showHelp = true,
   className,
   transparent = false,
 }: PageHeaderProps) {
+  const showActions = Boolean(rightAction) || showHelp;
+
   return (
     <header
       className={cn(
@@ -36,26 +41,35 @@ export function PageHeader({
       {showBack && (
         <Link
           href={backHref}
-          className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-muted transition-colors"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/5"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5" strokeWidth={2.25} />
         </Link>
       )}
-       {title && (<div className="flex-1 min-w-0">
-       
+      {title ? (
+        <div className="min-w-0 flex-1">
           <div className={cn(typeof title === "string" && "truncate")}>
             {typeof title === "string" ? (
-              <h1 className="text-lg font-semibold truncate">{title}</h1>
+              <h1 className="truncate text-lg font-bold tracking-tight">{title}</h1>
             ) : (
               title
             )}
           </div>
-      
-        {subtitle && (
-          <p className={cn("text-sm text-muted-foreground truncate", subtitleClassName)}>{subtitle}</p>
-        )}
-      </div>  )}
-      {rightAction && <div className="shrink-0">{rightAction}</div>}
+          {subtitle && (
+            <p className={cn("truncate text-sm text-muted-foreground", subtitleClassName)}>
+              {subtitle}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="flex-1" />
+      )}
+      {showActions && (
+        <div className="flex shrink-0 items-center gap-1">
+          {rightAction}
+          {showHelp && <HelpChatTrigger />}
+        </div>
+      )}
     </header>
   );
 }

@@ -70,7 +70,7 @@ export default function PreviewPage() {
       footer={
         <Button
           onClick={() => router.push("/verification/success")}
-          className="h-13 w-full rounded-2xl text-[17px] font-bold shadow-lg"
+          className="h-13 w-full text-[17px] font-bold shadow-lg"
           size="lg"
           disabled={loading && !aiProfile && Object.keys(aiAnswers).length > 0}
         >

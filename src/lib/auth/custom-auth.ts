@@ -1,6 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendOTP } from "@/lib/sms/24x7sms";
-import { DEV_OTP_CODE, isDevOtpBypass } from "@/lib/auth/dev";
 import {
   createAccessToken,
   generateOtp,
@@ -16,7 +15,7 @@ import {
 export async function sendLoginOtp(phone: string) {
   const normalizedPhone = normalizePhoneStorage(phone);
   const admin = createAdminClient();
-  const otp = isDevOtpBypass ? DEV_OTP_CODE : generateOtp();
+  const otp = generateOtp();
   const otpHash = await hashValue(otp);
   const expiresAt = new Date(Date.now() + OTP_TTL_MS).toISOString();
 
@@ -45,17 +44,14 @@ export async function sendLoginOtp(phone: string) {
     });
   }
 
-  if (!isDevOtpBypass) {
-    const sms = await sendOTP(normalizedPhone, otp);
-    if (!sms.success) {
-      throw new Error(sms.error || "Failed to send OTP SMS");
-    }
+  const sms = await sendOTP(normalizedPhone, otp);
+  if (!sms.success) {
+    throw new Error(sms.error || "Failed to send OTP SMS");
   }
 
   return {
     phone: normalizedPhone,
-    devMode: isDevOtpBypass,
-    message: isDevOtpBypass ? `Dev mode: use OTP ${DEV_OTP_CODE}` : "OTP sent",
+    message: "OTP sent",
   };
 }
 

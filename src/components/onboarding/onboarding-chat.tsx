@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SelectionChip } from "@/components/ui/selection-chip";
 import { cn } from "@/lib/helpers/utils";
 import type { OnboardingChipOption, OnboardingPromptConfig } from "@/lib/constants/onboarding-chat";
 import { useTranslation } from "@/hooks/use-translation";
@@ -35,12 +36,12 @@ function TypingIndicator() {
       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
         <Sparkles className="h-3.5 w-3.5" />
       </div>
-      <div className="rounded-2xl rounded-bl-md bg-muted px-3 py-2">
+      <div className="rounded-2xl rounded-bl-md border border-border/40 bg-white px-3 py-2 shadow-sm">
         <div className="flex gap-1">
           {[0, 1, 2].map((i) => (
             <span
               key={i}
-              className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 animate-bounce"
+              className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/50"
               style={{ animationDelay: `${i * 0.15}s` }}
             />
           ))}
@@ -82,11 +83,8 @@ export function OnboardingChat({
   const selectedCount = selectedChips.length;
 
   return (
-    <div className="grid h-full min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] overflow-hidden bg-white">
-      <div
-        ref={scrollRef}
-        className="min-h-0 overflow-y-auto overscroll-contain px-4 pt-2 pb-4 hide-scrollbar"
-      >
+    <div className="grid h-full min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] overflow-hidden bg-muted/10">
+      <div ref={scrollRef} className="min-h-0 overflow-y-auto overscroll-contain px-4 pb-4 pt-2 hide-scrollbar">
         <div className="space-y-3">
           <AnimatePresence initial={false}>
             {messages.map((msg) => (
@@ -104,10 +102,10 @@ export function OnboardingChat({
                 )}
                 <div
                   className={cn(
-                    "max-w-[82%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
+                    "max-w-[82%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm",
                     msg.role === "ai"
-                      ? "bg-muted text-foreground rounded-bl-md"
-                      : "bg-primary text-white rounded-br-md"
+                      ? "rounded-bl-md border border-border/40 bg-white text-foreground"
+                      : "rounded-br-md bg-primary text-white"
                   )}
                 >
                   {msg.text}
@@ -119,46 +117,36 @@ export function OnboardingChat({
         </div>
       </div>
 
-      <div className="shrink-0 border-t border-border bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.05)] safe-bottom">
+      <div className="shrink-0 border-t border-border/50 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.05)] safe-bottom">
         {!stepAnswered && (
-          <div className="px-3 pt-2.5 pb-2">
-            <div className="mb-1.5 flex items-center justify-between">
-              <p className="text-[11px] font-medium text-muted-foreground">
+          <div className="px-4 pb-2 pt-3">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {currentPrompt.multiSelect ? t("tap_chips") : t("pick_one")}
               </p>
               {selectedCount > 0 && (
-                <span className="text-[11px] font-medium text-primary">
+                <span className="text-[11px] font-bold text-primary">
                   {selectedCount} {t("selected")}
                 </span>
               )}
             </div>
-            <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto hide-scrollbar">
-              {currentPrompt.chips.map((chip) => {
-                const selected = selectedChips.includes(chip.id);
-                return (
-                  <button
-                    key={chip.id}
-                    type="button"
-                    disabled={typing}
-                    onClick={() => onChipToggle(chip)}
-                    className={cn(
-                      "rounded-full px-2.5 py-1 text-xs font-medium transition-all active:scale-95 disabled:opacity-50",
-                      selected
-                        ? "bg-primary text-white"
-                        : "bg-muted text-foreground hover:bg-muted/80"
-                    )}
-                  >
-                    {chip.label}
-                  </button>
-                );
-              })}
+            <div className="flex max-h-28 flex-wrap gap-2 overflow-y-auto hide-scrollbar">
+              {currentPrompt.chips.map((chip) => (
+                <SelectionChip
+                  key={chip.id}
+                  selected={selectedChips.includes(chip.id)}
+                  onClick={() => onChipToggle(chip)}
+                  label={chip.label}
+                  className={cn(typing && "pointer-events-none opacity-50")}
+                />
+              ))}
             </div>
           </div>
         )}
 
-        <div className="border-t border-border/50 px-3 py-2.5">
+        <div className="border-t border-border/40 px-4 py-3">
           {isLastStep && stepAnswered ? (
-            <Button onClick={onFinish} className="h-11 w-full" size="lg">
+            <Button onClick={onFinish} className="h-12 w-full" size="lg">
               {t("generate_profile")}
             </Button>
           ) : (
@@ -171,13 +159,13 @@ export function OnboardingChat({
                 placeholder={currentPrompt.placeholder}
                 rows={1}
                 disabled={typing}
-                className="max-h-20 min-h-[40px] flex-1 resize-none rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+                className="max-h-20 min-h-[44px] flex-1 resize-none rounded-full border border-border/60 bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
               />
               <Button
                 onClick={onSend}
                 disabled={!canSend || typing}
                 size="icon"
-                className="h-10 w-10 shrink-0 rounded-xl"
+                className="h-11 w-11 shrink-0"
                 aria-label="Send"
               >
                 <Send className="h-4 w-4" />

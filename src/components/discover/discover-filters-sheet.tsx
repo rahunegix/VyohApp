@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BottomSheet } from "@/components/ui/bottom-sheet";
-import { Button } from "@/components/ui/button";
+import { BottomSheet, BottomSheetDoneButton } from "@/components/ui/bottom-sheet";
+import { SelectionChip } from "@/components/ui/selection-chip";
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/helpers/utils";
 import {
   DEFAULT_DISCOVER_FILTERS,
   DISCOVER_AGE_MAX,
@@ -17,31 +16,6 @@ import { useDiscoverFiltersStore } from "@/store";
 import { useTranslation } from "@/hooks/use-translation";
 import type { Intent, Region } from "@/types";
 import type { StringKey } from "@/lib/i18n";
-
-function FilterChip({
-  selected,
-  onClick,
-  label,
-}: {
-  selected: boolean;
-  onClick: () => void;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors active:scale-[0.98]",
-        selected
-          ? "border-primary bg-primary/10 text-primary"
-          : "border-border bg-card text-muted-foreground hover:border-primary/30"
-      )}
-    >
-      {label}
-    </button>
-  );
-}
 
 function toggleInList<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -100,14 +74,19 @@ export function DiscoverFiltersSheet({ open, onOpenChange }: DiscoverFiltersShee
       onOpenChange={onOpenChange}
       title={t("discover_filters_title")}
       description={t("discover_filters_desc")}
+      size="tall"
+      centeredTitle
+      showClose={false}
       footer={
-        <div className="flex gap-3">
-          <Button type="button" variant="outline" size="lg" className="flex-1" onClick={handleReset}>
+        <div className="space-y-3">
+          <BottomSheetDoneButton onClick={handleApply} label={t("discover_filters_apply")} />
+          <button
+            type="button"
+            onClick={handleReset}
+            className="w-full py-2 text-sm font-semibold text-primary"
+          >
             {t("discover_filters_reset")}
-          </Button>
-          <Button type="button" size="lg" className="flex-1" onClick={handleApply}>
-            {t("discover_filters_apply")}
-          </Button>
+          </button>
         </div>
       }
     >
@@ -148,7 +127,7 @@ export function DiscoverFiltersSheet({ open, onOpenChange }: DiscoverFiltersShee
           <p className="mt-0.5 text-xs text-muted-foreground">{t("discover_filters_any_hint")}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {REGIONS.map((region) => (
-              <FilterChip
+              <SelectionChip
                 key={region.value}
                 label={regionLabel(region.value)}
                 selected={draft.regions.includes(region.value)}
@@ -165,7 +144,7 @@ export function DiscoverFiltersSheet({ open, onOpenChange }: DiscoverFiltersShee
           <p className="mt-0.5 text-xs text-muted-foreground">{t("discover_filters_any_hint")}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {intents.map((intent) => (
-              <FilterChip
+              <SelectionChip
                 key={intent.value}
                 label={intent.label}
                 selected={draft.intents.includes(intent.value as Intent)}

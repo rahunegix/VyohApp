@@ -1,4 +1,3 @@
-import { DEV_OTP_CODE, isDevOtpBypass } from "@/lib/auth/dev";
 import { formatPhoneE164, normalizePhoneStorage } from "@/lib/auth/session";
 
 export { formatPhoneE164 };
@@ -19,7 +18,6 @@ export async function sendPhoneOtp(phone: string) {
 
   return {
     phone: json.data.phone as string,
-    devMode: json.data.devMode as boolean,
   };
 }
 
@@ -50,5 +48,3 @@ export async function getSession() {
 export async function signOut() {
   await fetch("/api/auth/session", { method: "DELETE" });
 }
-
-export { isDevOtpBypass, DEV_OTP_CODE };

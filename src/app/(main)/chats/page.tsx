@@ -7,7 +7,7 @@ import { MessageCircle, Search, Shield, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { ChatListItem, ChatRequestCard } from "@/components/chat/chat-components";
 import { EmptyState } from "@/components/common/empty-states";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/helpers/utils";
 import { DEMO_PROFILES } from "@/services/demo-data";
 import type { ChatRequest, Conversation } from "@/types";
@@ -168,7 +168,7 @@ export default function ChatsPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search conversations…"
-                  className="h-11 w-full rounded-2xl border border-border/50 bg-white pl-10 pr-4 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="h-11 w-full rounded-full border border-border/50 bg-white pl-10 pr-4 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
@@ -196,7 +196,7 @@ export default function ChatsPage() {
             </motion.div>
 
             {filteredConversations.length > 0 ? (
-              <div className="space-y-2.5">
+              <div className="overflow-hidden rounded-2xl border border-border/50 bg-white shadow-[var(--shadow-soft)]">
                 {filteredConversations.map((c, i) => (
                   <motion.div
                     key={c.id}
@@ -204,7 +204,7 @@ export default function ChatsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.06 }}
                   >
-                    <ChatListItem conversation={c} href={`/chats/${c.id}`} />
+                    <ChatListItem conversation={c} href={`/chats/${c.id}`} variant="grouped" />
                   </motion.div>
                 ))}
               </div>
@@ -225,10 +225,7 @@ export default function ChatsPage() {
                 title="No conversations yet"
                 description="Send a chat request to start connecting. All chats are consent-based."
                 action={
-                  <Link
-                    href="/discover"
-                    className="inline-flex h-12 items-center justify-center rounded-xl bg-primary px-6 text-sm font-medium text-white shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98]"
-                  >
+                  <Link href="/discover" className={cn(buttonVariants(), "h-12 px-8")}>
                     Discover profiles
                   </Link>
                 }

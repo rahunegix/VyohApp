@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 import { APP_NAME, APP_TAGLINE, LOGO_PATH } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/seo/config";
 import { PWAInstallPrompt } from "@/components/common/pwa-install";
+import { HelpChatWidget } from "@/components/common/help-chat-widget";
 import { SiteFooter } from "@/components/common/site-footer";
 import { AuthProvider } from "@/components/auth/auth-provider";
 
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <SiteFooter />
           </div>
           <PWAInstallPrompt />
+          <HelpChatWidget />
         </AuthProvider>
       </body>
     </html>

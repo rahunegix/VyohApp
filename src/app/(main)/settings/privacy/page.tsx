@@ -4,7 +4,9 @@ import { useState } from "react";
 import { PageHeader } from "@/components/common/page-header";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { SettingsMenuGroup, SettingsMenuDivider } from "@/components/ui/settings-menu";
 import { updatePrivacySettings } from "@/services/actions";
+import { cn } from "@/lib/helpers/utils";
 
 const PRIVACY_TOGGLES = [
   { key: "show_photos", label: "Show Photos", desc: "Allow others to see your photos" },
@@ -33,31 +35,30 @@ export default function PrivacySettingsPage() {
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-muted/20 pb-24">
       <PageHeader showBack backHref="/settings" title="Privacy" subtitle="You're always in control" />
 
-      <div className="px-4 py-4 space-y-1">
-        {PRIVACY_TOGGLES.map((item) => (
-          <div
-            key={item.key}
-            className="flex items-center justify-between gap-4 rounded-xl p-4 hover:bg-muted/50"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium">{item.label}</p>
-              <p className="text-xs text-muted-foreground">{item.desc}</p>
+      <SettingsMenuGroup className="mx-4 mt-4">
+        {PRIVACY_TOGGLES.map((item, i) => (
+          <div key={item.key}>
+            {i > 0 && <SettingsMenuDivider />}
+            <div className="flex items-center justify-between gap-4 px-4 py-4">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold">{item.label}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{item.desc}</p>
+              </div>
+              <Switch
+                checked={settings[item.key]}
+                onCheckedChange={(checked) => setSettings((s) => ({ ...s, [item.key]: checked }))}
+                aria-label={item.label}
+                className={cn(settings[item.key] && "data-[state=checked]:bg-primary")}
+              />
             </div>
-            <Switch
-              checked={settings[item.key]}
-              onCheckedChange={(checked) =>
-                setSettings((s) => ({ ...s, [item.key]: checked }))
-              }
-              aria-label={item.label}
-            />
           </div>
         ))}
-      </div>
+      </SettingsMenuGroup>
 
-      <div className="px-4 mt-4">
+      <div className="mx-4 mt-6">
         <Button onClick={handleSave} loading={saving} className="w-full">
           Save Changes
         </Button>

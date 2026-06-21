@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyLoginOtp } from "@/lib/auth/custom-auth";
 import { setAuthCookies } from "@/lib/auth/cookies";
+import { OTP_LENGTH } from "@/lib/auth/otp-config";
 
 const schema = z.object({
   phone: z.string().min(10),
-  code: z.string().length(6),
+  code: z.string().length(OTP_LENGTH),
 });
 
 export async function POST(request: NextRequest) {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Globe } from "lucide-react";
 import { cn } from "@/lib/helpers/utils";
+import { SelectPillRow } from "@/components/ui/selection-chip";
 import { LANGUAGES, type AppLanguage } from "@/lib/i18n/languages";
 import { useLanguageStore } from "@/store/language";
 
@@ -76,18 +77,11 @@ export function LanguageOptionCard({
 }) {
   const item = LANGUAGES.find((l) => l.code === lang)!;
   return (
-    <button
-      type="button"
+    <SelectPillRow
+      selected={selected}
       onClick={onSelect}
-      className={cn(
-        "w-full rounded-2xl border-2 p-4 text-left transition-all active:scale-[0.98]",
-        selected
-          ? "border-primary bg-primary/5 shadow-[var(--shadow-soft)]"
-          : "border-border bg-card hover:border-primary/30"
-      )}
-    >
-      <p className="text-lg font-semibold">{item.nativeLabel}</p>
-      <p className="mt-0.5 text-sm text-muted-foreground">{item.description}</p>
-    </button>
+      label={item.nativeLabel}
+      description={item.description}
+    />
   );
 }

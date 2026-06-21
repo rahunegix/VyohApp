@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { OTP_LENGTH } from "@/lib/auth/otp-config";
 
 export const phoneSchema = z.object({
   phone: z.string().min(10, "Enter a valid phone number").max(15),
@@ -6,7 +7,7 @@ export const phoneSchema = z.object({
 
 export const otpSchema = z.object({
   phone: z.string().min(10),
-  otp: z.string().length(6, "OTP must be 6 digits"),
+  otp: z.string().length(OTP_LENGTH, `OTP must be ${OTP_LENGTH} digits`),
 });
 
 export const genderSchema = z.object({

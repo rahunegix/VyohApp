@@ -35,7 +35,8 @@ export function SiteFooter({ className, variant = "light" }: Props) {
             isDark ? "text-white/80" : "text-foreground/80"
           )}
         >
-          Powered By InfoTheme Private Limited
+          Powered By FirstTrek OPC Private Limited and Technology &amp; SMS Service By
+          InfoTheme Private Limited
         </p>
         <p>
           The content and images used on this site are copyright protected and copyright

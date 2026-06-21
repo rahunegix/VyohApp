@@ -8,9 +8,9 @@ export const FALLBACK_HOME_SEO: SeoPageView = {
   slug: null,
   title: `${APP_NAME} — Uttarakhand Matrimony & Dating | Garhwali & Kumaoni Matches`,
   meta_description:
-    "Saathini is Uttarakhand's verified matrimony and dating platform for Garhwali & Kumaoni singles. A trusted alternative to Maangal Platform and Shaadi.com.",
+    "Saathini is Uttarakhand's verified matrimony and dating platform for Garhwali & Kumaoni singles. A trusted alternative to Maangal.com and Shaadi.com.",
   meta_keywords:
-    "uttarakhand matrimony, garhwali matrimony, kumaoni matrimony, alternative to Maangal Platform, alternative to shadi.com",
+    "uttarakhand matrimony, garhwali matrimony, kumaoni matrimony, alternative to maangal.com, alternative to shadi.com",
   og_title: null,
   og_description: null,
   og_image_url: null,
@@ -32,8 +32,8 @@ export const FALLBACK_HOME_SEO: SeoPageView = {
       ],
     },
     {
-      title: "A modern alternative to Pahadi Maangal Platform & Shaadi Matrimony",
-      body: "Many Uttarakhand families search for local alternatives to Pahadi Maangal Platform, Shaadi.com, and BharatMatrimony.",
+      title: "A modern alternative to Maangal.com & Shaadi.com",
+      body: "Many Uttarakhand families search for local alternatives to Maangal.com, Shaadi.com, and BharatMatrimony.",
       bullets: [
         "Local Uttarakhand discovery filters",
         "Consent-first chat before family intro",
@@ -48,7 +48,7 @@ export const FALLBACK_HOME_SEO: SeoPageView = {
         "No. You can choose serious relationship or Hindu marriage intent on the same platform.",
     },
     {
-      question: "How is Saathini different from Maangal Platform or Shaadi.com?",
+      question: "How is Saathini different from Maangal.com or Shaadi.com?",
       answer:
         "Saathini focuses on Uttarakhand — Garhwali and Kumaoni communities with verified profiles.",
     },
@@ -60,12 +60,12 @@ export const FALLBACK_HOME_SEO: SeoPageView = {
   focus_keywords: [
     "uttarakhand matrimony",
     "garhwali matrimony",
-    "alternative to Maangal Platform",
+    "alternative to maangal.com",
     "alternative to shadi.com",
   ],
   related_links: [
     { label: "Garhwali matrimony", href: "/matrimony/garhwali-matrimony" },
-    { label: "Alternative to Maangal Platform", href: "/matrimony/alternative-maangal-com" },
+    { label: "Alternative to Maangal.com", href: "/matrimony/alternative-maangal-com" },
     { label: "Success stories", href: "/success-stories" },
   ],
   is_published: true,

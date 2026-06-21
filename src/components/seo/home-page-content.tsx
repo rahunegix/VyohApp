@@ -20,6 +20,7 @@ import type { SuccessStoryView } from "@/lib/success-stories/types";
 import { FaqSection } from "@/components/seo/faq-section";
 import { SuccessStoryShowcase } from "@/components/auth/success-story-showcase";
 import { AppLogo } from "@/components/common/app-logo";
+import { HelpChatTrigger } from "@/components/common/help-chat-widget";
 import { Button } from "@/components/ui/button";
 import { APP_TAGLINE } from "@/lib/constants";
 
@@ -116,6 +117,7 @@ function SiteNav() {
             </Link>
           </nav>
           <div className="flex items-center gap-2">
+            <HelpChatTrigger />
             <Link href="/login" className="hidden sm:block">
               <Button variant="ghost" size="sm" className="h-10 rounded-[6px] px-4 font-semibold">
                 Log in

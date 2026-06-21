@@ -2,19 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, Gem } from "lucide-react";
-import { SelectCard } from "@/components/common/step-indicator";
+import { SelectPillRow } from "@/components/ui/selection-chip";
 import { LOOKING_FOR } from "@/lib/constants";
 import { getLocalizedIntents } from "@/lib/i18n";
 import { updateProfileIntentMatching } from "@/services/actions";
 import { useTranslation } from "@/hooks/use-translation";
 import { EditSectionShell, selectClass } from "@/components/profile/edit/shared";
 import type { Profile } from "@/types";
-
-const icons = {
-  serious: <Heart className="h-5 w-5" />,
-  marriage: <Gem className="h-5 w-5" />,
-} as const;
 
 export function EditIntentForm({
   profile,
@@ -50,15 +44,14 @@ export function EditIntentForm({
       <EditSectionShell error={error} saving={saving} saveLabel={t("save_changes")}>
         <div>
           <label className="text-sm font-medium">{t("intent_label")}</label>
-          <div className="mt-3 space-y-2">
+          <div className="mt-3 space-y-3">
             {intents.map((i) => (
-              <SelectCard
+              <SelectPillRow
                 key={i.value}
                 selected={intent === i.value}
                 onClick={() => setIntent(i.value)}
-                title={i.label}
+                label={i.label}
                 description={i.description}
-                icon={icons[i.value as keyof typeof icons]}
               />
             ))}
           </div>
@@ -71,7 +64,9 @@ export function EditIntentForm({
             className={selectClass}
           >
             {LOOKING_FOR.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
             ))}
           </select>
         </div>

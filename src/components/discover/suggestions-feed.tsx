@@ -68,7 +68,7 @@ export function SuggestionsFeed() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col px-4 pb-6 pt-4 lg:mx-auto lg:max-w-xl lg:px-6">
+    <div className="flex h-full min-h-0 flex-col px-4 pb-3 pt-1 lg:mx-auto lg:max-w-xl lg:px-6">
       <AnimatePresence mode="wait">
         <motion.div
           key={current.id}

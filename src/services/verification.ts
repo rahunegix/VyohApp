@@ -1,10 +1,11 @@
 "use server";
 
-import { createHash, randomInt } from "crypto";
+import { createHash } from "crypto";
 import { revalidatePath } from "next/cache";
 import { getServerAuth } from "@/lib/auth/server-auth";
-import { DEV_OTP_CODE, isDevOtpBypass } from "@/lib/auth/dev";
 import { formatPhoneE164 } from "@/lib/auth/phone";
+import { OTP_LENGTH, OTP_TTL_MS } from "@/lib/auth/otp-config";
+import { generateOtp } from "@/lib/auth/session";
 import { calculateTrustScore } from "@/lib/matching/compatibility";
 import { DEMO_CURRENT_PROFILE, DEMO_VERIFICATION } from "@/services/demo-data";
 import type { VerificationOverview } from "@/types";
@@ -25,7 +26,7 @@ const referenceSubmitSchema = z.object({
 
 const otpSchema = z.object({
   request_id: z.string().uuid(),
-  otp: z.string().length(6),
+  otp: z.string().length(OTP_LENGTH),
 });
 
 async function getProfileContext() {
@@ -45,11 +46,6 @@ async function getProfileContext() {
 
 function hashOtp(otp: string) {
   return createHash("sha256").update(otp).digest("hex");
-}
-
-function generateOtp() {
-  if (isDevOtpBypass) return DEV_OTP_CODE;
-  return String(randomInt(100000, 999999));
 }
 
 function demoOverview(): VerificationOverview {
@@ -175,7 +171,7 @@ export async function submitReferenceVerification(data: unknown) {
       relation: parsed.data.relation.trim(),
       phone,
       otp_hash: hashOtp(otp),
-      otp_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      otp_expires_at: new Date(Date.now() + OTP_TTL_MS).toISOString(),
       status: "pending_otp",
     })
     .select("id, reference_type, contact_name, relation, phone, status")
@@ -187,13 +183,12 @@ export async function submitReferenceVerification(data: unknown) {
   return {
     success: true,
     request: row,
-    devOtp: isDevOtpBypass ? otp : undefined,
   };
 }
 
 export async function verifyReferenceOtp(data: unknown) {
   const parsed = otpSchema.safeParse(data);
-  if (!parsed.success) return { error: "Enter a valid 6-digit OTP" };
+  if (!parsed.success) return { error: `Enter a valid ${OTP_LENGTH}-digit OTP` };
 
   const ctx = await getProfileContext();
   if (!ctx) return { error: "Not authenticated" };
@@ -253,11 +248,11 @@ export async function resendReferenceOtp(requestId: string) {
     .from("reference_verification_requests")
     .update({
       otp_hash: hashOtp(otp),
-      otp_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+      otp_expires_at: new Date(Date.now() + OTP_TTL_MS).toISOString(),
     })
     .eq("id", requestId);
 
   if (error) return { error: error.message };
 
-  return { success: true, devOtp: isDevOtpBypass ? otp : undefined };
+  return { success: true };
 }
