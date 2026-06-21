@@ -13,7 +13,7 @@ export interface SMSResponse {
 
 /** Approved DLT template — must match portal registration exactly. */
 const SMS_OTP_TEMPLATE =
-  "<#>{#var#} is your SAATHINI (Uttarakhandi Matrimonial & Dating Platform) login OTP code. Do not share this code with anyone. It is valid for 5 minutes. If you did not request this, please ignore this message. - Team SAATHINI";
+  "<#>{#var#} is your SAATHINI (Uttarakhandi Matrimonial & Dating Platform) login OTP code. Do not share this code with anyone. It is valid for 5 minutes. If you did not request this, please ignore this message. - Team SAATHINI @www.saathini.com #{#var#}";
 
 export function formatPhoneNumber(phone: string): string {
   let formatted = phone.replace(/[^0-9]/g, "");
@@ -75,7 +75,14 @@ function parseSmsResponse(trimmedResult: string): SMSResponse {
 }
 
 export function buildOtpMessage(otp: string): string {
-  return SMS_OTP_TEMPLATE.replace("{#var#}", otp);
+  let message = SMS_OTP_TEMPLATE.replaceAll("{#var#}", otp);
+
+  const androidHash = process.env.SMS_OTP_ANDROID_HASH?.trim();
+  if (androidHash) {
+    message += `\n\n<# ${androidHash}`;
+  }
+
+  return message;
 }
 
 export async function sendOTP(phone: string, otp: string): Promise<SMSResponse> {

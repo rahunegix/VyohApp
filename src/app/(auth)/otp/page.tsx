@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AuthScreenLayout } from "@/components/auth/auth-screen-layout";
 import { cn } from "@/lib/helpers/utils";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/auth/phone";
+import { codeToDigitArray } from "@/lib/auth/otp-autofill";
 import { OTP_LENGTH, OTP_TTL_MINUTES } from "@/lib/auth/otp-config";
 import { APP_NAME } from "@/lib/constants";
 import { useTranslation } from "@/hooks/use-translation";
+import { useOtpAutofill } from "@/hooks/use-otp-autofill";
 
 const EMPTY_OTP = Array.from({ length: OTP_LENGTH }, () => "");
 
@@ -22,6 +24,7 @@ export default function OtpPage() {
   const [phone, setPhone] = useState("");
   const [focusedIndex, setFocusedIndex] = useState(0);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const hiddenAutofillRef = useRef<HTMLInputElement | null>(null);
   const lastIndex = OTP_LENGTH - 1;
 
   useEffect(() => {
@@ -32,6 +35,38 @@ export default function OtpPage() {
     }
     setPhone(stored);
   }, [router]);
+
+  const handleVerify = useCallback(
+    async (codeOverride?: string) => {
+      const code = codeOverride ?? otp.join("");
+      if (code.length !== OTP_LENGTH || loading) return;
+      setLoading(true);
+      setError("");
+      try {
+        await verifyPhoneOtp(phone, code);
+        router.push("/onboarding/intent");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : t("invalid_code"));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loading, otp, phone, router, t]
+  );
+
+  const applyCode = useCallback(
+    (code: string) => {
+      setOtp(codeToDigitArray(code));
+      setFocusedIndex(lastIndex);
+      void handleVerify(code);
+    },
+    [handleVerify, lastIndex]
+  );
+
+  const { handleHiddenInput, handlePaste } = useOtpAutofill({
+    enabled: Boolean(phone),
+    onCode: applyCode,
+  });
 
   const handleChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
@@ -57,18 +92,9 @@ export default function OtpPage() {
     }
   };
 
-  const handleVerify = async () => {
-    const code = otp.join("");
-    if (code.length !== OTP_LENGTH) return;
-    setLoading(true);
-    setError("");
-    try {
-      await verifyPhoneOtp(phone, code);
-      router.push("/onboarding/intent");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("invalid_code"));
-    } finally {
-      setLoading(false);
+  const handleContainerPaste = (e: React.ClipboardEvent) => {
+    if (handlePaste(e.clipboardData.getData("text"))) {
+      e.preventDefault();
     }
   };
 
@@ -77,6 +103,7 @@ export default function OtpPage() {
     setError("");
     setOtp(EMPTY_OTP);
     inputRefs.current[0]?.focus();
+    hiddenAutofillRef.current?.focus();
     setFocusedIndex(0);
     try {
       await sendPhoneOtp(phone);
@@ -104,7 +131,7 @@ export default function OtpPage() {
       footer={
         <>
           <Button
-            onClick={handleVerify}
+            onClick={() => handleVerify()}
             loading={loading}
             disabled={!isComplete}
             size="lg"
@@ -126,7 +153,22 @@ export default function OtpPage() {
         </>
       }
     >
-      <div className="flex justify-center gap-3 lg:justify-start">
+      {/* Hidden field for iOS/Android SMS autofill + paste target */}
+      <input
+        ref={hiddenAutofillRef}
+        type="text"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        aria-hidden
+        tabIndex={-1}
+        className="pointer-events-none absolute h-px w-px opacity-0"
+        onChange={(e) => handleHiddenInput(e.target.value)}
+      />
+
+      <div
+        className="flex justify-center gap-3 lg:justify-start"
+        onPaste={handleContainerPaste}
+      >
         {otp.map((digit, i) => {
           const filled = digit !== "";
           const focused = focusedIndex === i;
@@ -138,6 +180,7 @@ export default function OtpPage() {
               }}
               type="text"
               inputMode="numeric"
+              autoComplete={i === 0 ? "one-time-code" : "off"}
               maxLength={1}
               value={digit}
               onChange={(e) => handleChange(i, e.target.value)}
