@@ -7,7 +7,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { AuthScreenLayout } from "@/components/auth/auth-screen-layout";
 import { phoneSchema } from "@/lib/validation/schemas";
-import { sendPhoneOtp } from "@/lib/auth/phone";
 import { APP_NAME } from "@/lib/constants";
 import { useTranslation } from "@/hooks/use-translation";
 import { z } from "zod";
@@ -29,9 +28,8 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      const { phone } = await sendPhoneOtp(data.phone);
       sessionStorage.setItem("saathini_phone", data.phone);
-      sessionStorage.setItem("saathini_phone_e164", phone);
+      sessionStorage.removeItem("saathini_otp_sent");
       router.push("/otp");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("otp_failed"));

@@ -4,30 +4,24 @@ import { useCallback, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AuthScreenLayout } from "@/components/auth/auth-screen-layout";
-import { cn } from "@/lib/helpers/utils";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/auth/phone";
-import { codeToDigitArray } from "@/lib/auth/otp-autofill";
 import { OTP_LENGTH, OTP_TTL_MINUTES } from "@/lib/auth/otp-config";
 import { APP_NAME } from "@/lib/constants";
 import { useTranslation } from "@/hooks/use-translation";
 import { useOtpAutofill } from "@/hooks/use-otp-autofill";
 
-const EMPTY_OTP = Array.from({ length: OTP_LENGTH }, () => "");
-
 export default function OtpPage() {
   const router = useRouter();
   const { t, hydrated } = useTranslation();
-  const [otp, setOtp] = useState(EMPTY_OTP);
+  const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState("");
   const [phone, setPhone] = useState("");
-  const [focusedIndex, setFocusedIndex] = useState(0);
   const [listenKey, setListenKey] = useState(0);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const autofillRef = useRef<HTMLInputElement | null>(null);
-  const formRef = useRef<HTMLFormElement | null>(null);
-  const lastIndex = OTP_LENGTH - 1;
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const sendStartedRef = useRef(false);
 
   useEffect(() => {
     const stored = sessionStorage.getItem("saathini_phone");
@@ -40,12 +34,13 @@ export default function OtpPage() {
 
   const handleVerify = useCallback(
     async (codeOverride?: string) => {
-      const code = codeOverride ?? otp.join("");
-      if (code.length !== OTP_LENGTH || loading || !phone) return;
+      const otpCode = (codeOverride ?? code).replace(/\D/g, "").slice(0, OTP_LENGTH);
+      if (otpCode.length !== OTP_LENGTH || loading || !phone) return;
       setLoading(true);
       setError("");
       try {
-        await verifyPhoneOtp(phone, code);
+        await verifyPhoneOtp(phone, otpCode);
+        sessionStorage.removeItem("saathini_otp_sent");
         router.push("/onboarding/intent");
       } catch (err) {
         setError(err instanceof Error ? err.message : t("invalid_code"));
@@ -53,72 +48,77 @@ export default function OtpPage() {
         setLoading(false);
       }
     },
-    [loading, otp, phone, router, t]
+    [code, loading, phone, router, t]
   );
 
   const applyCode = useCallback(
-    (code: string) => {
-      setOtp(codeToDigitArray(code));
-      setFocusedIndex(lastIndex);
-      void handleVerify(code);
+    (incoming: string) => {
+      const digits = incoming.replace(/\D/g, "").slice(0, OTP_LENGTH);
+      setCode(digits);
+      if (digits.length === OTP_LENGTH) {
+        void handleVerify(digits);
+      }
     },
-    [handleVerify, lastIndex]
+    [handleVerify]
   );
 
   const { handleAutofillInput, handlePaste } = useOtpAutofill({
-    enabled: true,
+    enabled: Boolean(phone),
     listenKey,
     onCode: applyCode,
   });
 
+  // Start Web OTP listener first, then send SMS from this page (critical for Chrome popup).
   useEffect(() => {
-    autofillRef.current?.focus();
+    if (!phone || sendStartedRef.current) return;
+    sendStartedRef.current = true;
+
+    const alreadySent = sessionStorage.getItem("saathini_otp_sent") === phone;
+    if (alreadySent) {
+      inputRef.current?.focus();
+      return;
+    }
+
+    setSending(true);
+    sendPhoneOtp(phone, "web")
+      .then(({ phone: e164 }) => {
+        sessionStorage.setItem("saathini_phone_e164", e164);
+        sessionStorage.setItem("saathini_otp_sent", phone);
+      })
+      .catch((err) => {
+        sendStartedRef.current = false;
+        setError(err instanceof Error ? err.message : t("otp_failed"));
+      })
+      .finally(() => {
+        setSending(false);
+        inputRef.current?.focus();
+      });
+  }, [phone, t]);
+
+  useEffect(() => {
+    inputRef.current?.focus();
   }, [listenKey]);
 
-  const handleChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
-    setOtp(newOtp);
-    if (value && index < lastIndex) {
-      inputRefs.current[index + 1]?.focus();
-      setFocusedIndex(index + 1);
-    }
-    if (newOtp.join("").length === OTP_LENGTH) {
-      void handleVerify(newOtp.join(""));
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-      setFocusedIndex(index - 1);
-    } else if (e.key === "ArrowLeft" && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-      setFocusedIndex(index - 1);
-    } else if (e.key === "ArrowRight" && index < lastIndex) {
-      inputRefs.current[index + 1]?.focus();
-      setFocusedIndex(index + 1);
-    }
-  };
-
-  const handleContainerPaste = (e: React.ClipboardEvent) => {
-    if (handlePaste(e.clipboardData.getData("text"))) {
-      e.preventDefault();
+  const handleChange = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, OTP_LENGTH);
+    setCode(digits);
+    setError("");
+    if (digits.length === OTP_LENGTH) {
+      handleAutofillInput(digits);
+      void handleVerify(digits);
     }
   };
 
   const handleResend = async () => {
-    if (!phone) return;
+    if (!phone || resending) return;
     setResending(true);
     setError("");
-    setOtp(EMPTY_OTP);
+    setCode("");
     setListenKey((k) => k + 1);
-    inputRefs.current[0]?.focus();
-    autofillRef.current?.focus();
-    setFocusedIndex(0);
     try {
       await sendPhoneOtp(phone, "web");
+      sessionStorage.setItem("saathini_otp_sent", phone);
+      inputRef.current?.focus();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("resend_failed"));
     } finally {
@@ -126,7 +126,7 @@ export default function OtpPage() {
     }
   };
 
-  const isComplete = otp.every((d) => d !== "");
+  const isComplete = code.length === OTP_LENGTH;
 
   if (!hydrated) return null;
 
@@ -135,7 +135,11 @@ export default function OtpPage() {
       title="Verify it's you"
       subtitle={
         <>
-          We sent a code to{" "}
+          {sending ? (
+            <>Sending code to{" "}</>
+          ) : (
+            <>We sent a code to{" "}</>
+          )}
           <span className="font-bold text-primary">+91 {phone || "••••••••••"}</span>. Enter it
           here to join {APP_NAME}.
         </>
@@ -145,7 +149,7 @@ export default function OtpPage() {
           <Button
             onClick={() => handleVerify()}
             loading={loading}
-            disabled={!isComplete}
+            disabled={!isComplete || sending}
             size="lg"
             className="w-full"
           >
@@ -156,7 +160,7 @@ export default function OtpPage() {
             <button
               type="button"
               onClick={handleResend}
-              disabled={resending}
+              disabled={resending || sending}
               className="font-bold text-primary hover:text-primary/80 disabled:opacity-50"
             >
               {resending ? t("sending") : t("resend")}
@@ -166,64 +170,32 @@ export default function OtpPage() {
       }
     >
       <form
-        ref={formRef}
         id="otp-form"
-        className="mx-auto max-w-[280px]"
+        className="mx-auto w-full max-w-xs"
         onSubmit={(e) => {
           e.preventDefault();
           void handleVerify();
         }}
+        onPaste={(e) => {
+          if (handlePaste(e.clipboardData.getData("text"))) {
+            e.preventDefault();
+          }
+        }}
       >
-        {/* Primary field for Web OTP + iOS/Android keyboard autofill */}
         <input
-          ref={autofillRef}
+          ref={inputRef}
           type="text"
           inputMode="numeric"
           autoComplete="one-time-code"
           name="one-time-code"
           maxLength={OTP_LENGTH}
-          value={otp.join("")}
-          onChange={(e) => {
-            const digits = e.target.value.replace(/\D/g, "").slice(0, OTP_LENGTH);
-            setOtp(codeToDigitArray(digits));
-            if (digits.length === OTP_LENGTH) {
-              handleAutofillInput(digits);
-            }
-          }}
-          className="sr-only"
+          value={code}
+          onChange={(e) => handleChange(e.target.value)}
+          disabled={sending}
+          placeholder="• • • •"
+          className="ui-otp-box ui-otp-single w-full text-center text-2xl font-bold tracking-[0.55em] sm:h-[4.25rem]"
           aria-label="One-time verification code"
         />
-
-        <div className="flex justify-center gap-3 lg:justify-start" onPaste={handleContainerPaste}>
-          {otp.map((digit, i) => {
-            const filled = digit !== "";
-            const focused = focusedIndex === i;
-            return (
-              <input
-                key={i}
-                ref={(el) => {
-                  inputRefs.current[i] = el;
-                }}
-                type="text"
-                inputMode="numeric"
-                autoComplete="off"
-                maxLength={1}
-                value={digit}
-                onChange={(e) => handleChange(i, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(i, e)}
-                onFocus={() => {
-                  setFocusedIndex(i);
-                  autofillRef.current?.focus();
-                }}
-                className={cn(
-                  "ui-otp-box sm:h-[4.25rem] sm:w-[3.5rem]",
-                  filled && "ui-otp-box-filled",
-                  !filled && focused && "border-primary bg-primary/5"
-                )}
-              />
-            );
-          })}
-        </div>
       </form>
 
       {error && (
@@ -233,8 +205,9 @@ export default function OtpPage() {
       )}
 
       <p className="mt-6 text-center text-xs text-muted-foreground lg:text-left">
-        Code expires in {OTP_TTL_MINUTES} minutes. Use Chrome on your phone at{" "}
-        <span className="font-medium">www.saathini.com</span> for SMS auto-fill.
+        Code expires in {OTP_TTL_MINUTES} minutes. On your phone, open{" "}
+        <span className="font-medium">Chrome → www.saathini.com</span> and stay on this screen
+        when the SMS arrives.
       </p>
     </AuthScreenLayout>
   );

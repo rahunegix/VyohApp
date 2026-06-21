@@ -303,6 +303,19 @@ body {
   color: white;
 }
 
+.ui-otp-single {
+  width: 100%;
+  max-width: 16rem;
+  letter-spacing: 0.45em;
+  padding-left: 0.45em;
+}
+
+.ui-otp-single::placeholder {
+  letter-spacing: 0.35em;
+  color: var(--color-muted-foreground);
+  opacity: 0.45;
+}
+
 .nav-active-bar::before {
   content: "";
   position: absolute;
