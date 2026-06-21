@@ -15,22 +15,15 @@ export interface SMSResponse {
 
 export type OtpSmsClient = "web" | "android";
 
-/** DLT body — first {#var#} only. Android adds inline @domain; web adds newline @ line (Chrome). */
+/** Approved DLT body — only the first {#var#} is the OTP. */
 const SMS_OTP_BODY =
   "<#>{#var#} is your SAATHINI (Uttarakhandi Matrimonial & Dating Platform) login OTP code. Do not share this code with anyone. It is valid for 5 minutes. If you did not request this, please ignore this message. - Team SAATHINI";
 
-/** Full DLT template for Android (both {#var#} = OTP). */
-const SMS_OTP_TEMPLATE = `${SMS_OTP_BODY} @www.saathini.com #{#var#}`;
-
-function fillOtpTemplate(otp: string): string {
+function fillOtpBody(otp: string): string {
   const marker = "{#var#}";
-  const first = SMS_OTP_TEMPLATE.indexOf(marker);
-  if (first === -1) return SMS_OTP_TEMPLATE;
-
-  let message =
-    SMS_OTP_TEMPLATE.slice(0, first) + otp + SMS_OTP_TEMPLATE.slice(first + marker.length);
-  message = message.replace(marker, otp);
-  return message;
+  const first = SMS_OTP_BODY.indexOf(marker);
+  if (first === -1) return SMS_OTP_BODY;
+  return SMS_OTP_BODY.slice(0, first) + otp + SMS_OTP_BODY.slice(first + marker.length);
 }
 
 export function formatPhoneNumber(phone: string): string {
@@ -94,19 +87,15 @@ function parseSmsResponse(trimmedResult: string): SMSResponse {
 
 export function buildOtpMessage(otp: string, client: OtpSmsClient = "web"): string {
   const origin = getWebOtpOrigin() || "www.saathini.com";
+  const body = fillOtpBody(otp);
 
   if (client === "android") {
-    const androidHash = process.env.SMS_OTP_ANDROID_HASH?.trim();
-    let message = fillOtpTemplate(otp);
-    if (androidHash) {
-      message += ` <# ${androidHash}`;
-    }
-    return message;
+    const androidHash = process.env.SMS_OTP_ANDROID_HASH?.trim() || otp;
+    return `${body}\n@${origin} #${androidHash}`;
   }
 
-  // Chrome WebOTP + Stack Overflow: OTP line ends with ".", blank line, last line "@host #code"
-  // https://developer.chrome.com/docs/identity/web-apis/web-otp
-  return `Your SAATHINI OTP is: ${otp}.\n\n@${origin} #${otp}`;
+  // Web: approved DLT body + last line @host #otp (Chrome WebOTP)
+  return `${body}\n@${origin} #${otp}`;
 }
 
 export async function sendOTP(
