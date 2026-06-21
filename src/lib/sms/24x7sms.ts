@@ -22,13 +22,6 @@ const SMS_OTP_BODY =
 /** Full DLT template for Android (both {#var#} = OTP). */
 const SMS_OTP_TEMPLATE = `${SMS_OTP_BODY} @www.saathini.com #{#var#}`;
 
-function fillOtpBody(otp: string): string {
-  const marker = "{#var#}";
-  const first = SMS_OTP_BODY.indexOf(marker);
-  if (first === -1) return SMS_OTP_BODY;
-  return SMS_OTP_BODY.slice(0, first) + otp + SMS_OTP_BODY.slice(first + marker.length);
-}
-
 function fillOtpTemplate(otp: string): string {
   const marker = "{#var#}";
   const first = SMS_OTP_TEMPLATE.indexOf(marker);
@@ -111,9 +104,9 @@ export function buildOtpMessage(otp: string, client: OtpSmsClient = "web"): stri
     return message;
   }
 
-  // Chrome Web OTP (PolicyBazaar-style): last line MUST be `@domain #otp` only.
-  const body = fillOtpBody(otp);
-  return `${body}\n@${origin} #${otp}`;
+  // Chrome WebOTP + Stack Overflow: OTP line ends with ".", blank line, last line "@host #code"
+  // https://developer.chrome.com/docs/identity/web-apis/web-otp
+  return `Your SAATHINI OTP is: ${otp}.\n\n@${origin} #${otp}`;
 }
 
 export async function sendOTP(

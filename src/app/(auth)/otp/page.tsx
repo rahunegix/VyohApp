@@ -29,6 +29,9 @@ export default function OtpPage() {
   const [sessionKey, setSessionKey] = useState(0);
   const [needsResend, setNeedsResend] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const webOtpAbortRef = useRef<AbortController | null>(null);
+  const applyCodeRef = useRef<(code: string) => void>(() => {});
 
   useEffect(() => {
     const stored = sessionStorage.getItem("saathini_phone");
@@ -69,54 +72,73 @@ export default function OtpPage() {
     [handleVerify]
   );
 
+  applyCodeRef.current = applyCode;
+
   const { resetHandled, handleAutofillInput, handlePaste } = useOtpAutofill({
     onCode: applyCode,
   });
 
-  /**
-   * web.dev / PolicyBazaar: call credentials.get() FIRST (sync), then send SMS.
-   * SMS must arrive AFTER get() starts — old SMS is never picked up.
-   */
+  /** Chrome WebOTP: https://developer.chrome.com/docs/identity/web-apis/web-otp */
+  useEffect(() => {
+    if (!phone || !supportsWebOtpApi() || !isWebOtpOriginMatch()) return;
+
+    webOtpAbortRef.current?.abort();
+    const ac = new AbortController();
+    webOtpAbortRef.current = ac;
+    const timeoutId = window.setTimeout(() => ac.abort(), WEB_OTP_WAIT_MS);
+
+    navigator.credentials
+      .get({
+        otp: { transport: ["sms"] },
+        signal: ac.signal,
+      } as CredentialRequestOptions)
+      .then((credential) => {
+        if (!credential || !("code" in credential)) return;
+        const parsed = extractOtpCode(String((credential as OTPCredential).code));
+        if (parsed && inputRef.current) {
+          inputRef.current.value = parsed;
+          applyCodeRef.current(parsed);
+        }
+      })
+      .catch(() => {
+        /* timeout, dismissed, or SMS mismatch */
+      })
+      .finally(() => {
+        window.clearTimeout(timeoutId);
+      });
+
+    return () => {
+      ac.abort();
+      window.clearTimeout(timeoutId);
+    };
+  }, [phone, sessionKey]);
+
+  /** Abort WebOTP when user submits manually (Chrome docs). */
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form) return;
+    const onSubmit = () => webOtpAbortRef.current?.abort();
+    form.addEventListener("submit", onSubmit);
+    return () => form.removeEventListener("submit", onSubmit);
+  }, []);
+
+  /** Start listener first, then send SMS — only when sessionKey changes. */
   useEffect(() => {
     if (!phone) return;
 
     let cancelled = false;
-    const abort = new AbortController();
-    const timeoutId = window.setTimeout(() => abort.abort(), WEB_OTP_WAIT_MS);
-
     resetHandled();
-
-    const canWebOtp = supportsWebOtpApi() && isWebOtpOriginMatch();
-    if (canWebOtp) {
-      navigator.credentials
-        .get({
-          otp: { transport: ["sms"] },
-          signal: abort.signal,
-        } as CredentialRequestOptions)
-        .then((credential) => {
-          if (cancelled || !credential || !("code" in credential)) return;
-          const parsed = extractOtpCode(String((credential as OTPCredential).code));
-          if (parsed) applyCode(parsed);
-        })
-        .catch(() => {
-          /* timeout, dismissed, or mismatch */
-        });
-    }
 
     const alreadySent = sessionStorage.getItem("saathini_otp_sent") === phone;
     if (alreadySent) {
       setNeedsResend(true);
       inputRef.current?.focus();
-      return () => {
-        cancelled = true;
-        abort.abort();
-        window.clearTimeout(timeoutId);
-      };
+      return;
     }
 
     setNeedsResend(false);
-
     setSending(true);
+
     sendPhoneOtp(phone, "web")
       .then(({ phone: e164 }) => {
         if (cancelled) return;
@@ -136,10 +158,8 @@ export default function OtpPage() {
 
     return () => {
       cancelled = true;
-      abort.abort();
-      window.clearTimeout(timeoutId);
     };
-  }, [phone, sessionKey, applyCode, resetHandled, t]);
+  }, [phone, sessionKey, resetHandled, t]);
 
   const handleChange = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, OTP_LENGTH);
@@ -215,6 +235,7 @@ export default function OtpPage() {
       )}
 
       <form
+        ref={formRef}
         id="otp-form"
         className="mx-auto w-full max-w-xs"
         onSubmit={(e) => {
@@ -252,8 +273,8 @@ export default function OtpPage() {
 
       <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground lg:text-left">
         {webOtpReady
-          ? "SMS aate hi Chrome popup aayega — Allow dabayein. Keyboard par OTP chip bhi aa sakti hai."
-          : "Chrome Android + www.saathini.com par auto-fill best kaam karta hai."}{" "}
+          ? "SMS aate hi Chrome bottom sheet aayega — Verify dabayein. Sender contacts mein ho to band ho sakta hai."
+          : "Chrome Android + www.saathini.com par best kaam karta hai."}{" "}
         Expires in {OTP_TTL_MINUTES} min.
       </p>
     </AuthScreenLayout>
