@@ -8,15 +8,14 @@ import {
 } from "@/lib/auth/otp-autofill";
 import { OTP_LENGTH } from "@/lib/auth/otp-config";
 
+/** Chrome waits until SMS arrives — abort so UI never hangs (web.dev pattern). */
+const WEB_OTP_WAIT_MS = 90_000;
+
 type Options = {
   enabled?: boolean;
   listenKey?: number;
   onCode: (code: string) => void;
 };
-
-export type WebOtpRequestResult =
-  | { ok: true }
-  | { ok: false; reason: "unsupported" | "origin" | "denied" | "timeout" | "empty" };
 
 function normalizeWebOtpCode(raw: string): string | null {
   const trimmed = raw.trim();
@@ -24,20 +23,23 @@ function normalizeWebOtpCode(raw: string): string | null {
   return extractOtpCode(trimmed);
 }
 
-/** Web OTP autofill via SMS (Chrome Android) + keyboard one-time-code suggestions. */
+/**
+ * PolicyBazaar / web.dev pattern:
+ * - `autocomplete="one-time-code"` on the input (keyboard suggestion)
+ * - Background `navigator.credentials.get()` on page load (Chrome Android popup)
+ * - No manual button — credentials.get() hangs until SMS or timeout
+ */
 export function useOtpAutofill({ enabled = true, listenKey = 0, onCode }: Options) {
   const handledRef = useRef(false);
   const onCodeRef = useRef(onCode);
-  const abortRef = useRef<AbortController | null>(null);
   const [visibilityRetry, setVisibilityRetry] = useState(0);
   onCodeRef.current = onCode;
 
   useEffect(() => {
     handledRef.current = false;
-    setVisibilityRetry(0);
-  }, [enabled, listenKey]);
+  }, [enabled, listenKey, visibilityRetry]);
 
-  const applyCredential = useCallback((raw: string) => {
+  const applyCode = useCallback((raw: string) => {
     const code = normalizeWebOtpCode(raw);
     if (!code || handledRef.current) return false;
     handledRef.current = true;
@@ -45,12 +47,11 @@ export function useOtpAutofill({ enabled = true, listenKey = 0, onCode }: Option
     return true;
   }, []);
 
-  const listenForSmsOtp = useCallback(() => {
-    if (!enabled || !supportsWebOtpApi() || !isWebOtpOriginMatch()) return undefined;
+  useEffect(() => {
+    if (!enabled || !supportsWebOtpApi() || !isWebOtpOriginMatch()) return;
 
-    abortRef.current?.abort();
     const controller = new AbortController();
-    abortRef.current = controller;
+    const timeoutId = window.setTimeout(() => controller.abort(), WEB_OTP_WAIT_MS);
 
     navigator.credentials
       .get({
@@ -59,55 +60,20 @@ export function useOtpAutofill({ enabled = true, listenKey = 0, onCode }: Option
       } as CredentialRequestOptions)
       .then((credential) => {
         if (!credential || !("code" in credential)) return;
-        applyCredential(String((credential as OTPCredential).code));
+        applyCode(String((credential as OTPCredential).code));
       })
       .catch(() => {
-        /* Aborted, dismissed, SMS mismatch, or SMS not yet received */
+        /* Aborted (timeout), dismissed, or SMS/domain mismatch */
+      })
+      .finally(() => {
+        window.clearTimeout(timeoutId);
       });
 
     return () => {
       controller.abort();
-      if (abortRef.current === controller) abortRef.current = null;
+      window.clearTimeout(timeoutId);
     };
-  }, [applyCredential, enabled]);
-
-  /** User-gesture trigger — tap after SMS arrives (most reliable on Chrome Android). */
-  const requestWebOtp = useCallback(async (): Promise<WebOtpRequestResult> => {
-    if (!supportsWebOtpApi()) return { ok: false, reason: "unsupported" };
-    if (!isWebOtpOriginMatch()) return { ok: false, reason: "origin" };
-    if (handledRef.current) return { ok: true };
-
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    try {
-      const credential = await navigator.credentials.get({
-        otp: { transport: ["sms"] },
-        signal: controller.signal,
-      } as CredentialRequestOptions);
-
-      if (!credential || !("code" in credential)) {
-        return { ok: false, reason: "empty" };
-      }
-
-      if (applyCredential(String((credential as OTPCredential).code))) {
-        return { ok: true };
-      }
-      return { ok: false, reason: "empty" };
-    } catch (err) {
-      if (err instanceof DOMException) {
-        if (err.name === "NotAllowedError") return { ok: false, reason: "denied" };
-        if (err.name === "AbortError") return { ok: false, reason: "timeout" };
-      }
-      return { ok: false, reason: "empty" };
-    }
-  }, [applyCredential]);
-
-  useEffect(() => {
-    const cleanup = listenForSmsOtp();
-    return () => cleanup?.();
-  }, [listenForSmsOtp, listenKey, visibilityRetry]);
+  }, [applyCode, enabled, listenKey, visibilityRetry]);
 
   useEffect(() => {
     if (!enabled || !supportsWebOtpApi()) return;
@@ -122,7 +88,7 @@ export function useOtpAutofill({ enabled = true, listenKey = 0, onCode }: Option
   }, [enabled, listenKey]);
 
   const handleAutofillInput = (value: string) => {
-    applyCredential(value);
+    applyCode(value);
   };
 
   const handlePaste = (text: string) => {
@@ -134,24 +100,10 @@ export function useOtpAutofill({ enabled = true, listenKey = 0, onCode }: Option
     return true;
   };
 
-  const pasteFromClipboard = async (): Promise<boolean> => {
-    if (handledRef.current || typeof navigator === "undefined" || !navigator.clipboard?.readText) {
-      return false;
-    }
-    try {
-      const text = await navigator.clipboard.readText();
-      return handlePaste(text);
-    } catch {
-      return false;
-    }
-  };
-
   return {
     otpLength: OTP_LENGTH,
     webOtpSupported: supportsWebOtpApi(),
     originMatches: isWebOtpOriginMatch(),
-    requestWebOtp,
-    pasteFromClipboard,
     handleAutofillInput,
     handlePaste,
   };

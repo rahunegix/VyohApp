@@ -3,6 +3,8 @@
  * Docs: https://www.24x7sms.com/downloads/24X7SMS_http_API2.0.pdf
  */
 
+import { getWebOtpOrigin } from "@/lib/auth/otp-autofill";
+
 export interface SMSResponse {
   success: boolean;
   message?: string;
@@ -13,9 +15,19 @@ export interface SMSResponse {
 
 export type OtpSmsClient = "web" | "android";
 
-/** DLT template — both {#var#} = OTP. Matches 24x7SMS portal registration. */
-const SMS_OTP_TEMPLATE =
-  "<#>{#var#} is your SAATHINI (Uttarakhandi Matrimonial & Dating Platform) login OTP code. Do not share this code with anyone. It is valid for 5 minutes. If you did not request this, please ignore this message. - Team SAATHINI @www.saathini.com #{#var#}";
+/** DLT body — first {#var#} only. Android adds inline @domain; web adds newline @ line (Chrome). */
+const SMS_OTP_BODY =
+  "<#>{#var#} is your SAATHINI (Uttarakhandi Matrimonial & Dating Platform) login OTP code. Do not share this code with anyone. It is valid for 5 minutes. If you did not request this, please ignore this message. - Team SAATHINI";
+
+/** Full DLT template for Android (both {#var#} = OTP). */
+const SMS_OTP_TEMPLATE = `${SMS_OTP_BODY} @www.saathini.com #{#var#}`;
+
+function fillOtpBody(otp: string): string {
+  const marker = "{#var#}";
+  const first = SMS_OTP_BODY.indexOf(marker);
+  if (first === -1) return SMS_OTP_BODY;
+  return SMS_OTP_BODY.slice(0, first) + otp + SMS_OTP_BODY.slice(first + marker.length);
+}
 
 function fillOtpTemplate(otp: string): string {
   const marker = "{#var#}";
@@ -88,16 +100,20 @@ function parseSmsResponse(trimmedResult: string): SMSResponse {
 }
 
 export function buildOtpMessage(otp: string, client: OtpSmsClient = "web"): string {
-  const message = fillOtpTemplate(otp);
+  const origin = getWebOtpOrigin() || "www.saathini.com";
 
   if (client === "android") {
     const androidHash = process.env.SMS_OTP_ANDROID_HASH?.trim();
+    let message = fillOtpTemplate(otp);
     if (androidHash) {
-      return `${message} <# ${androidHash}`;
+      message += ` <# ${androidHash}`;
     }
+    return message;
   }
 
-  return message;
+  // Chrome Web OTP (PolicyBazaar-style): last line MUST be `@domain #otp` only.
+  const body = fillOtpBody(otp);
+  return `${body}\n@${origin} #${otp}`;
 }
 
 export async function sendOTP(
