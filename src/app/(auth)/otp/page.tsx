@@ -17,6 +17,8 @@ import { useTranslation } from "@/hooks/use-translation";
 import { useOtpAutofill } from "@/hooks/use-otp-autofill";
 
 const WEB_OTP_WAIT_MS = 90_000;
+/** SMS must arrive after credentials.get() — small delay avoids race with the API call. */
+const SMS_SEND_DELAY_MS = 600;
 
 export default function OtpPage() {
   const router = useRouter();
@@ -32,6 +34,38 @@ export default function OtpPage() {
   const formRef = useRef<HTMLFormElement | null>(null);
   const webOtpAbortRef = useRef<AbortController | null>(null);
   const applyCodeRef = useRef<(code: string) => void>(() => {});
+  const webOtpSessionRef = useRef(0);
+
+  const startWebOtpListener = useCallback(() => {
+    if (!phone || !supportsWebOtpApi() || !isWebOtpOriginMatch()) return;
+
+    webOtpAbortRef.current?.abort();
+    const session = ++webOtpSessionRef.current;
+    const ac = new AbortController();
+    webOtpAbortRef.current = ac;
+    const timeoutId = window.setTimeout(() => ac.abort(), WEB_OTP_WAIT_MS);
+
+    navigator.credentials
+      .get({
+        otp: { transport: ["sms"] },
+        signal: ac.signal,
+      } as CredentialRequestOptions)
+      .then((credential) => {
+        if (session !== webOtpSessionRef.current) return;
+        if (!credential || !("code" in credential)) return;
+        const parsed = extractOtpCode(String((credential as OTPCredential).code));
+        if (parsed && inputRef.current) {
+          inputRef.current.value = parsed;
+          applyCodeRef.current(parsed);
+        }
+      })
+      .catch(() => {
+        /* timeout, dismissed, or SMS mismatch */
+      })
+      .finally(() => {
+        window.clearTimeout(timeoutId);
+      });
+  }, [phone]);
 
   useEffect(() => {
     const stored = sessionStorage.getItem("saathini_phone");
@@ -78,40 +112,13 @@ export default function OtpPage() {
     onCode: applyCode,
   });
 
-  /** Chrome WebOTP: https://developer.chrome.com/docs/identity/web-apis/web-otp */
+  /** Chrome WebOTP: listener before SMS; restart on resend via sessionKey. */
   useEffect(() => {
-    if (!phone || !supportsWebOtpApi() || !isWebOtpOriginMatch()) return;
-
-    webOtpAbortRef.current?.abort();
-    const ac = new AbortController();
-    webOtpAbortRef.current = ac;
-    const timeoutId = window.setTimeout(() => ac.abort(), WEB_OTP_WAIT_MS);
-
-    navigator.credentials
-      .get({
-        otp: { transport: ["sms"] },
-        signal: ac.signal,
-      } as CredentialRequestOptions)
-      .then((credential) => {
-        if (!credential || !("code" in credential)) return;
-        const parsed = extractOtpCode(String((credential as OTPCredential).code));
-        if (parsed && inputRef.current) {
-          inputRef.current.value = parsed;
-          applyCodeRef.current(parsed);
-        }
-      })
-      .catch(() => {
-        /* timeout, dismissed, or SMS mismatch */
-      })
-      .finally(() => {
-        window.clearTimeout(timeoutId);
-      });
-
+    startWebOtpListener();
     return () => {
-      ac.abort();
-      window.clearTimeout(timeoutId);
+      webOtpAbortRef.current?.abort();
     };
-  }, [phone, sessionKey]);
+  }, [phone, sessionKey, startWebOtpListener]);
 
   /** Abort WebOTP when user submits manually (Chrome docs). */
   useEffect(() => {
@@ -139,25 +146,28 @@ export default function OtpPage() {
     setNeedsResend(false);
     setSending(true);
 
-    sendPhoneOtp(phone, "web")
-      .then(({ phone: e164 }) => {
-        if (cancelled) return;
-        sessionStorage.setItem("saathini_phone_e164", e164);
-        sessionStorage.setItem("saathini_otp_sent", phone);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : t("otp_failed"));
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setSending(false);
-          inputRef.current?.focus();
-        }
-      });
+    const sendTimer = window.setTimeout(() => {
+      sendPhoneOtp(phone, "web")
+        .then(({ phone: e164 }) => {
+          if (cancelled) return;
+          sessionStorage.setItem("saathini_phone_e164", e164);
+          sessionStorage.setItem("saathini_otp_sent", phone);
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          setError(err instanceof Error ? err.message : t("otp_failed"));
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setSending(false);
+            inputRef.current?.focus();
+          }
+        });
+    }, SMS_SEND_DELAY_MS);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(sendTimer);
     };
   }, [phone, sessionKey, resetHandled, t]);
 
@@ -258,6 +268,7 @@ export default function OtpPage() {
           maxLength={OTP_LENGTH}
           value={code}
           onChange={(e) => handleChange(e.target.value)}
+          onFocus={() => startWebOtpListener()}
           disabled={sending}
           placeholder="Enter OTP"
           className="ui-otp-box ui-otp-single w-full text-center text-2xl font-bold sm:h-[4.25rem]"
@@ -273,7 +284,7 @@ export default function OtpPage() {
 
       <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground lg:text-left">
         {webOtpReady
-          ? "SMS aate hi Chrome bottom sheet aayega — Verify dabayein. Sender contacts mein ho to band ho sakta hai."
+          ? "SMS aate hi Chrome bottom sheet aayega — Verify dabayein. SATINI sender contacts mein ho to popup band ho jata hai."
           : "Chrome Android + www.saathini.com par best kaam karta hai."}{" "}
         Expires in {OTP_TTL_MINUTES} min.
       </p>

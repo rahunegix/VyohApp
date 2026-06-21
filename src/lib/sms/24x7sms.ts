@@ -15,15 +15,21 @@ export interface SMSResponse {
 
 export type OtpSmsClient = "web" | "android";
 
-/** Approved DLT body — only the first {#var#} is the OTP. */
-const SMS_OTP_BODY =
-  "<#>{#var#} is your SAATHINI (Uttarakhandi Matrimonial & Dating Platform) login OTP code. Do not share this code with anyone. It is valid for 5 minutes. If you did not request this, please ignore this message. - Team SAATHINI";
+const SMS_OTP_TEXT =
+  "{#var#} is your SAATHINI (Uttarakhandi Matrimonial & Dating Platform) login OTP code. Do not share this code with anyone. It is valid for 5 minutes. If you did not request this, please ignore this message. - Team SAATHINI";
 
-function fillOtpBody(otp: string): string {
+/** Web — no `<#>` (Chrome WebOTP). Android — `<#>` for SMS Retriever. */
+const SMS_OTP_BODY_WEB = SMS_OTP_TEXT;
+const SMS_OTP_BODY_ANDROID = `<#>${SMS_OTP_TEXT}`;
+
+/** GSM line break — some carriers merge `\n` into one line and break WebOTP. */
+const SMS_ORIGIN_LINE_BREAK = "\r\n\r\n";
+
+function fillOtpBody(template: string, otp: string): string {
   const marker = "{#var#}";
-  const first = SMS_OTP_BODY.indexOf(marker);
-  if (first === -1) return SMS_OTP_BODY;
-  return SMS_OTP_BODY.slice(0, first) + otp + SMS_OTP_BODY.slice(first + marker.length);
+  const first = template.indexOf(marker);
+  if (first === -1) return template;
+  return template.slice(0, first) + otp + template.slice(first + marker.length);
 }
 
 export function formatPhoneNumber(phone: string): string {
@@ -87,15 +93,15 @@ function parseSmsResponse(trimmedResult: string): SMSResponse {
 
 export function buildOtpMessage(otp: string, client: OtpSmsClient = "web"): string {
   const origin = getWebOtpOrigin() || "www.saathini.com";
-  const body = fillOtpBody(otp);
 
   if (client === "android") {
     const androidHash = process.env.SMS_OTP_ANDROID_HASH?.trim() || otp;
-    return `${body}\n@${origin} #${androidHash}`;
+    const body = fillOtpBody(SMS_OTP_BODY_ANDROID, otp);
+    return `${body}${SMS_ORIGIN_LINE_BREAK}@${origin} #${androidHash}`;
   }
 
-  // Web: approved DLT body + last line @host #otp (Chrome WebOTP)
-  return `${body}\n@${origin} #${otp}`;
+  const body = fillOtpBody(SMS_OTP_BODY_WEB, otp);
+  return `${body}${SMS_ORIGIN_LINE_BREAK}@${origin} #${otp}`;
 }
 
 export async function sendOTP(
@@ -107,7 +113,10 @@ export async function sendOTP(
     const apiKey = process.env.SMS_API_KEY;
     const senderId = process.env.SMS_SENDER_ID || "SATINI";
     const serviceName = process.env.SMS_SERVICE_NAME || "TEMPLATE_BASE";
-    const dltTemplateId = process.env.SMS_DLT_TEMPLATE_ID;
+    const dltTemplateId =
+      client === "web"
+        ? process.env.SMS_DLT_WEB_TEMPLATE_ID?.trim() || process.env.SMS_DLT_TEMPLATE_ID
+        : process.env.SMS_DLT_TEMPLATE_ID;
     const apiUrl =
       process.env.SMS_API_URL || "https://smsapi.24x7sms.com/api_2.0/SendSMS.aspx";
 
