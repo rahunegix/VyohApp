@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getMyProfile } from "@/services/actions";
-import { DEMO_CURRENT_PROFILE } from "@/services/demo-data";
 import { useAuthStore } from "@/store";
 import type { Profile } from "@/types";
 
@@ -20,8 +19,6 @@ export function useEditProfile() {
       if (fromDb) {
         setProfile(fromDb);
         setAuthProfile(fromDb);
-      } else if (!authProfile) {
-        setProfile(DEMO_CURRENT_PROFILE);
       }
       setLoading(false);
     })();

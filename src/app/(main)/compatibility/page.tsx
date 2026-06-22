@@ -8,7 +8,7 @@ import { ChevronRight, Shield } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { CompatibilitySection } from "@/components/profile/compatibility-section";
 import { ListSkeleton } from "@/components/ui/skeleton";
-import { DEMO_PROFILES, DEMO_CURRENT_PROFILE } from "@/services/demo-data";
+import { EmptyState } from "@/components/common/empty-states";
 import { calculateCompatibility } from "@/lib/matching/compatibility";
 import { getIntentLabel } from "@/lib/helpers/formatters";
 import type { DiscoverProfile } from "@/types";
@@ -26,6 +26,41 @@ const itemVariants: Variants = {
   show: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
 };
 
+function mapProfileRow(row: Record<string, unknown>): DiscoverProfile {
+  return {
+    id: String(row.id),
+    full_name: String(row.full_name ?? "Member"),
+    age: Number(row.age ?? 25),
+    city: String(row.city ?? ""),
+    district: String(row.district ?? ""),
+    region: row.region as DiscoverProfile["region"],
+    education: String(row.education ?? ""),
+    profession: String(row.profession ?? ""),
+    bio: String(row.bio ?? ""),
+    intent: row.intent as DiscoverProfile["intent"],
+    trust_score: Number(row.trust_score ?? 50),
+    photos: ((row.profile_photos ?? row.photos ?? []) as Record<string, unknown>[]).map(
+      (p, i) => ({
+        id: String(p.id ?? i),
+        url: String(p.url ?? ""),
+        sort_order: Number(p.sort_order ?? i),
+        is_primary: Boolean(p.is_primary ?? i === 0),
+        is_private: Boolean(p.is_private ?? false),
+      })
+    ),
+    personality_tags: (row.personality_tags as string[]) ?? [],
+    interest_tags: (row.interest_tags as string[]) ?? [],
+    values_tags: (row.values_tags as string[]) ?? [],
+    lifestyle: (row.lifestyle as Record<string, string>) ?? {},
+    family_background: (row.family_background as Record<string, string>) ?? {},
+    verification: {
+      mobile_verified: true,
+      face_verified: false,
+      id_verified: false,
+    },
+  };
+}
+
 export default function CompatibilityPage() {
   const [matches, setMatches] = useState<
     (DiscoverProfile & { compatibility: ReturnType<typeof calculateCompatibility> })[]
@@ -33,15 +68,52 @@ export default function CompatibilityPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const enriched = DEMO_PROFILES.map((p) => ({
-      ...p,
-      compatibility: calculateCompatibility(DEMO_CURRENT_PROFILE, p),
-    })).sort((a, b) => b.compatibility.score - a.compatibility.score);
+    let cancelled = false;
 
-    setTimeout(() => {
-      setMatches(enriched);
-      setLoading(false);
-    }, 600);
+    async function load() {
+      try {
+        const [profilesRes, meRes] = await Promise.all([
+          fetch("/api/profiles"),
+          fetch("/api/auth/me"),
+        ]);
+        const profilesJson = await profilesRes.json();
+        const meJson = await meRes.json();
+        if (cancelled) return;
+
+        const rows = Array.isArray(profilesJson.data) ? profilesJson.data : [];
+        const profiles = rows.map((row: Record<string, unknown>) => mapProfileRow(row));
+
+        let myProfile: DiscoverProfile | null = null;
+        if (meJson.success && meJson.data?.profile) {
+          myProfile = mapProfileRow(meJson.data.profile as Record<string, unknown>);
+        }
+
+        const enriched = profiles
+          .map((profile: DiscoverProfile) => ({
+            ...profile,
+            compatibility: myProfile
+              ? calculateCompatibility(myProfile, profile)
+              : { score: profile.trust_score ?? 70, strong_matches: [], mismatch_warnings: [] },
+          }))
+          .sort(
+            (
+              a: DiscoverProfile & { compatibility: ReturnType<typeof calculateCompatibility> },
+              b: DiscoverProfile & { compatibility: ReturnType<typeof calculateCompatibility> }
+            ) => b.compatibility.score - a.compatibility.score
+          );
+
+        setMatches(enriched);
+      } catch {
+        if (!cancelled) setMatches([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -50,7 +122,7 @@ export default function CompatibilityPage() {
         <PageHeader title="Compatibility Hub" subtitle="Deep insights into your best matches" />
       </div>
 
-      {!loading && (
+      {!loading && matches.length > 0 && (
         <div className="mx-4 mt-4 flex items-start gap-3 rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/5 to-transparent p-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Shield className="h-5 w-5" />
@@ -64,6 +136,14 @@ export default function CompatibilityPage() {
       {loading ? (
         <div className="px-4 py-6">
           <ListSkeleton count={3} />
+        </div>
+      ) : matches.length === 0 ? (
+        <div className="mx-4 mt-8">
+          <EmptyState
+            icon="heart"
+            title="No matches to compare yet"
+            description="Complete your profile and explore Discover to see compatibility scores."
+          />
         </div>
       ) : (
         <motion.div

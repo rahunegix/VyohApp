@@ -1,31 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { PhotoUploadGrid } from "@/components/ui/photo-upload-grid";
 import { OnboardingStepShell, OnboardingStepHeading } from "@/components/onboarding/onboarding-step-shell";
+import { ProfilePhotoUploader } from "@/components/profile/profile-photo-uploader";
 import { useOnboardingStore } from "@/store";
 import { useTranslation } from "@/hooks/use-translation";
 
-const PLACEHOLDER_PHOTOS = [
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
-];
-
 export default function PhotosPage() {
   const router = useRouter();
-  const { photos, addPhoto, removePhoto } = useOnboardingStore();
+  const { photos, setPhotos } = useOnboardingStore();
   const { t, hydrated } = useTranslation();
-  const [uploading, setUploading] = useState(false);
-
-  const handleAddDemo = async () => {
-    if (photos.length >= 6) return;
-    setUploading(true);
-    await new Promise((r) => setTimeout(r, 500));
-    addPhoto(`${PLACEHOLDER_PHOTOS[0]}&t=${Date.now()}`);
-    setUploading(false);
-  };
 
   if (!hydrated) return null;
 
@@ -47,11 +33,10 @@ export default function PhotosPage() {
     >
       <OnboardingStepHeading title={t("photos_title")} subtitle={t("photos_subtitle")} />
 
-      <PhotoUploadGrid
+      <ProfilePhotoUploader
         photos={photos}
-        onAdd={handleAddDemo}
-        onRemove={removePhoto}
-        uploading={uploading}
+        onChange={setPhotos}
+        uploadImmediately
         mainLabel={t("main")}
         addLabel={t("add")}
       />

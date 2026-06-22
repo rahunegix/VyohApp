@@ -54,8 +54,8 @@ export async function GET(request: NextRequest) {
   if (error || !data?.length) {
     return NextResponse.json({
       success: true,
-      data: DEMO_PROFILES.filter((p) => p.id !== profile?.id),
-      demo: true,
+      data: [],
+      demo: false,
     });
   }
 

@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import {
   Shield, Settings, Crown, HelpCircle,
   Edit2, Sparkles, Users, Heart, Camera, PenLine, BookOpen,
@@ -9,10 +11,11 @@ import { PageHeader } from "@/components/common/page-header";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { SettingsMenuGroup, SettingsMenuDivider, SettingsMenuRow } from "@/components/ui/settings-menu";
-import { DEMO_CURRENT_PROFILE } from "@/services/demo-data";
+import { useEditProfile } from "@/hooks/use-edit-profile";
 import { getIntentLabel, getTrustLevel } from "@/lib/helpers/formatters";
-import { cn } from "@/lib/helpers/utils";
+import { cn, getInitials } from "@/lib/helpers/utils";
 import { LogoutButton } from "@/components/auth/logout-button";
+import { ListSkeleton } from "@/components/ui/skeleton";
 
 const MENU_ITEMS = [
   { href: "/profile/edit", label: "Edit Profile", icon: Edit2, highlight: false },
@@ -28,7 +31,31 @@ const MENU_ITEMS = [
 ];
 
 export default function ProfilePage() {
-  const profile = DEMO_CURRENT_PROFILE;
+  const { profile, loading } = useEditProfile();
+  const [primaryPhoto, setPrimaryPhoto] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/profiles/photos")
+      .then((r) => r.json())
+      .then((json) => {
+        const rows = Array.isArray(json.data) ? json.data : [];
+        const first = rows[0] as { url?: string } | undefined;
+        if (first?.url) setPrimaryPhoto(first.url);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  if (loading || !profile) {
+    return (
+      <div className="min-h-screen bg-muted/20 pb-24">
+        <PageHeader title="Profile" transparent className="relative z-10" />
+        <div className="px-5 py-8">
+          <ListSkeleton count={4} />
+        </div>
+      </div>
+    );
+  }
+
   const trust = getTrustLevel(profile.trust_score);
 
   return (
@@ -41,9 +68,13 @@ export default function ProfilePage() {
         <div className="relative z-10 flex flex-col items-center">
           <div className="group relative mb-4">
             <div className="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-primary/10 shadow-lg">
-              <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-primary">
-                {profile.full_name[0]}
-              </div>
+              {primaryPhoto ? (
+                <Image src={primaryPhoto} alt={profile.full_name} fill className="object-cover" sizes="112px" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-primary">
+                  {getInitials(profile.full_name)}
+                </div>
+              )}
             </div>
             <button
               type="button"

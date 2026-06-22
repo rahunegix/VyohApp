@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Shield,
@@ -24,11 +24,71 @@ import { ProfileTabs } from "@/components/profile/profile-tabs";
 import { DetailInfoChip } from "@/components/profile/detail-info-row";
 import { BannedProfilePage } from "@/components/seo/banned-profile-page";
 import { findDiscoverProfile } from "@/data/all-discover-profiles";
-import { DEMO_CURRENT_PROFILE } from "@/services/demo-data";
+import { useEditProfile } from "@/hooks/use-edit-profile";
 import { calculateCompatibility } from "@/lib/matching/compatibility";
 import { getIntentLabel, formatProfileLocation } from "@/lib/helpers/formatters";
 import { sendInterest, sendChatRequest } from "@/services/actions";
 import { useShortlistStore } from "@/store";
+import type { DiscoverProfile } from "@/types";
+
+function mapProfileRow(row: Record<string, unknown>): DiscoverProfile {
+  return {
+    id: String(row.id),
+    user_id: String(row.user_id ?? ""),
+    full_name: String(row.full_name ?? "Member"),
+    gender: row.gender as DiscoverProfile["gender"],
+    looking_for: row.looking_for as DiscoverProfile["looking_for"],
+    dob: String(row.dob ?? ""),
+    age: Number(row.age ?? 25),
+    city: String(row.city ?? ""),
+    district: String(row.district ?? ""),
+    village: row.village ? String(row.village) : null,
+    region: row.region as DiscoverProfile["region"],
+    education: String(row.education ?? ""),
+    profession: String(row.profession ?? ""),
+    bio: String(row.bio ?? ""),
+    ai_bio: row.ai_bio ? String(row.ai_bio) : null,
+    intent: row.intent as DiscoverProfile["intent"],
+    profile_status: row.profile_status as DiscoverProfile["profile_status"],
+    trust_score: Number(row.trust_score ?? 50),
+    compatibility_score: Number(row.compatibility_score ?? 70),
+    readiness_score: Number(row.readiness_score ?? 70),
+    personality_tags: (row.personality_tags as string[]) ?? [],
+    interest_tags: (row.interest_tags as string[]) ?? [],
+    values_tags: (row.values_tags as string[]) ?? [],
+    lifestyle: (row.lifestyle as Record<string, string>) ?? {},
+    family_background: (row.family_background as Record<string, string>) ?? {},
+    created_at: String(row.created_at ?? new Date().toISOString()),
+    updated_at: String(row.updated_at ?? new Date().toISOString()),
+    photos: ((row.profile_photos ?? row.photos ?? []) as Record<string, unknown>[]).map(
+      (p, i) => ({
+        id: String(p.id ?? i),
+        profile_id: String(row.id),
+        url: String(p.url ?? ""),
+        sort_order: Number(p.sort_order ?? i),
+        is_primary: Boolean(p.is_primary ?? i === 0),
+        is_private: Boolean(p.is_private ?? false),
+        created_at: String(p.created_at ?? new Date().toISOString()),
+        updated_at: String(p.updated_at ?? new Date().toISOString()),
+      })
+    ),
+    verification: {
+      id: String(row.id),
+      profile_id: String(row.id),
+      mobile_verified: Boolean(
+        (row.verification_status as Record<string, unknown>)?.mobile_verified
+      ),
+      face_verified: Boolean(
+        (row.verification_status as Record<string, unknown>)?.face_verified
+      ),
+      id_verified: Boolean((row.verification_status as Record<string, unknown>)?.id_verified),
+      family_verified: false,
+      verified_at: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+  };
+}
 
 function ProfileActionsSheet({
   open,
@@ -77,17 +137,49 @@ function ProfileActionsSheet({
 
 export function MatchDetailsClient({ profileId }: { profileId: string }) {
   const router = useRouter();
-  const profile = findDiscoverProfile(profileId);
+  const { profile: myProfile } = useEditProfile();
+  const [profile, setProfile] = useState<DiscoverProfile | undefined>(() =>
+    findDiscoverProfile(profileId)
+  );
+  const [loading, setLoading] = useState(true);
   const [requestSent, setRequestSent] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const toggleShortlist = useShortlistStore((s) => s.toggle);
   const isShortlisted = useShortlistStore((s) => s.has(profile?.id ?? ""));
 
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/profiles?id=${encodeURIComponent(profileId)}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (cancelled) return;
+        if (json.success && json.data) {
+          setProfile(mapProfileRow(json.data as Record<string, unknown>));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [profileId]);
+
+  if (loading && !profile) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-muted/20">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
   if (!profile) {
     return <BannedProfilePage profileId={profileId} />;
   }
 
-  const compatibility = calculateCompatibility(DEMO_CURRENT_PROFILE, profile);
+  const compatibility = myProfile
+    ? calculateCompatibility(myProfile, profile)
+    : calculateCompatibility(profile, profile);
 
   const handleChatRequest = async () => {
     await sendChatRequest({

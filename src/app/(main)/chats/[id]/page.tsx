@@ -9,10 +9,11 @@ import { MessageBubble, TypingIndicator } from "@/components/chat/chat-component
 import { ChatComposer } from "@/components/chat/chat-composer";
 import { PremiumContactButton } from "@/components/chat/premium-contact-button";
 import { MembershipUpsellModal } from "@/components/subscription/membership-upsell-modal";
+import { ListSkeleton } from "@/components/ui/skeleton";
 import { useSubscriptionPlan } from "@/hooks/use-subscription-plan";
 import { FREE_CHAT_MESSAGE_LIMIT } from "@/lib/subscription/whatsapp-call";
-import { DEMO_PROFILES } from "@/services/demo-data";
 import { getInitials } from "@/lib/helpers/utils";
+import type { DiscoverProfile } from "@/types";
 
 type ChatMsg = {
   id: string;
@@ -22,17 +23,42 @@ type ChatMsg = {
   status?: "sent" | "delivered" | "read";
 };
 
-/** Start with one incoming message — free user can send exactly 1 reply */
-const DEMO_MESSAGES: ChatMsg[] = [
-  { id: "1", text: "Hi! Great to connect with you on Saathini.", isOwn: false, time: "10:30 AM" },
-];
+function mapProfileRow(row: Record<string, unknown>): DiscoverProfile {
+  return {
+    id: String(row.id),
+    full_name: String(row.full_name ?? "Member"),
+    age: Number(row.age ?? 25),
+    city: String(row.city ?? ""),
+    district: String(row.district ?? ""),
+    region: row.region as DiscoverProfile["region"],
+    education: String(row.education ?? ""),
+    profession: String(row.profession ?? ""),
+    bio: String(row.bio ?? ""),
+    intent: row.intent as DiscoverProfile["intent"],
+    trust_score: Number(row.trust_score ?? 50),
+    photos: ((row.profile_photos ?? row.photos ?? []) as Record<string, unknown>[]).map(
+      (p, i) => ({
+        id: String(p.id ?? i),
+        url: String(p.url ?? ""),
+        sort_order: Number(p.sort_order ?? i),
+        is_primary: Boolean(p.is_primary ?? i === 0),
+        is_private: Boolean(p.is_private ?? false),
+      })
+    ),
+    personality_tags: (row.personality_tags as string[]) ?? [],
+    interest_tags: (row.interest_tags as string[]) ?? [],
+    values_tags: (row.values_tags as string[]) ?? [],
+    lifestyle: (row.lifestyle as Record<string, string>) ?? {},
+    family_background: (row.family_background as Record<string, string>) ?? {},
+    verification: {
+      mobile_verified: true,
+      face_verified: false,
+      id_verified: false,
+    },
+  };
+}
 
-const CONV_PROFILE_MAP: Record<string, string> = {
-  "conv-1": "demo-1",
-  "conv-2": "demo-3",
-};
-
-function getProfilePhoto(profile: (typeof DEMO_PROFILES)[number]) {
+function getProfilePhoto(profile: DiscoverProfile) {
   const primary = profile.photos.find((p) => p.is_primary) ?? profile.photos[0];
   return primary?.url ?? null;
 }
@@ -41,22 +67,76 @@ function countOwnMessages(messages: ChatMsg[]) {
   return messages.filter((m) => m.isOwn).length;
 }
 
+function formatMessageTime(iso: string) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "Now";
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
 export default function ChatDetailPage() {
   const params = useParams<{ id: string }>();
+  const conversationId = params.id ?? "";
   const { isPaid, loading: planLoading } = useSubscriptionPlan();
-  const [messages, setMessages] = useState<ChatMsg[]>(DEMO_MESSAGES);
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [profile, setProfile] = useState<DiscoverProfile | null>(null);
+  const [myProfileId, setMyProfileId] = useState("");
+  const [loading, setLoading] = useState(true);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [messageUpsellOpen, setMessageUpsellOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const profile = useMemo(() => {
-    const profileId = CONV_PROFILE_MAP[params.id ?? ""] ?? "demo-1";
-    return DEMO_PROFILES.find((p) => p.id === profileId) ?? DEMO_PROFILES[0];
-  }, [params.id]);
+  useEffect(() => {
+    let cancelled = false;
 
-  const photoUrl = getProfilePhoto(profile);
-  const firstName = profile.full_name.split(" ")[0];
+    async function load() {
+      setLoading(true);
+      try {
+        const [meRes, chatsRes, messagesRes] = await Promise.all([
+          fetch("/api/auth/me"),
+          fetch("/api/chats"),
+          fetch(`/api/messages?conversationId=${encodeURIComponent(conversationId)}`),
+        ]);
+
+        const meJson = await meRes.json();
+        const chatsJson = await chatsRes.json();
+        const messagesJson = await messagesRes.json();
+
+        if (cancelled) return;
+
+        const profileId = String(meJson.data?.profile?.id ?? "");
+        setMyProfileId(profileId);
+
+        const convRows = (chatsJson.data?.conversations ?? []) as Record<string, unknown>[];
+        const match = convRows.find((row) => String(row.conversation_id) === conversationId);
+        if (match?.profile) {
+          setProfile(mapProfileRow(match.profile as Record<string, unknown>));
+        }
+
+        if (messagesJson.success && Array.isArray(messagesJson.data)) {
+          setMessages(
+            messagesJson.data.map((row: Record<string, unknown>) => ({
+              id: String(row.id),
+              text: String(row.message_text ?? ""),
+              isOwn: String(row.sender_profile_id) === profileId,
+              time: formatMessageTime(String(row.created_at ?? "")),
+              status: "sent" as const,
+            }))
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    if (conversationId) load();
+    return () => {
+      cancelled = true;
+    };
+  }, [conversationId]);
+
+  const photoUrl = profile ? getProfilePhoto(profile) : null;
+  const firstName = profile?.full_name.split(" ")[0] ?? "Chat";
 
   const ownMessageCount = countOwnMessages(messages);
   const messageLimitReached = !planLoading && !isPaid && ownMessageCount >= FREE_CHAT_MESSAGE_LIMIT;
@@ -69,7 +149,7 @@ export default function ChatDetailPage() {
     setMessageUpsellOpen(true);
   }, []);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim() || typing) return;
 
     if (!isPaid && ownMessageCount >= FREE_CHAT_MESSAGE_LIMIT) {
@@ -78,25 +158,47 @@ export default function ChatDetailPage() {
     }
 
     const text = input.trim();
-    setMessages((m) => [
-      ...m,
-      { id: Date.now().toString(), text, isOwn: true, time: "Now", status: "sent" },
-    ]);
+    const optimistic: ChatMsg = {
+      id: `local-${Date.now()}`,
+      text,
+      isOwn: true,
+      time: "Now",
+      status: "sent",
+    };
+    setMessages((m) => [...m, optimistic]);
     setInput("");
-    setTyping(true);
-    setTimeout(() => {
-      setTyping(false);
-      setMessages((m) => [
-        ...m,
-        {
-          id: (Date.now() + 1).toString(),
-          text: "That sounds wonderful! Let's plan something.",
-          isOwn: false,
-          time: "Now",
-        },
-      ]);
-    }, 1500);
+
+    const res = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversationId, text }),
+    });
+    const json = await res.json();
+    if (json.success && json.data) {
+      const row = json.data as Record<string, unknown>;
+      setMessages((m) =>
+        m.map((msg) =>
+          msg.id === optimistic.id
+            ? {
+                id: String(row.id),
+                text: String(row.message_text ?? text),
+                isOwn: String(row.sender_profile_id) === myProfileId,
+                time: formatMessageTime(String(row.created_at ?? "")),
+                status: "sent",
+              }
+            : msg
+        )
+      );
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-dvh flex-col bg-[#faf8f8] p-4">
+        <ListSkeleton count={5} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-[#faf8f8]">
@@ -110,39 +212,47 @@ export default function ChatDetailPage() {
             <ArrowLeft className="h-5 w-5" strokeWidth={2.25} />
           </Link>
 
-          <Link href={`/matches/${profile.id}`} className="flex min-w-0 flex-1 items-center gap-3">
-            <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-primary/10 ring-2 ring-white">
-              {photoUrl ? (
-                <Image src={photoUrl} alt={profile.full_name} fill className="object-cover" sizes="44px" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-sm font-bold text-primary">
-                  {getInitials(profile.full_name)}
-                </div>
-              )}
+          {profile ? (
+            <Link href={`/matches/${profile.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-primary/10 ring-2 ring-white">
+                {photoUrl ? (
+                  <Image src={photoUrl} alt={profile.full_name} fill className="object-cover" sizes="44px" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-sm font-bold text-primary">
+                    {getInitials(profile.full_name)}
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-[15px] font-bold text-foreground">
+                  {firstName}, {profile.age}
+                </p>
+                <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <span className="h-2 w-2 rounded-full bg-success" />
+                  Active
+                </p>
+              </div>
+            </Link>
+          ) : (
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <p className="truncate text-[15px] font-bold text-foreground">Conversation</p>
             </div>
-            <div className="min-w-0">
-              <p className="truncate text-[15px] font-bold text-foreground">
-                {firstName}, {profile.age}
-              </p>
-              <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                <span className="h-2 w-2 rounded-full bg-success" />
-                Online
-              </p>
-            </div>
-          </Link>
+          )}
 
-          <div className="flex shrink-0 items-center gap-1.5">
-            <PremiumContactButton
-              variant="phone"
-              profileId={profile.id}
-              profileName={profile.full_name}
-            />
-            <PremiumContactButton
-              variant="whatsapp"
-              profileId={profile.id}
-              profileName={profile.full_name}
-            />
-          </div>
+          {profile ? (
+            <div className="flex shrink-0 items-center gap-1.5">
+              <PremiumContactButton
+                variant="phone"
+                profileId={profile.id}
+                profileName={profile.full_name}
+              />
+              <PremiumContactButton
+                variant="whatsapp"
+                profileId={profile.id}
+                profileName={profile.full_name}
+              />
+            </div>
+          ) : null}
         </div>
       </header>
 

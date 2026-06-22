@@ -8,61 +8,9 @@ import { PageHeader } from "@/components/common/page-header";
 import { ChatListItem, ChatRequestCard } from "@/components/chat/chat-components";
 import { EmptyState } from "@/components/common/empty-states";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { ListSkeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/helpers/utils";
-import { DEMO_PROFILES } from "@/services/demo-data";
-import type { ChatRequest, Conversation } from "@/types";
-
-const DEMO_CONVERSATIONS: Conversation[] = [
-  {
-    id: "conv-1",
-    match_id: "match-1",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    other_profile: DEMO_PROFILES[0],
-    last_message: {
-      id: "msg-1",
-      conversation_id: "conv-1",
-      sender_profile_id: "demo-1",
-      message_text: "Would love to know more about your work!",
-      message_type: "text",
-      read_at: null,
-      created_at: new Date(Date.now() - 3600000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    unread_count: 2,
-  },
-  {
-    id: "conv-2",
-    match_id: "match-2",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    other_profile: DEMO_PROFILES[2],
-    last_message: {
-      id: "msg-2",
-      conversation_id: "conv-2",
-      sender_profile_id: "current",
-      message_text: "That trek sounds amazing — let's plan something!",
-      message_type: "text",
-      read_at: new Date().toISOString(),
-      created_at: new Date(Date.now() - 86400000).toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    unread_count: 0,
-  },
-];
-
-const DEMO_REQUESTS: (ChatRequest & { sender: (typeof DEMO_PROFILES)[number] })[] = [
-  {
-    id: "req-1",
-    sender_profile_id: "demo-2",
-    receiver_profile_id: "current",
-    message: "Hi! I noticed we have a lot in common. Would love to connect.",
-    status: "pending",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    sender: DEMO_PROFILES[1],
-  },
-];
+import { useChatsData } from "@/hooks/use-chats-data";
 
 type ChatTab = "chats" | "requests";
 
@@ -119,19 +67,19 @@ function ChatPillTabs({
 export default function ChatsPage() {
   const [tab, setTab] = useState<ChatTab>("chats");
   const [search, setSearch] = useState("");
-  const [requests, setRequests] = useState(DEMO_REQUESTS);
+  const { conversations, requests, loading, respondToRequest } = useChatsData();
 
-  const unreadTotal = DEMO_CONVERSATIONS.reduce((sum, c) => sum + (c.unread_count ?? 0), 0);
+  const unreadTotal = conversations.reduce((sum, c) => sum + (c.unread_count ?? 0), 0);
 
   const filteredConversations = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return DEMO_CONVERSATIONS;
-    return DEMO_CONVERSATIONS.filter((c) => {
+    if (!q) return conversations;
+    return conversations.filter((c) => {
       const name = c.other_profile?.full_name?.toLowerCase() ?? "";
       const message = c.last_message?.message_text?.toLowerCase() ?? "";
       return name.includes(q) || message.includes(q);
     });
-  }, [search]);
+  }, [search, conversations]);
 
   return (
     <div className="flex min-h-[calc(100dvh-5rem)] flex-col bg-muted/20 lg:min-h-dvh">
@@ -155,7 +103,7 @@ export default function ChatsPage() {
           <ChatPillTabs
             active={tab}
             onChange={setTab}
-            chatCount={DEMO_CONVERSATIONS.length}
+            chatCount={conversations.length}
             requestCount={requests.length}
           />
 
@@ -177,7 +125,9 @@ export default function ChatsPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pb-24 pt-2">
-        {tab === "chats" ? (
+        {loading ? (
+          <ListSkeleton count={4} />
+        ) : tab === "chats" ? (
           <>
             <motion.div
               initial={{ opacity: 0, y: 8 }}
@@ -249,8 +199,8 @@ export default function ChatsPage() {
                   <ChatRequestCard
                     key={req.id}
                     request={req}
-                    onAccept={() => setRequests((r) => r.filter((x) => x.id !== req.id))}
-                    onReject={() => setRequests((r) => r.filter((x) => x.id !== req.id))}
+                    onAccept={() => respondToRequest(req.id, "accept")}
+                    onReject={() => respondToRequest(req.id, "decline")}
                   />
                 ))
               ) : (

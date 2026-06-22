@@ -47,6 +47,7 @@ interface OnboardingStore extends OnboardingState {
   setAiAnswer: (key: string, value: string) => void;
   addPhoto: (url: string) => void;
   removePhoto: (url: string) => void;
+  setPhotos: (photos: string[]) => void;
   setBasicInfo: (info: Partial<Profile>) => void;
   setLifestyle: (key: string, value: string) => void;
   setFamilyBackground: (key: string, value: string) => void;
@@ -83,6 +84,7 @@ export const useOnboardingStore = create<OnboardingStore>()(
         set((s) => ({ aiAnswers: { ...s.aiAnswers, [key]: value } })),
       addPhoto: (url) => set((s) => ({ photos: [...s.photos, url] })),
       removePhoto: (url) => set((s) => ({ photos: s.photos.filter((p) => p !== url) })),
+      setPhotos: (photos) => set({ photos }),
       setBasicInfo: (info) => set((s) => ({ basicInfo: { ...s.basicInfo, ...info } })),
       setLifestyle: (key, value) =>
         set((s) => ({ lifestyle: { ...s.lifestyle, [key]: value } })),
