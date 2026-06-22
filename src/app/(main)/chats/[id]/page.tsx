@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -13,6 +13,7 @@ import { ListSkeleton } from "@/components/ui/skeleton";
 import { useSubscriptionPlan } from "@/hooks/use-subscription-plan";
 import { FREE_CHAT_MESSAGE_LIMIT } from "@/lib/subscription/whatsapp-call";
 import { getInitials } from "@/lib/helpers/utils";
+import { mapDiscoverProfile } from "@/lib/profiles/map-api-profile";
 import type { DiscoverProfile } from "@/types";
 
 type ChatMsg = {
@@ -22,41 +23,6 @@ type ChatMsg = {
   time: string;
   status?: "sent" | "delivered" | "read";
 };
-
-function mapProfileRow(row: Record<string, unknown>): DiscoverProfile {
-  return {
-    id: String(row.id),
-    full_name: String(row.full_name ?? "Member"),
-    age: Number(row.age ?? 25),
-    city: String(row.city ?? ""),
-    district: String(row.district ?? ""),
-    region: row.region as DiscoverProfile["region"],
-    education: String(row.education ?? ""),
-    profession: String(row.profession ?? ""),
-    bio: String(row.bio ?? ""),
-    intent: row.intent as DiscoverProfile["intent"],
-    trust_score: Number(row.trust_score ?? 50),
-    photos: ((row.profile_photos ?? row.photos ?? []) as Record<string, unknown>[]).map(
-      (p, i) => ({
-        id: String(p.id ?? i),
-        url: String(p.url ?? ""),
-        sort_order: Number(p.sort_order ?? i),
-        is_primary: Boolean(p.is_primary ?? i === 0),
-        is_private: Boolean(p.is_private ?? false),
-      })
-    ),
-    personality_tags: (row.personality_tags as string[]) ?? [],
-    interest_tags: (row.interest_tags as string[]) ?? [],
-    values_tags: (row.values_tags as string[]) ?? [],
-    lifestyle: (row.lifestyle as Record<string, string>) ?? {},
-    family_background: (row.family_background as Record<string, string>) ?? {},
-    verification: {
-      mobile_verified: true,
-      face_verified: false,
-      id_verified: false,
-    },
-  };
-}
 
 function getProfilePhoto(profile: DiscoverProfile) {
   const primary = profile.photos.find((p) => p.is_primary) ?? profile.photos[0];
@@ -110,7 +76,7 @@ export default function ChatDetailPage() {
         const convRows = (chatsJson.data?.conversations ?? []) as Record<string, unknown>[];
         const match = convRows.find((row) => String(row.conversation_id) === conversationId);
         if (match?.profile) {
-          setProfile(mapProfileRow(match.profile as Record<string, unknown>));
+          setProfile(mapDiscoverProfile(match.profile as Record<string, unknown>));
         }
 
         if (messagesJson.success && Array.isArray(messagesJson.data)) {
