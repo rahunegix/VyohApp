@@ -1,6 +1,5 @@
 import { ONBOARDING_CHAT_PROMPTS, type OnboardingPromptConfig } from "@/lib/constants/onboarding-chat";
 import type { AppLanguage } from "./languages";
-import { t } from "./translate";
 
 type PromptTranslations = Record<
   string,

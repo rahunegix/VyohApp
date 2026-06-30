@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getServerAuth } from "@/lib/auth/server-auth";
 import { logoutUser } from "@/lib/auth/custom-auth";
 import { generateAIProfile } from "@/lib/ai/profile-assistant";
-import { calculateCompatibility, calculateTrustScore, calculateReadinessScore } from "@/lib/matching/compatibility";
+import { calculateCompatibility } from "@/lib/matching/compatibility";
 import {
   editProfileSchema,
   basicProfileSchema,

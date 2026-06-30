@@ -132,7 +132,7 @@ export async function markFaceVerified(
   admin: SupabaseClient,
   profileId: string,
   videoUrl: string,
-  verification: Record<string, unknown> | null
+  _verification: Record<string, unknown> | null
 ) {
   await admin.from("profile_videos").insert({
     profile_id: profileId,

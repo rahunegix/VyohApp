@@ -15,6 +15,7 @@ export function galleryMigrationHint(): string {
 }
 
 export function omitGalleryField<T extends Record<string, unknown>>(payload: T): Omit<T, "gallery_image_urls"> {
-  const { gallery_image_urls: _removed, ...rest } = payload;
-  return rest;
+  const rest = { ...payload };
+  delete rest.gallery_image_urls;
+  return rest as Omit<T, "gallery_image_urls">;
 }
