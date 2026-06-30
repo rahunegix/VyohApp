@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/common/page-header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ID_DOCUMENT_OPTIONS } from "@/lib/constants/verification";
 import { submitIdVerification, getVerificationOverview } from "@/services/verification";
 import { useTranslation } from "@/hooks/use-translation";

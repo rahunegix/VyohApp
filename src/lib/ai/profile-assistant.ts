@@ -1,4 +1,3 @@
-import type { OnboardingState } from "@/types";
 import { ONBOARDING_PROMPTS } from "@/lib/constants/onboarding-chat";
 import { calculateReadinessScore } from "@/lib/matching/compatibility";
 

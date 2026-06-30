@@ -327,8 +327,7 @@ export async function submitFaceVerificationForUser(
     const { verification: updated, trustScore } = await markFaceVerified(
       admin,
       profile.id,
-      selfieUrl,
-      verification
+      selfieUrl
     );
 
     revalidatePath("/trust-center");

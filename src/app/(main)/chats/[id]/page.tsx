@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { ArrowLeft, Shield } from "lucide-react";
-import { MessageBubble, TypingIndicator } from "@/components/chat/chat-components";
+import { MessageBubble } from "@/components/chat/chat-components";
 import { ChatComposer } from "@/components/chat/chat-composer";
 import { ContactDetailsButton } from "@/components/chat/contact-details-button";
 import { MembershipUpsellModal } from "@/components/subscription/membership-upsell-modal";
@@ -50,7 +50,6 @@ export default function ChatDetailPage() {
   const [myProfileId, setMyProfileId] = useState("");
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState("");
-  const [typing, setTyping] = useState(false);
   const [messageUpsellOpen, setMessageUpsellOpen] = useState(false);
   const [conversationStarter, setConversationStarter] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -149,14 +148,14 @@ export default function ChatDetailPage() {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, typing]);
+  }, [messages]);
 
   const openMessageUpsell = useCallback(() => {
     setMessageUpsellOpen(true);
   }, []);
 
   const handleSend = async () => {
-    if (!input.trim() || typing) return;
+    if (!input.trim()) return;
 
     if (!isPaid && ownMessageCount >= FREE_CHAT_MESSAGE_LIMIT) {
       openMessageUpsell();
@@ -290,7 +289,6 @@ export default function ChatDetailPage() {
               status={msg.isOwn ? msg.status : undefined}
             />
           ))}
-          {typing && <TypingIndicator />}
         </div>
       </div>
 
@@ -298,7 +296,6 @@ export default function ChatDetailPage() {
         value={input}
         onChange={setInput}
         onSend={handleSend}
-        disabled={typing}
         locked={messageLimitReached}
         onLockedInteract={openMessageUpsell}
       />

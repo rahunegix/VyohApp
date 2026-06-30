@@ -131,8 +131,7 @@ export function faceCheckPassed(analysis: FaceAnalysis): boolean {
 export async function markFaceVerified(
   admin: SupabaseClient,
   profileId: string,
-  videoUrl: string,
-  _verification: Record<string, unknown> | null
+  videoUrl: string
 ) {
   await admin.from("profile_videos").insert({
     profile_id: profileId,

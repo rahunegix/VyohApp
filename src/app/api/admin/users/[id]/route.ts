@@ -62,7 +62,7 @@ export async function PATCH(
       updates.password_hash = await hashValue(body.password);
     }
 
-    const { data, error } = await admin.from("users").update(updates).eq("id", id).select("*").single();
+    const { error } = await admin.from("users").update(updates).eq("id", id).select("*").single();
     if (error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }

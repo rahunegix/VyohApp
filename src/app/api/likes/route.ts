@@ -8,14 +8,6 @@ import {
   normalizePlanId,
 } from "@/lib/subscription/service";
 
-function mapProfileRow(row: Record<string, unknown>) {
-  const photos = (row.profile_photos as Record<string, unknown>[] | undefined) ?? [];
-  return {
-    ...row,
-    photos: photos.sort((a, b) => (a.sort_order as number) - (b.sort_order as number)),
-  };
-}
-
 export async function GET(request: NextRequest) {
   const auth = await getAuthUser(request);
   const profileId = await getAuthProfileId(request);

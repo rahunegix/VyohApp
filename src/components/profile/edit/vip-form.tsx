@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Crown } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EditSectionShell } from "@/components/profile/edit/shared";
 import { VIP_PROFESSION_TIERS, type VipDetails } from "@/lib/vip/constants";

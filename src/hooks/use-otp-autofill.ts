@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { extractOtpCode } from "@/lib/auth/otp-autofill";
 import { OTP_LENGTH } from "@/lib/auth/otp-config";
 

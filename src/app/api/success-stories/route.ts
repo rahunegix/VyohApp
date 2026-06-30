@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPublishedSuccessStories, getSuccessStoryBySlug } from "@/lib/success-stories/service";
+import { getPublishedSuccessStories } from "@/lib/success-stories/service";
 
 export async function GET() {
   const stories = await getPublishedSuccessStories();

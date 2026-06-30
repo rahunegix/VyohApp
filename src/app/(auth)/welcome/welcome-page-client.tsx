@@ -226,7 +226,7 @@ export function WelcomePageClient({
               transition={{ delay: 0.25 }}
               className="hidden grid-cols-2 gap-3 lg:grid"
             >
-              {FEATURES.map((f, i) => {
+              {FEATURES.map((f) => {
                 const Icon = f.icon;
                 return (
                   <div

@@ -16,7 +16,6 @@ interface OnboardingStepShellProps {
   footerClassName?: string;
   contentClassName?: string;
   hideStepMeta?: boolean;
-  hideHeading?: boolean;
   /** Removes inner padding — for full-height chat layouts */
   flushContent?: boolean;
 }
@@ -31,7 +30,6 @@ export function OnboardingStepShell({
   footerClassName,
   contentClassName,
   hideStepMeta = false,
-  hideHeading = false,
   flushContent = false,
 }: OnboardingStepShellProps) {
   const progress = Math.round(((currentStep + 1) / totalSteps) * 100);

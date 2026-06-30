@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getAuthProfileId, getAuthUser } from "@/lib/auth/api-auth";
+import { getAuthUser } from "@/lib/auth/api-auth";
 import { DEMO_PROFILES } from "@/services/demo-data";
 import { hasVipPlatformAccess } from "@/lib/platform/vip-access";
 
