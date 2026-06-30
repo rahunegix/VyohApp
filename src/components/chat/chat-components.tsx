@@ -32,7 +32,7 @@ function ProfileAvatar({
     <div className={cn("relative shrink-0", sizeClass)}>
       <div
         className={cn(
-          "relative h-full w-full overflow-hidden rounded-full bg-primary/10 shadow-sm ring-2 ring-white",
+          "relative h-full w-full overflow-hidden rounded-[6px] bg-primary/10 shadow-sm ring-2 ring-white",
           unread && "ring-primary/30"
         )}
       >
@@ -45,7 +45,7 @@ function ProfileAvatar({
         )}
       </div>
       {unread && (
-        <span className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full bg-primary ring-2 ring-white shadow-sm" />
+        <span className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-[6px] bg-primary ring-2 ring-white shadow-sm" />
       )}
     </div>
   );
@@ -114,7 +114,7 @@ export function ChatListItem({ conversation, href, variant = "card" }: ChatListI
               {conversation.last_message?.message_text ?? "Start a conversation"}
             </p>
             {unread && (
-              <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
+              <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-[6px] bg-primary px-1.5 text-[10px] font-bold text-white">
                 {conversation.unread_count}
               </span>
             )}
@@ -143,8 +143,8 @@ export function MessageBubble({ text, isOwn, timestamp, status }: MessageBubbleP
         className={cn(
           "max-w-[78%] px-4 py-2.5 text-[15px] leading-relaxed",
           isOwn
-            ? "rounded-[1.125rem] rounded-br-md bg-muted/80 text-foreground"
-            : "rounded-[1.125rem] rounded-bl-md bg-primary/10 text-foreground"
+            ? "rounded-[6px] rounded-br-md bg-muted/80 text-foreground"
+            : "rounded-[6px] rounded-bl-md bg-primary/10 text-foreground"
         )}
       >
         <p>{text}</p>
@@ -167,11 +167,11 @@ export function MessageBubble({ text, isOwn, timestamp, status }: MessageBubbleP
 export function TypingIndicator() {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-3 flex justify-start">
-      <div className="flex items-center gap-1.5 rounded-[1.125rem] rounded-bl-md bg-primary/10 px-4 py-3">
+      <div className="flex items-center gap-1.5 rounded-[6px] rounded-bl-md bg-primary/10 px-4 py-3">
         {[0, 1, 2].map((i) => (
           <motion.span
             key={i}
-            className="h-2 w-2 rounded-full bg-muted-foreground/60"
+            className="h-2 w-2 rounded-[6px] bg-muted-foreground/60"
             animate={{ y: [0, -4, 0] }}
             transition={{
               duration: 0.6,
@@ -202,7 +202,7 @@ export function ChatRequestCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 26 }}
-      className="overflow-hidden rounded-[1.25rem] border border-primary/15 bg-white shadow-[var(--shadow-card)]"
+      className="overflow-hidden rounded-[6px] border border-primary/15 bg-white shadow-[var(--shadow-card)]"
     >
       <div className="h-1 bg-gradient-to-r from-primary via-primary/80 to-primary/40" />
 

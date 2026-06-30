@@ -14,7 +14,7 @@ import type { VerificationOverview, VerificationRequestStatus } from "@/types";
 
 const BADGE_CONFIG = [
   { key: "mobile_verified" as const, labelKey: "verify_mobile", icon: Phone },
-  { key: "face_verified" as const, labelKey: "verify_face", icon: ScanFace },
+  { key: "face_verified" as const, labelKey: "verify_face", icon: ScanFace, actionHref: "/trust-center/verify/face" },
   { key: "id_verified" as const, labelKey: "verify_id", icon: IdCard, actionHref: "/trust-center/verify/id" },
   {
     key: "family_verified" as const,
@@ -43,12 +43,15 @@ interface TrustCenterProps {
 
 export function TrustCenterPanel({ overview, reportCount = 0 }: TrustCenterProps) {
   const { t } = useTranslation();
-  const { verification, trustScore, profileCompleteness, idRequest, referenceRequest } = overview;
+  const { verification, trustScore, profileCompleteness, idRequest, referenceRequest, faceRequest } = overview;
   const trust = getTrustLevel(trustScore);
 
   const getPendingStatus = (key: (typeof BADGE_CONFIG)[number]["key"]) => {
     if (key === "id_verified" && idRequest && !verification.id_verified) {
       return idRequest.status;
+    }
+    if (key === "face_verified" && faceRequest && !verification.face_verified) {
+      return faceRequest.status;
     }
     if (key === "family_verified" && referenceRequest && !verification.family_verified) {
       return referenceRequest.status;
@@ -58,7 +61,7 @@ export function TrustCenterPanel({ overview, reportCount = 0 }: TrustCenterProps
 
   return (
     <div className="space-y-5">
-      <div className="overflow-hidden rounded-[1.5rem] border border-primary/15 bg-gradient-to-br from-primary via-[#A61E1E] to-[#8B1A1A] p-5 text-white shadow-[var(--shadow-card)]">
+      <div className="overflow-hidden rounded-[6px] border border-primary/15 bg-gradient-to-br from-primary via-[#A61E1E] to-[#8B1A1A] p-5 text-white shadow-[var(--shadow-card)]">
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="mb-2 flex items-center gap-2">
@@ -82,7 +85,7 @@ export function TrustCenterPanel({ overview, reportCount = 0 }: TrustCenterProps
           {BADGE_CONFIG.map(({ key, labelKey, icon: Icon, actionHref }, i) => {
             const verified = verification[key];
             const pendingStatus = getPendingStatus(key);
-            const showAction = !verified && actionHref;
+            const showAction = !verified && actionHref && (!pendingStatus || pendingStatus === "rejected");
 
             return (
               <div key={key}>
@@ -91,7 +94,7 @@ export function TrustCenterPanel({ overview, reportCount = 0 }: TrustCenterProps
                   <div className="flex items-center gap-3">
                     <div
                       className={cn(
-                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px]",
                         verified ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                       )}
                     >
@@ -115,7 +118,7 @@ export function TrustCenterPanel({ overview, reportCount = 0 }: TrustCenterProps
                   {showAction && (
                     <Link
                       href={actionHref}
-                      className="mt-3 flex items-center justify-between rounded-full bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+                      className="mt-3 flex items-center justify-between rounded-[6px] bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
                     >
                       {t("verify_now")}
                       <ChevronRight className="h-4 w-4" />

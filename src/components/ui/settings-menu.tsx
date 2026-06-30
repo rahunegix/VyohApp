@@ -45,7 +45,7 @@ export function SettingsMenuRow({
     <>
       <div
         className={cn(
-          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px]",
           destructive ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
         )}
       >

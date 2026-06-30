@@ -1,41 +1,52 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Heart, Shield, Users, Sparkles, ChevronRight } from "lucide-react";
+import { Heart, Shield, Users, Sparkles, Mountain, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthVisualPanel } from "@/components/auth/auth-visual-panel";
 import { SuccessStoryShowcase } from "@/components/auth/success-story-showcase";
+import { PlatformShowcase } from "@/components/marketing/platform-showcase";
+import { SaathiPresence } from "@/components/saathi";
 import { AppLogo } from "@/components/common/app-logo";
-import { SiteFooter } from "@/components/common/site-footer";
+import { LanguageOptionCard } from "@/components/common/language-switcher";
 import { APP_TAGLINE } from "@/lib/constants";
+import { LANGUAGES } from "@/lib/i18n/languages";
+import { SAATHI_COPY } from "@/config/ai";
+import { getPostAuthPath } from "@/lib/auth/profile";
+import { redirectAfterAuth } from "@/lib/auth/redirect-after-auth";
+import { useLanguageStore } from "@/store/language";
+import { useTranslation } from "@/hooks/use-translation";
+import { PageSkeleton } from "@/components/common/page-skeleton";
+import { RADIUS } from "@/design/tokens";
 import type { SuccessStoryView } from "@/lib/success-stories/types";
+
 const FEATURES = [
   {
     icon: Heart,
-    title: "Modern Dating",
-    desc: "Explore connections with intent and respect",
-    color: "text-primary bg-primary/10",
+    title: "Spark",
+    desc: "Modern dating with intent and respect",
+    color: "text-rose-500 bg-rose-500/10",
   },
   {
     icon: Users,
-    title: "Hindu Marriage",
-    desc: "Family values, rituals, and lifelong commitment",
-    color: "text-amber-700 bg-amber-500/10",
+    title: "Vivah",
+    desc: "Sacred marriage paths with family values",
+    color: "text-amber-600 bg-amber-500/10",
   },
   {
     icon: Shield,
-    title: "Verified Profiles",
-    desc: "Phone, face & trust score for safe matching",
-    color: "text-success bg-success/10",
+    title: "Verified",
+    desc: "Phone, face & trust for safe matching",
+    color: "text-emerald-600 bg-emerald-500/10",
   },
   {
     icon: Sparkles,
-    title: "AI Compatibility",
-    desc: "Smart matches rooted in Pahadi culture",
-    color: "text-primary bg-primary/10",
+    title: "Saathi",
+    desc: "Your AI relationship coach, always guiding",
+    color: "text-violet-600 bg-violet-500/10",
   },
 ];
 
@@ -46,11 +57,31 @@ export function WelcomePageClient({
   stories: SuccessStoryView[];
   storyLimit?: number;
 }) {
+  const router = useRouter();
+  const { language, setLanguage, hydrate } = useLanguageStore();
+  const { t, hydrated } = useTranslation();
   const [stories, setStories] = useState(initialStories);
 
   useEffect(() => {
-    let cancelled = false;
+    hydrate();
+  }, [hydrate]);
 
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/me", { credentials: "same-origin" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (cancelled || !json?.success || !json.data?.profile) return;
+        redirectAfterAuth(getPostAuthPath(json.data.profile as Record<string, unknown>));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
     async function loadLatest() {
       try {
         const res = await fetch(`/api/success-stories/latest?limit=${storyLimit}`, {
@@ -61,147 +92,191 @@ export function WelcomePageClient({
           setStories(json.data);
         }
       } catch {
-        // Keep SSR stories on failure
+        // Keep SSR stories
       }
     }
-
     loadLatest();
     return () => {
       cancelled = true;
     };
   }, [storyLimit]);
 
+  const goToAuth = (mode: "login" | "signup") => {
+    sessionStorage.setItem("saathini_auth_mode", mode);
+    router.push("/login");
+  };
+
+  if (!hydrated) {
+    return <PageSkeleton variant="auth" withHeader={false} className="welcome-home min-h-dvh" />;
+  }
+
   const heroStory = stories[0];
+
   return (
-    <div className="relative flex h-dvh max-h-dvh flex-col overflow-hidden bg-[#12080c] lg:mx-auto lg:h-auto lg:max-h-none lg:min-h-[640px] lg:max-w-[960px] lg:flex-row lg:shadow-[var(--shadow-elevated)]">
+    <div className="welcome-home relative flex h-dvh max-h-dvh w-full flex-col overflow-hidden bg-[#12080c] lg:min-h-dvh lg:flex-row">
       <AuthVisualPanel
         variant="welcome"
         featuredStories={stories}
-        className="hidden min-h-dvh lg:flex lg:w-[min(420px,44%)]"
+        className="hidden min-h-dvh lg:flex lg:w-[min(440px,38vw)] lg:shrink-0"
       />
 
       <div className="relative flex h-dvh min-h-0 flex-1 flex-col overflow-hidden">
-        {heroStory ? (
-          <div className="absolute inset-0 z-0 lg:hidden">
-            <div className="absolute inset-0">
-              <Image
-                src={heroStory.src}
-                alt=""
-                fill
-                priority
-                className="object-cover opacity-40"
-                sizes="100vw"
-                aria-hidden
-              />
-            </div>
-            <div className="absolute -top-[10%] -right-[10%] h-[50vh] w-[50vh] rounded-full bg-primary/40 blur-[100px]" />
-            <div className="absolute top-[40%] -left-[20%] h-[60vh] w-[60vh] rounded-full bg-primary/20 blur-[120px]" />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#12080c]/70 via-[#12080c]/85 to-[#12080c]" />
-          </div>
-        ) : null}
+        {/* Mobile atmosphere */}
+        <div className="absolute inset-0 z-0 lg:hidden">
+          {heroStory ? (
+            <Image
+              src={heroStory.src}
+              alt=""
+              fill
+              priority
+              className="object-cover opacity-20"
+              sizes="100vw"
+              aria-hidden
+            />
+          ) : null}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#1a0a10]/95 via-[#12080c]/98 to-[#0a0508]" />
+          <div className="absolute -top-[10%] right-0 h-[40vh] w-[40vh] rounded-full bg-primary/25 blur-[100px]" />
+        </div>
 
-        <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden lg:bg-white lg:text-foreground">
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain hide-scrollbar px-6 pt-14 pb-4 safe-top lg:px-10 lg:pt-12">
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden bg-white lg:bg-gradient-to-br lg:from-[#fffbfb] lg:via-white lg:to-rose-50/40">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain hide-scrollbar px-5 pt-10 pb-4 safe-top sm:px-6 lg:px-12 lg:pt-12">
+            {/* Header */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              className="lg:hidden mb-6 flex flex-col items-center pt-8 text-center text-white"
+              className="mb-6 text-center lg:mb-8 lg:text-left"
             >
-              <AppLogo className="h-11" priority />
-              <p className="mt-3 text-lg font-medium text-white/90">{APP_TAGLINE}</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="mb-6 lg:hidden"
-            >
-              {stories.length > 0 && (
-                <SuccessStoryShowcase stories={stories} theme="dark" compact />
-              )}
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="hidden lg:block"
-            >
-              <p className="text-sm font-bold uppercase tracking-widest text-primary">Welcome</p>
-              <AppLogo className="mt-3 h-9" />
-              <p className="mt-3 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-                Uttarakhand&apos;s verified relationship platform — dating, serious relationships, and Hindu marriage paths, all in one trusted place.
+              <AppLogo className="mx-auto h-11 lg:mx-0 lg:h-12" priority />
+              <p className="mt-3 font-display text-[1.65rem] font-normal leading-tight tracking-tight text-foreground lg:text-4xl">
+                {t("welcome_tagline")}
+              </p>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground lg:mx-0 lg:max-w-md lg:text-[15px]">
+                {t("welcome_desc")}
               </p>
             </motion.div>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.25 }}
-              className="mb-6 text-center text-[15px] leading-relaxed text-white/75 lg:hidden"
+            {/* Language — primary action area */}
+            <motion.section
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              className="mb-5 rounded-[6px] border border-border/60 bg-white p-4 shadow-[var(--shadow-soft)] lg:mb-6 lg:p-5"
             >
-              Real stories from couples who found marriage, long-term love, and dating — all on Saathini.
-            </motion.p>
+              <div className="mb-4 flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-[6px] bg-primary/10 text-primary">
+                  <Globe className="h-4 w-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-foreground">{t("choose_language")}</h2>
+                  <p className="text-xs text-muted-foreground">{t("choose_subtitle")}</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {LANGUAGES.map((lang, i) => (
+                  <motion.div
+                    key={lang.code}
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 + i * 0.04 }}
+                  >
+                    <LanguageOptionCard
+                      lang={lang.code}
+                      selected={language === lang.code}
+                      onSelect={() => setLanguage(lang.code)}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </motion.section>
+
+            {/* Saathi */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="mb-5 rounded-[6px] border border-primary/15 bg-gradient-to-r from-primary/[0.06] to-rose-500/[0.04] p-4 lg:mb-6"
+            >
+              <SaathiPresence message={SAATHI_COPY.onboarding.welcome} compact />
+            </motion.div>
+
+            {/* Desktop-only extras */}
+            {stories.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mb-6 hidden lg:block"
+              >
+                <SuccessStoryShowcase stories={stories} theme="light" />
+              </motion.div>
+            )}
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mb-8 hidden lg:block"
+              transition={{ delay: 0.22 }}
+              className="mb-6 hidden lg:block"
             >
-              {stories.length > 0 && (
-                <SuccessStoryShowcase stories={stories} theme="light" />
-              )}
+              <PlatformShowcase />
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="grid grid-cols-2 gap-3 lg:mt-2"
+              transition={{ delay: 0.25 }}
+              className="hidden grid-cols-2 gap-3 lg:grid"
             >
               {FEATURES.map((f, i) => {
                 const Icon = f.icon;
                 return (
-                  <motion.div
+                  <div
                     key={f.title}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.35 + i * 0.08 }}
-                    className="rounded-2xl border border-white/10 bg-white/10 p-3.5 backdrop-blur-md lg:border-border/50 lg:bg-muted/30 lg:backdrop-blur-none"
+                    className="border border-border/50 bg-white p-4 shadow-sm"
+                    style={{ borderRadius: RADIUS.card }}
                   >
-                    <div className={`mb-2 flex h-9 w-9 items-center justify-center rounded-full ${f.color}`}>
+                    <div
+                      className={`mb-3 flex h-10 w-10 items-center justify-center rounded-[6px] ${f.color}`}
+                    >
                       <Icon className="h-4 w-4" />
                     </div>
-                    <p className="text-sm font-bold text-white lg:text-foreground">{f.title}</p>
-                    <p className="mt-0.5 text-[11px] leading-snug text-white/65 lg:text-muted-foreground">{f.desc}</p>
-                  </motion.div>
+                    <p className="text-sm font-bold text-foreground">{f.title}</p>
+                    <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{f.desc}</p>
+                  </div>
                 );
               })}
             </motion.div>
 
-            <SiteFooter variant="dark" className="mt-4 border-white/10 bg-transparent" />
+            <div className="mt-4 flex items-center justify-center gap-2 text-muted-foreground lg:hidden">
+              <Mountain className="h-4 w-4" />
+              <span className="text-xs font-medium">Rooted in Uttarakhand · {APP_TAGLINE}</span>
+            </div>
           </div>
 
+          {/* CTA dock */}
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.55 }}
-            className="shrink-0 space-y-3 border-t border-white/10 bg-[#12080c]/95 px-6 py-4 shadow-[0_-8px_24px_rgba(0,0,0,0.25)] backdrop-blur-xl safe-bottom lg:border-border/50 lg:bg-white/95 lg:px-10 lg:py-5"
+            transition={{ delay: 0.3 }}
+            className="shrink-0 space-y-2.5 border-t border-border/50 bg-white/95 px-5 py-4 shadow-[0_-8px_32px_rgba(0,0,0,0.06)] backdrop-blur-md safe-bottom sm:px-6 lg:px-12 lg:py-5"
           >
-            <Link href="/onboarding/language" className="block">
-              <Button
-                size="lg"
-                className="group h-14 w-full text-lg font-bold shadow-xl lg:h-13 lg:shadow-lg"
-              >
-                Get Started
-                <ChevronRight className="ml-1 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
-              </Button>
-            </Link>
-            <p className="text-center text-xs font-medium text-white/50 lg:text-muted-foreground">
-              By continuing, you agree to our Terms & Privacy Policy
-            </p>
+            <Button
+              type="button"
+              size="lg"
+              onClick={() => goToAuth("signup")}
+              className="h-13 w-full bg-gradient-to-r from-primary via-rose-600 to-primary text-base font-bold shadow-[var(--shadow-glow)] sm:h-14 sm:text-lg"
+            >
+              {t("get_started")}
+            </Button>
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              onClick={() => goToAuth("login")}
+              className="h-12 w-full border-border font-bold"
+            >
+              {t("sign_in")}
+            </Button>
+            <p className="text-center text-[11px] text-muted-foreground">{t("terms_agree")}</p>
           </motion.div>
         </div>
       </div>

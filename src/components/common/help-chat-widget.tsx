@@ -25,7 +25,7 @@ import { useHelpChatStore, type HelpChatMessage } from "@/store/help-chat";
 
 const HIDDEN_PATTERNS = [
   /^\/admin/,
-  /^\/welcome$/,
+  /^\/$/,
   /^\/onboarding\/ai-chat$/,
   /^\/chats\/[^/]+$/,
 ];
@@ -42,7 +42,7 @@ const WELCOME_MESSAGE = `Hi! I'm ${APP_NAME} AI. Ask me anything about profiles,
 function TypingIndicator() {
   return (
     <div className="flex items-end gap-2">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] bg-primary/10 text-primary">
         <Sparkles className="h-3.5 w-3.5" />
       </div>
       <div className="rounded-2xl rounded-bl-md bg-muted px-3 py-2">
@@ -50,7 +50,7 @@ function TypingIndicator() {
           {[0, 1, 2].map((i) => (
             <span
               key={i}
-              className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 animate-bounce"
+              className="h-1.5 w-1.5 rounded-[6px] bg-muted-foreground/40 animate-bounce"
               style={{ animationDelay: `${i * 0.15}s` }}
             />
           ))}
@@ -82,7 +82,7 @@ export function HelpChatTrigger({ className }: { className?: string }) {
       type="button"
       onClick={() => (isOpen ? close() : open())}
       className={cn(
-        "flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-full px-2.5 transition-colors sm:px-3",
+        "flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-[6px] px-2.5 transition-colors sm:px-3",
         isOpen
           ? "bg-primary/10 text-primary"
           : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -256,20 +256,20 @@ export function HelpChatPanel() {
             {/* Header */}
             <div className="shrink-0 bg-primary text-white">
               <div className="flex items-center gap-3 px-4 py-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px] bg-white/20">
                   <Headphones className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold leading-tight">{APP_NAME} Help</p>
                   <p className="flex items-center gap-1.5 text-[11px] text-white/80">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                    <span className="inline-block h-1.5 w-1.5 rounded-[6px] bg-emerald-300" />
                     AI assistant · Agent available
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={close}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15 transition-colors hover:bg-white/25"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-white/15 transition-colors hover:bg-white/25"
                   aria-label="Close help chat"
                 >
                   <X className="h-4 w-4" />
@@ -314,7 +314,7 @@ export function HelpChatPanel() {
                     className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}
                   >
                     {msg.role === "assistant" && (
-                      <div className="mr-1.5 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <div className="mr-1.5 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] bg-primary/10 text-primary">
                         <Sparkles className="h-3.5 w-3.5" />
                       </div>
                     )}
@@ -340,7 +340,7 @@ export function HelpChatPanel() {
                       key={prompt}
                       type="button"
                       onClick={() => void sendMessage(prompt)}
-                      className="rounded-full border border-border bg-white px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5"
+                      className="rounded-[6px] border border-border bg-white px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5"
                     >
                       {prompt}
                     </button>

@@ -36,7 +36,7 @@ export function NotificationRow({
           </div>
         </div>
         {unread && (
-          <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-white" />
+          <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-[6px] bg-primary ring-2 ring-white" />
         )}
       </div>
 

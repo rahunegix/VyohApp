@@ -35,6 +35,8 @@ CREATE TYPE reference_verification_type AS ENUM ('friend', 'family');
 CREATE TYPE id_document_type AS ENUM ('aadhaar', 'pan', 'driving_license', 'voter_id', 'passport');
 CREATE TYPE bot_chat_state_type AS ENUM ('idle', 'awaiting_user', 'scheduled_reply', 'replied', 'exhausted', 'disabled');
 CREATE TYPE bot_message_job_status AS ENUM ('pending', 'processing', 'sent', 'failed', 'cancelled');
+CREATE TYPE platform_type AS ENUM ('dating', 'matrimony', 'vip');
+CREATE TYPE vip_approval_status_type AS ENUM ('pending', 'approved', 'rejected');
 
 -- ─── Users (custom auth — phone OTP + JWT sessions) ──────────────────────────
 CREATE TABLE users (
@@ -52,6 +54,7 @@ CREATE TABLE users (
   fcm_token TEXT,
   password_hash TEXT,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  active_platform platform_type NOT NULL DEFAULT 'dating',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -69,7 +72,9 @@ COMMENT ON COLUMN users.password_hash IS 'bcrypt hash for admin email/password l
 -- ─── Profiles ────────────────────────────────────────────────────────────────
 CREATE TABLE profiles (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  platform platform_type NOT NULL DEFAULT 'dating',
+  cross_platform_visible BOOLEAN NOT NULL DEFAULT false,
   full_name TEXT NOT NULL DEFAULT '',
   gender gender_type,
   looking_for looking_for_type,
@@ -105,11 +110,16 @@ CREATE TABLE profiles (
   values_tags TEXT[] DEFAULT '{}',
   lifestyle JSONB DEFAULT '{}',
   family_background JSONB DEFAULT '{}',
+  vip_approval_status vip_approval_status_type,
+  vip_details JSONB NOT NULL DEFAULT '{}',
+  vip_invite_code TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_profiles_user_id ON profiles(user_id);
+CREATE UNIQUE INDEX idx_profiles_user_platform_unique ON profiles(user_id, platform) WHERE user_id IS NOT NULL;
+CREATE INDEX idx_profiles_platform ON profiles(platform);
 CREATE INDEX idx_profiles_intent ON profiles(intent);
 CREATE INDEX idx_profiles_district ON profiles(district);
 CREATE INDEX idx_profiles_region ON profiles(region);
@@ -117,6 +127,28 @@ CREATE INDEX idx_profiles_status ON profiles(profile_status);
 CREATE INDEX idx_profiles_gender_looking ON profiles(gender, looking_for);
 CREATE INDEX idx_profiles_origin_status ON profiles(profile_origin, profile_status) WHERE profile_origin = 'seed';
 CREATE INDEX idx_profiles_seed_batch ON profiles(seed_batch_id) WHERE seed_batch_id IS NOT NULL;
+
+CREATE TABLE vip_invite_codes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code TEXT NOT NULL UNIQUE,
+  label TEXT,
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  max_uses INTEGER NOT NULL DEFAULT 1,
+  use_count INTEGER NOT NULL DEFAULT 0,
+  expires_at TIMESTAMPTZ,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_vip_invite_codes_code ON vip_invite_codes(code);
+
+CREATE TABLE vip_invite_redemptions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  invite_code_id UUID NOT NULL REFERENCES vip_invite_codes(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (invite_code_id, user_id)
+);
+CREATE INDEX idx_vip_invite_redemptions_user ON vip_invite_redemptions(user_id);
 
 -- ─── Profile media & answers ─────────────────────────────────────────────────
 CREATE TABLE profile_photos (
@@ -228,6 +260,22 @@ CREATE TABLE id_verification_requests (
 CREATE INDEX idx_id_verification_profile ON id_verification_requests(profile_id);
 CREATE INDEX idx_id_verification_status ON id_verification_requests(status);
 
+CREATE TABLE face_verification_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  selfie_url TEXT NOT NULL,
+  profile_photo_url TEXT,
+  ai_confidence NUMERIC,
+  ai_reason TEXT,
+  status verification_request_status NOT NULL DEFAULT 'pending_review',
+  rejection_reason TEXT,
+  reviewed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_face_verification_profile ON face_verification_requests(profile_id);
+CREATE INDEX idx_face_verification_status ON face_verification_requests(status);
+
 CREATE TABLE reference_verification_requests (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
@@ -320,6 +368,7 @@ CREATE TABLE subscriptions (
   status subscription_status_type DEFAULT 'trial',
   started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   ends_at TIMESTAMPTZ,
+  call_credits_remaining INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -338,6 +387,16 @@ CREATE TABLE payments (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE contact_unlocks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  target_profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (user_id, target_profile_id)
+);
+CREATE INDEX idx_contact_unlocks_user ON contact_unlocks(user_id);
+CREATE INDEX idx_contact_unlocks_target ON contact_unlocks(target_profile_id);
 
 -- ─── Social & privacy ────────────────────────────────────────────────────────
 CREATE TABLE profile_views (
@@ -665,7 +724,7 @@ RETURNS TRIGGER AS $$
 DECLARE
   new_profile_id UUID;
 BEGIN
-  INSERT INTO profiles (user_id) VALUES (NEW.id) RETURNING id INTO new_profile_id;
+  INSERT INTO profiles (user_id, platform) VALUES (NEW.id, 'dating') RETURNING id INTO new_profile_id;
   INSERT INTO verification_status (profile_id) VALUES (new_profile_id);
   INSERT INTO privacy_settings (profile_id) VALUES (new_profile_id);
   INSERT INTO trust_scores (profile_id) VALUES (new_profile_id);
@@ -816,6 +875,7 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscription_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contact_unlocks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profile_views ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE blocks ENABLE ROW LEVEL SECURITY;
@@ -924,6 +984,7 @@ CREATE POLICY subscriptions_insert_own ON subscriptions FOR INSERT WITH CHECK (u
 CREATE POLICY subscriptions_update_own ON subscriptions FOR UPDATE USING (user_id = auth_user_id());
 CREATE POLICY payments_select_own ON payments FOR SELECT USING (user_id = auth_user_id());
 CREATE POLICY payments_insert_own ON payments FOR INSERT WITH CHECK (user_id = auth_user_id());
+CREATE POLICY contact_unlocks_select_own ON contact_unlocks FOR SELECT USING (user_id = auth_user_id());
 CREATE POLICY views_insert_own ON profile_views FOR INSERT WITH CHECK (viewer_profile_id = auth_profile_id());
 CREATE POLICY views_select_own ON profile_views FOR SELECT USING (
   viewer_profile_id = auth_profile_id() OR viewed_profile_id = auth_profile_id()
@@ -1175,7 +1236,8 @@ ON CONFLICT (route_path) DO NOTHING;
 INSERT INTO subscription_plans (name, price, billing_cycle, features, active) VALUES
 ('Free', 0, 'monthly', '["Limited likes", "Basic discovery", "Chat requests", "Profile creation"]', true),
 ('Premium', 499, 'monthly', '["Unlimited likes", "Advanced filters", "See who liked you", "Profile boost", "Compatibility insights", "More contact unlocks"]', true),
-('Premium Plus', 999, 'monthly', '["Everything in Premium", "Family-managed support", "Extra visibility", "Enhanced trust badge", "Priority placement"]', true);
+('Premium Plus', 999, 'monthly', '["Everything in Premium", "Family-managed support", "Extra visibility", "Enhanced trust badge", "Priority placement"]', true),
+('VIP', 20000, 'monthly', '["Access Saathini VIP circle", "Meet verified influencers & business leaders", "Unlimited interests on VIP", "100 contact credits per month", "Priority concierge support", "Exclusive Uttarakhand elite network"]', true);
 
 -- ─── Post-setup: create admin via CLI ───────────────────────────────────────
 -- node scripts/create-admin.mjs admin@saathini.com YourSecurePassword123

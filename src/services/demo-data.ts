@@ -1,5 +1,13 @@
 import type { DiscoverProfile, Profile, ProfilePhoto, VerificationStatus } from "@/types";
 
+const DEFAULT_PLATFORM_FIELDS = {
+  platform: "dating" as const,
+  cross_platform_visible: false,
+  vip_approval_status: null,
+  vip_details: {},
+  vip_invite_code: null,
+};
+
 function demoPhotos(profileId: string, urls: string[]): ProfilePhoto[] {
   return urls.map((url, index) => ({
     id: `p-${profileId}-${index}`,
@@ -34,6 +42,7 @@ const PRIYA_PHOTOS = demoPhotos("demo-3", [
 
 export const DEMO_PROFILES: DiscoverProfile[] = [
   {
+    ...DEFAULT_PLATFORM_FIELDS,
     id: "demo-1",
     user_id: "user-1",
     full_name: "Ananya Rawat",
@@ -51,6 +60,11 @@ export const DEMO_PROFILES: DiscoverProfile[] = [
     ai_bio: "A thoughtful counselor from Garhwal who values deep conversations and genuine connection.",
     intent: "serious",
     profile_status: "active",
+    platform: "dating",
+    cross_platform_visible: false,
+    vip_approval_status: null,
+    vip_details: {},
+    vip_invite_code: null,
     trust_score: 85,
     compatibility_score: 0,
     readiness_score: 78,
@@ -66,6 +80,7 @@ export const DEMO_PROFILES: DiscoverProfile[] = [
     distance_label: "12 km away",
   },
   {
+    ...DEFAULT_PLATFORM_FIELDS,
     id: "demo-2",
     user_id: "user-2",
     full_name: "Vikram Singh",
@@ -83,6 +98,11 @@ export const DEMO_PROFILES: DiscoverProfile[] = [
     ai_bio: null,
     intent: "marriage",
     profile_status: "active",
+    platform: "dating",
+    cross_platform_visible: false,
+    vip_approval_status: null,
+    vip_details: {},
+    vip_invite_code: null,
     trust_score: 92,
     compatibility_score: 0,
     readiness_score: 85,
@@ -98,6 +118,7 @@ export const DEMO_PROFILES: DiscoverProfile[] = [
     distance_label: "45 km away",
   },
   {
+    ...DEFAULT_PLATFORM_FIELDS,
     id: "demo-3",
     user_id: "user-3",
     full_name: "Priya Bisht",
@@ -115,6 +136,11 @@ export const DEMO_PROFILES: DiscoverProfile[] = [
     ai_bio: null,
     intent: "exploring",
     profile_status: "active",
+    platform: "dating",
+    cross_platform_visible: false,
+    vip_approval_status: null,
+    vip_details: {},
+    vip_invite_code: null,
     trust_score: 72,
     compatibility_score: 0,
     readiness_score: 55,
@@ -155,6 +181,11 @@ export const DEMO_CURRENT_PROFILE: Profile = {
   ai_bio: "A product-minded professional rooted in Garhwal, seeking genuine connection.",
   intent: "serious",
   profile_status: "active",
+  platform: "dating",
+  cross_platform_visible: false,
+  vip_approval_status: null,
+  vip_details: {},
+  vip_invite_code: null,
   trust_score: 75,
   compatibility_score: 0,
   readiness_score: 70,

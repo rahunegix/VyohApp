@@ -5,7 +5,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ProfileCard } from "@/components/cards/profile-card";
 import { ProfileCardSkeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/common/empty-states";
+import { AiCard } from "@/components/saathi";
 import { Button } from "@/components/ui/button";
+import { SAATHI_COPY } from "@/config/ai";
+import { usePlatform } from "@/components/platform/platform-provider";
+import { platformPath } from "@/lib/platform";
 import { InterestList } from "@/components/discover/interest-list";
 import { sendInterest } from "@/services/actions";
 import { useTranslation } from "@/hooks/use-translation";
@@ -17,6 +21,7 @@ import type { DiscoverTabId } from "@/lib/constants/discover-tabs";
 
 export function SuggestionsFeed() {
   const { t } = useTranslation();
+  const { platform } = usePlatform();
   const allProfiles = useDiscoverSuggestions();
   const resetFilters = useDiscoverFiltersStore((s) => s.resetApplied);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -32,11 +37,23 @@ export function SuggestionsFeed() {
   const profiles = allProfiles;
   const current = profiles[currentIndex];
 
+  const [interestError, setInterestError] = useState("");
+
   const handleSendInterest = async () => {
-    if (current) {
-      await sendInterest(current.id);
-      useInterestStore.getState().addSent(current.id);
+    if (!current) return;
+    setInterestError("");
+    const result = await sendInterest(current.id);
+    if (result.error) {
+      setInterestError(result.error);
+      if (result.code === "FACE_VERIFICATION_REQUIRED") {
+        window.dispatchEvent(new Event("face-verification-required"));
+      }
+      if (result.code === "PREMIUM_REQUIRED") {
+        window.dispatchEvent(new Event("premium-required"));
+      }
+      return;
     }
+    useInterestStore.getState().addSent(current.id);
     setCurrentIndex((i) => i + 1);
   };
 
@@ -56,7 +73,18 @@ export function SuggestionsFeed() {
 
   if (!current) {
     return (
-      <div className="flex h-full items-center justify-center px-4 pb-2 pt-1">
+      <div className="flex h-full flex-col items-center justify-center gap-4 px-4 pb-2 pt-1">
+        <AiCard
+          variant="insight"
+          title="Saathi"
+          body={SAATHI_COPY.discover.noResults}
+          action={{
+            label: SAATHI_COPY.discover.noResultsAction,
+            onClick: () => {
+              window.location.href = platformPath(platform, "/profile/readiness");
+            },
+          }}
+        />
         <EmptyState
           icon="heart"
           title={t("discover_empty_suggestions_title")}
@@ -67,8 +95,24 @@ export function SuggestionsFeed() {
     );
   }
 
+  const pickReason =
+    current.compatibility?.strong_matches?.slice(0, 2).join(" and ") ||
+    current.compatibility?.explanation ||
+    "you share similar values and goals";
+
   return (
-    <div className="flex h-full min-h-0 flex-col px-4 pb-3 pt-1 lg:mx-auto lg:max-w-xl lg:px-6">
+    <div className="flex h-full min-h-0 flex-col gap-2 px-4 pb-3 pt-1 lg:mx-auto lg:max-w-xl lg:px-6">
+      <AiCard
+        variant="pick"
+        title={SAATHI_COPY.discover.pickPrefix}
+        body={pickReason}
+        className="shrink-0"
+      />
+      {interestError && (
+        <p className="mb-2 rounded-xl border border-destructive/20 bg-destructive/10 px-3 py-2 text-center text-xs font-medium text-destructive">
+          {interestError}
+        </p>
+      )}
       <AnimatePresence mode="wait">
         <motion.div
           key={current.id}

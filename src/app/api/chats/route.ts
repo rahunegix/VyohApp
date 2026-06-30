@@ -33,6 +33,39 @@ export async function GET(request: NextRequest) {
     };
   });
 
+  const conversationIds = conversations
+    .map((c) => c.conversation_id)
+    .filter((id): id is string => Boolean(id));
+
+  const lastMessageByConv: Record<
+    string,
+    { message_text: string; created_at: string; sender_profile_id: string }
+  > = {};
+
+  if (conversationIds.length) {
+    const { data: messages } = await admin
+      .from("messages")
+      .select("conversation_id, message_text, created_at, sender_profile_id")
+      .in("conversation_id", conversationIds)
+      .order("created_at", { ascending: false });
+
+    for (const msg of messages ?? []) {
+      const convId = String(msg.conversation_id);
+      if (!lastMessageByConv[convId]) {
+        lastMessageByConv[convId] = {
+          message_text: String(msg.message_text ?? ""),
+          created_at: String(msg.created_at ?? ""),
+          sender_profile_id: String(msg.sender_profile_id ?? ""),
+        };
+      }
+    }
+  }
+
+  const conversationsWithPreview = conversations.map((c) => ({
+    ...c,
+    last_message: c.conversation_id ? lastMessageByConv[c.conversation_id] ?? null : null,
+  }));
+
   const { data: requests } = await admin
     .from("chat_requests")
     .select("*, sender:profiles!chat_requests_sender_profile_id_fkey(*, profile_photos(*))")
@@ -42,7 +75,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     success: true,
-    data: { conversations, requests: requests ?? [] },
+    data: { conversations: conversationsWithPreview, requests: requests ?? [] },
   });
 }
 

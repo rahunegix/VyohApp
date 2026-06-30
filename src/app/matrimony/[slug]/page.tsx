@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { isPlatformAppSegment } from "@/lib/platform/reserved-slugs";
 import { getSeoPageBySlug } from "@/lib/seo/service";
 import { buildSeoMetadata } from "@/lib/seo/metadata";
 import { SeoLandingContent } from "@/components/seo/seo-landing-content";
@@ -11,6 +12,9 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  if (isPlatformAppSegment(slug)) {
+    return { title: "Not Found", robots: { index: false, follow: false } };
+  }
   const page = await getSeoPageBySlug(slug);
   if (!page) return { title: "Not Found", robots: { index: false, follow: false } };
   return buildSeoMetadata(page);
@@ -22,6 +26,7 @@ export default async function ProgrammaticMatrimonyPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  if (isPlatformAppSegment(slug)) notFound();
   const page = await getSeoPageBySlug(slug);
   if (!page) notFound();
 

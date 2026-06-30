@@ -19,12 +19,16 @@ import type { SeoPageView } from "@/lib/seo/types";
 import type { SuccessStoryView } from "@/lib/success-stories/types";
 import { FaqSection } from "@/components/seo/faq-section";
 import { SuccessStoryShowcase } from "@/components/auth/success-story-showcase";
+import { PlatformShowcase } from "@/components/marketing/platform-showcase";
+import { SaathiPresence } from "@/components/saathi";
 import { AppLogo } from "@/components/common/app-logo";
 import { HelpChatTrigger } from "@/components/common/help-chat-widget";
 import { Button } from "@/components/ui/button";
 import { APP_TAGLINE } from "@/lib/constants";
+import { SAATHI_COPY } from "@/config/ai";
+import { RADIUS } from "@/design/tokens";
 
-const ONBOARDING_START = "/onboarding/language";
+const ONBOARDING_START = "/";
 const HERO_IMAGE_URL =
   "https://okcyohdpvoobhjiuspkr.supabase.co/storage/v1/object/public/profile-photos-public/admin/success-stories/1781970690439-36ed89e4.jpg";
 
@@ -41,6 +45,7 @@ const STATS = [
   { value: "100%", label: "Consent-first matching" },
 ];
 const NAV_LINKS = [
+  { href: "#platforms", label: "Platforms" },
   { href: "#features", label: "Features" },
   { href: "#how-it-works", label: "How it works" },
   { href: "#stories", label: "Stories" },
@@ -76,8 +81,8 @@ function PrimaryCta({ className, nav = false }: { className?: string; nav?: bool
         size="lg"
         className={
           nav
-            ? "h-10 rounded-[6px] bg-[linear-gradient(120deg,#c62828,#a71f1f)] px-4 text-sm font-semibold text-white shadow-[var(--shadow-float)] hover:brightness-105"
-            : "h-12 rounded-[6px] bg-[linear-gradient(120deg,#c62828,#a71f1f)] px-7 text-base font-semibold text-white shadow-[var(--shadow-float)] hover:brightness-105"
+            ? "h-10 rounded-[6px] bg-[linear-gradient(120deg,#c62828,#a71f1f)] px-5 text-sm font-semibold text-white shadow-[var(--shadow-glow)] hover:brightness-105"
+            : "h-12 rounded-[6px] bg-[linear-gradient(120deg,#c62828,#a71f1f)] px-8 text-base font-semibold text-white shadow-[var(--shadow-glow)] hover:brightness-105"
         }
       >
         {nav ? "Start free" : "Create your profile"}
@@ -148,7 +153,7 @@ export function HomePageContent({
 
   return (
     <div className="marketing-page relative isolate overflow-hidden bg-background">
-      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-[radial-gradient(circle_at_10%_0%,rgba(198,40,40,0.18),transparent_45%),radial-gradient(circle_at_85%_5%,rgba(198,40,40,0.1),transparent_30%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[640px] bg-[radial-gradient(circle_at_8%_0%,rgba(198,40,40,0.22),transparent_42%),radial-gradient(circle_at_88%_8%,rgba(244,63,94,0.14),transparent_35%),radial-gradient(circle_at_50%_100%,rgba(198,40,40,0.06),transparent_50%)]" />
       <SiteNav />
 
       {/* Hero */}
@@ -167,11 +172,11 @@ export function HomePageContent({
         </svg>
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-8 lg:py-24">
           <div className="space-y-6">
-            <p className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3 py-1 text-xs font-semibold text-primary shadow-[var(--shadow-soft)]">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            <p className="inline-flex items-center gap-2 rounded-[6px] border border-primary/20 bg-white/80 px-3 py-1 text-xs font-semibold text-primary shadow-[var(--shadow-soft)]">
+              <span className="h-1.5 w-1.5 rounded-[6px] bg-primary" />
               Premium Uttarakhand matrimony platform
             </p>
-            <h1 className="text-3xl font-black leading-[1.08] tracking-tight text-foreground sm:text-4xl lg:text-6xl">
+            <h1 className="font-display text-3xl font-normal leading-[1.08] tracking-tight text-foreground sm:text-4xl lg:text-6xl">
               {page.h1 || page.title}
             </h1>
             {page.hero_subtitle && (
@@ -215,7 +220,8 @@ export function HomePageContent({
               {STATS.map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-xl border border-border/60 bg-white/85 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur"
+                  className="border border-border/60 bg-white/85 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur"
+                  style={{ borderRadius: RADIUS.card }}
                 >
                   <p className="text-lg font-extrabold text-foreground">{stat.value}</p>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
@@ -225,7 +231,10 @@ export function HomePageContent({
           </div>
 
           <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-border/60 bg-muted shadow-[var(--shadow-elevated)] sm:aspect-[5/6]">
+            <div
+              className="relative aspect-[4/5] overflow-hidden border border-border/60 bg-muted shadow-[var(--shadow-premium)] sm:aspect-[5/6]"
+              style={{ borderRadius: RADIUS.image }}
+            >
               {heroImageSrc ? (
                 <Image
                   src={heroImageSrc}
@@ -270,13 +279,35 @@ export function HomePageContent({
         </div>
       </section>
 
+      {/* Saathi + platforms */}
+      <section id="platforms" className="border-b border-border/40 bg-gradient-to-b from-primary/[0.04] to-transparent py-12 lg:py-16">
+        <div className="mx-auto max-w-6xl px-5 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Meet Saathi</p>
+            <h2 className="mt-2 font-display text-2xl font-normal tracking-tight text-foreground lg:text-4xl">
+              Your AI relationship coach, woven into every step
+            </h2>
+          </div>
+          <div
+            className="mx-auto mt-8 max-w-2xl border border-primary/15 bg-white/80 p-5 shadow-[var(--shadow-soft)] backdrop-blur"
+            style={{ borderRadius: RADIUS.card }}
+          >
+            <SaathiPresence message={SAATHI_COPY.onboarding.welcome} />
+          </div>
+          <div className="mt-10">
+            <PlatformShowcase />
+          </div>
+        </div>
+      </section>
+
       {/* Quick value cards */}
       <section className="border-b border-border/40 py-8 lg:py-10">
         <div className="mx-auto grid max-w-6xl gap-4 px-5 sm:grid-cols-3 lg:px-8">
           {QUICK_FEATURES.map(({ icon: Icon, title, body }) => (
             <article
               key={title}
-              className="rounded-2xl border border-border/60 bg-white/80 p-5 shadow-[var(--shadow-soft)] backdrop-blur transition-transform duration-200 hover:-translate-y-0.5"
+              className="border border-border/60 bg-white/80 p-5 shadow-[var(--shadow-soft)] backdrop-blur transition-transform duration-200 hover:-translate-y-0.5"
+              style={{ borderRadius: RADIUS.card }}
             >
               <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
                 <Icon className="h-5 w-5 text-primary" />
@@ -294,7 +325,7 @@ export function HomePageContent({
           <div className="mx-auto max-w-6xl px-5 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <p className="text-xs font-bold uppercase tracking-widest text-primary">Why Saathini</p>
-              <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-foreground lg:text-3xl">
+              <h2 className="mt-2 font-display text-2xl font-normal tracking-tight text-foreground lg:text-4xl">
                 Built for Pahadi culture, not generic portals
               </h2>
             </div>
@@ -304,7 +335,8 @@ export function HomePageContent({
                 return (
                   <article
                     key={section.title}
-                    className="rounded-2xl border border-border/60 bg-white p-6 shadow-[var(--shadow-soft)]"
+                    className="border border-border/60 bg-white p-6 shadow-[var(--shadow-soft)]"
+                    style={{ borderRadius: RADIUS.card }}
                   >
                     <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
                       <Icon className="h-5 w-5 text-primary" />
@@ -334,13 +366,17 @@ export function HomePageContent({
         <div className="mx-auto max-w-6xl px-5 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-bold uppercase tracking-widest text-primary">Simple process</p>
-            <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-foreground lg:text-3xl">
+            <h2 className="mt-2 font-display text-2xl font-normal tracking-tight text-foreground lg:text-4xl">
               Find your match in 3 clear steps
             </h2>
           </div>
           <div className="mt-10 grid gap-5 md:grid-cols-3">
             {HOW_IT_WORKS.map((item) => (
-              <article key={item.step} className="rounded-2xl border border-border/60 bg-white p-6 shadow-[var(--shadow-soft)]">
+              <article
+                key={item.step}
+                className="border border-border/60 bg-white p-6 shadow-[var(--shadow-soft)]"
+                style={{ borderRadius: RADIUS.card }}
+              >
                 <p className="text-xs font-bold tracking-[0.2em] text-primary">{item.step}</p>
                 <h3 className="mt-2 text-lg font-bold text-foreground">{item.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
@@ -357,7 +393,7 @@ export function HomePageContent({
             <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-primary">Success stories</p>
-                <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-foreground lg:text-3xl">
+                <h2 className="mt-2 font-display text-2xl font-normal tracking-tight text-foreground lg:text-4xl">
                   Real couples on Saathini
                 </h2>
                 <p className="mt-2 max-w-xl text-sm text-muted-foreground">
@@ -372,7 +408,10 @@ export function HomePageContent({
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-            <div className="rounded-2xl border border-border/60 bg-white p-5 shadow-[var(--shadow-card)] lg:p-6">
+            <div
+              className="border border-border/60 bg-white p-5 shadow-[var(--shadow-card)] lg:p-6"
+              style={{ borderRadius: RADIUS.card }}
+            >
               <SuccessStoryShowcase
                 stories={latestStories}
                 theme="light"
@@ -391,7 +430,7 @@ export function HomePageContent({
             {page.focus_keywords.map((keyword) => (
               <span
                 key={keyword}
-                className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium text-muted-foreground"
+                className="rounded-[6px] border border-border bg-white px-3 py-1.5 text-xs font-medium text-muted-foreground"
               >
                 {keyword}
               </span>
@@ -412,7 +451,7 @@ export function HomePageContent({
       {/* Bottom CTA */}
       <section className="border-t border-primary/20 bg-[linear-gradient(120deg,#9f1f1f,#c62828,#8f1a1a)]">
         <div className="mx-auto max-w-6xl px-5 py-14 text-center lg:px-8 lg:py-16">
-          <h2 className="text-2xl font-extrabold tracking-tight text-white lg:text-3xl">
+          <h2 className="font-display text-2xl font-normal tracking-tight text-white lg:text-4xl">
             Ready to find your match?
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-white/85 lg:text-base">

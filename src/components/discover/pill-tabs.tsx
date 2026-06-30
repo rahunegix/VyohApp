@@ -27,7 +27,7 @@ export function DiscoverPillTabs({
             type="button"
             onClick={() => onChange(tab.id)}
             className={cn(
-              "inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              "inline-flex shrink-0 items-center gap-1.5 rounded-[6px] px-4 py-2 text-sm font-medium transition-colors",
               selected
                 ? "bg-primary text-white shadow-sm"
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -37,7 +37,7 @@ export function DiscoverPillTabs({
             {count > 0 && (
               <span
                 className={cn(
-                  "flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold",
+                  "flex h-5 min-w-5 items-center justify-center rounded-[6px] px-1 text-[10px] font-bold",
                   selected ? "bg-white/25 text-white" : "bg-primary/10 text-primary"
                 )}
               >

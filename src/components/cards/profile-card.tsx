@@ -43,7 +43,7 @@ export function ProfileCard({
     return (
       <div
         className={cn(
-          "relative flex h-full min-h-0 flex-col overflow-hidden rounded-[1.75rem] bg-black shadow-[var(--shadow-elevated)]",
+          "relative flex h-full min-h-0 flex-col overflow-hidden rounded-[6px] bg-black shadow-[var(--shadow-elevated)]",
           className
         )}
       >
@@ -72,8 +72,8 @@ export function ProfileCard({
                 {getIntentLabel(profile.intent)}
               </Badge>
               {profile.compatibility && (
-                <Badge className="border-0 bg-primary px-2 py-0.5 text-[10px] font-bold text-white">
-                  {profile.compatibility.score}% Match
+                <Badge className="border-0 bg-primary px-2 py-0.5 text-[10px] font-bold text-white shadow-[var(--shadow-glow)]">
+                  {profile.compatibility.score}% · {profile.compatibility.strong_matches?.[0] ?? "Match"}
                 </Badge>
               )}
             </div>
@@ -119,7 +119,7 @@ export function ProfileCard({
     <div
       className={cn(
         "relative w-full shrink-0 overflow-hidden rounded-t-[2rem]",
-        "aspect-square rounded-[2rem]"
+        "aspect-square rounded-[6px]"
       )}
     >
       <PhotoGallery
@@ -209,7 +209,7 @@ export function ProfileCard({
   return (
     <div
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-[2rem] bg-card shadow-[var(--shadow-elevated)]",
+        "relative flex flex-col overflow-hidden rounded-[6px] bg-card shadow-[var(--shadow-elevated)]",
         "aspect-[3/4] h-auto min-h-[500px]",
         className
       )}
@@ -222,7 +222,7 @@ export function ProfileCard({
             <button
               type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPass(); }}
-              className="flex items-center justify-center rounded-full border-2 border-border bg-white text-muted-foreground transition-all active:scale-95 hover:border-destructive hover:text-destructive h-12 w-12"
+              className="flex items-center justify-center rounded-[6px] border-2 border-border bg-white text-muted-foreground transition-all active:scale-95 hover:border-destructive hover:text-destructive h-12 w-12"
             >
               <X className="h-5 w-5" strokeWidth={2.5} />
             </button>
@@ -232,7 +232,7 @@ export function ProfileCard({
               type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onShortlist(); }}
               className={cn(
-                "flex items-center justify-center rounded-full border-2 transition-all active:scale-95 h-12 w-12",
+                "flex items-center justify-center rounded-[6px] border-2 transition-all active:scale-95 h-12 w-12",
                 shortlisted ? "border-primary bg-primary/10 text-primary" : "border-border bg-white text-muted-foreground hover:border-primary hover:text-primary"
               )}
             >
@@ -243,7 +243,7 @@ export function ProfileCard({
             <button
               type="button"
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSendInterest(); }}
-              className="flex items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all active:scale-95 hover:bg-primary/90 h-14 w-14"
+              className="flex items-center justify-center rounded-[6px] bg-primary text-white shadow-lg transition-all active:scale-95 hover:bg-primary/90 h-14 w-14"
             >
               <HeartHandshake className="h-6 w-6" />
             </button>

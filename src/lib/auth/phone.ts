@@ -1,4 +1,5 @@
-import { formatPhoneE164, normalizePhoneStorage } from "@/lib/auth/session";
+import { formatPhoneE164, normalizePhoneStorage } from "@/lib/auth/jwt";
+import { fetchAuthMe } from "@/lib/auth/client-session";
 
 export { formatPhoneE164 };
 
@@ -8,6 +9,7 @@ export async function sendPhoneOtp(phone: string, client: "web" | "android" = "w
   const res = await fetch("/api/auth/send-otp", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
     body: JSON.stringify({ phone: formatted, client }),
   });
 
@@ -27,6 +29,7 @@ export async function verifyPhoneOtp(phone: string, token: string) {
   const res = await fetch("/api/auth/verify-otp", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
     body: JSON.stringify({ phone: formatted, code: token }),
   });
 
@@ -39,7 +42,7 @@ export async function verifyPhoneOtp(phone: string, token: string) {
 }
 
 export async function getSession() {
-  const res = await fetch("/api/auth/me");
+  const res = await fetchAuthMe();
   if (!res.ok) return null;
   const json = await res.json();
   return json.data;

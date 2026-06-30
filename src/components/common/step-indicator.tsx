@@ -17,7 +17,7 @@ export function StepIndicator({ currentStep, totalSteps, className }: StepIndica
         <div
           key={i}
           className={cn(
-            "h-1.5 flex-1 rounded-full transition-all duration-500 ease-out",
+            "h-1.5 flex-1 rounded-[6px] transition-all duration-500 ease-out",
             i < currentStep 
               ? "bg-primary shadow-[0_0_8px_rgba(198,40,40,0.35)]" 
               : i === currentStep 
@@ -30,7 +30,7 @@ export function StepIndicator({ currentStep, totalSteps, className }: StepIndica
               initial={{ x: "-100%" }}
               animate={{ x: "0%" }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="absolute inset-0 bg-primary rounded-full"
+              className="absolute inset-0 bg-primary rounded-[6px]"
             />
           )}
         </div>
@@ -54,7 +54,7 @@ export function SelectCard({ selected, onClick, title, description, icon, classN
       type="button"
       onClick={onClick}
       className={cn(
-        "group relative w-full rounded-[1.5rem] p-5 text-left transition-all duration-300 overflow-hidden",
+        "group relative w-full rounded-[6px] p-5 text-left transition-all duration-300 overflow-hidden",
         selected
           ? "border-2 border-primary bg-primary/5 shadow-md scale-[1.02]"
           : "border-2 border-transparent bg-white shadow-sm hover:shadow-md hover:border-primary/20",
@@ -86,7 +86,7 @@ export function SelectCard({ selected, onClick, title, description, icon, classN
         </div>
         
         <div className={cn(
-          "flex h-7 w-7 items-center justify-center rounded-full transition-all duration-300 shrink-0 border-2",
+          "flex h-7 w-7 items-center justify-center rounded-[6px] transition-all duration-300 shrink-0 border-2",
           selected 
             ? "bg-primary border-primary scale-110 shadow-sm" 
             : "bg-transparent border-border group-hover:border-primary/50"

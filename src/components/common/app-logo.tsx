@@ -19,7 +19,8 @@ export function AppLogo({ className, priority = false }: AppLogoProps) {
       width={LOGO_WIDTH}
       height={LOGO_HEIGHT}
       priority={priority}
-      className={cn("h-8 w-auto object-contain object-left", className)}
+      unoptimized
+      className={cn("h-8 pt-4 px-2 w-auto object-contain object-left", className)}
     />
   );
 }

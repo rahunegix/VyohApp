@@ -7,8 +7,16 @@ import { formatPhoneE164 } from "@/lib/auth/phone";
 import { OTP_LENGTH, OTP_TTL_MS } from "@/lib/auth/otp-config";
 import { generateOtp } from "@/lib/auth/session";
 import { calculateTrustScore } from "@/lib/matching/compatibility";
+import {
+  analyzeFaceVerification,
+  faceCheckPassed,
+  markFaceVerified,
+  submitFaceForReview,
+  uploadSelfieVerification,
+} from "@/lib/verification/face-check";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { DEMO_CURRENT_PROFILE, DEMO_VERIFICATION } from "@/services/demo-data";
-import type { VerificationOverview } from "@/types";
+import type { Profile, VerificationOverview } from "@/types";
 import { z } from "zod";
 
 const idSubmitSchema = z.object({
@@ -27,6 +35,10 @@ const referenceSubmitSchema = z.object({
 const otpSchema = z.object({
   request_id: z.string().uuid(),
   otp: z.string().length(OTP_LENGTH),
+});
+
+const faceSubmitSchema = z.object({
+  frames: z.array(z.string().min(20)).min(1).max(4),
 });
 
 async function getProfileContext() {
@@ -55,17 +67,18 @@ function demoOverview(): VerificationOverview {
     profileCompleteness: 78,
     idRequest: null,
     referenceRequest: null,
+    faceRequest: null,
   };
 }
 
-export async function getVerificationOverview(): Promise<VerificationOverview> {
-  const ctx = await getProfileContext();
-  if (!ctx) return demoOverview();
-
-  const { admin, profile, verification } = ctx;
+export async function buildVerificationOverview(
+  admin: SupabaseClient,
+  profile: Profile,
+  verification: Record<string, unknown> | null,
+): Promise<VerificationOverview> {
   if (!verification) return demoOverview();
 
-  const [{ data: idRequest }, { data: referenceRequest }] = await Promise.all([
+  const [{ data: idRequest }, { data: referenceRequest }, { data: faceRequest }] = await Promise.all([
     admin
       .from("id_verification_requests")
       .select("*")
@@ -80,25 +93,39 @@ export async function getVerificationOverview(): Promise<VerificationOverview> {
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    admin
+      .from("face_verification_requests")
+      .select("*")
+      .eq("profile_id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const trustScore = calculateTrustScore({
-    mobile_verified: verification.mobile_verified,
-    face_verified: verification.face_verified,
-    id_verified: verification.id_verified,
-    family_verified: verification.family_verified,
+    mobile_verified: Boolean(verification.mobile_verified),
+    face_verified: Boolean(verification.face_verified),
+    id_verified: Boolean(verification.id_verified),
+    family_verified: Boolean(verification.family_verified),
     profile_completeness: 78,
     report_count: 0,
     account_age_days: 30,
   });
 
   return {
-    verification,
+    verification: verification as unknown as VerificationOverview["verification"],
     trustScore,
     profileCompleteness: 78,
     idRequest: idRequest ?? null,
     referenceRequest: referenceRequest ?? null,
+    faceRequest: faceRequest ?? null,
   };
+}
+
+export async function getVerificationOverview(): Promise<VerificationOverview> {
+  const ctx = await getProfileContext();
+  if (!ctx) return demoOverview();
+  return buildVerificationOverview(ctx.admin, ctx.profile, ctx.verification);
 }
 
 export async function submitIdVerification(data: unknown) {
@@ -225,6 +252,164 @@ export async function verifyReferenceOtp(data: unknown) {
 
   revalidatePath("/trust-center");
   return { success: true };
+}
+
+export async function submitFaceVerificationForUser(
+  ctx: { admin: SupabaseClient; profile: Profile; userId: string },
+  data: unknown
+) {
+  const parsed = faceSubmitSchema.safeParse(data);
+  if (!parsed.success) return { error: "Invalid selfie data" };
+
+  const { admin, profile, userId } = ctx;
+
+  const { data: verification } = await admin
+    .from("verification_status")
+    .select("*")
+    .eq("profile_id", profile.id)
+    .maybeSingle();
+
+  if (verification?.face_verified) return { error: "Face already verified" };
+
+  const { data: pendingReview } = await admin
+    .from("face_verification_requests")
+    .select("status")
+    .eq("profile_id", profile.id)
+    .eq("status", "pending_review")
+    .maybeSingle();
+
+  if (pendingReview) {
+    return { error: "Face verification is already under review", code: "FACE_PENDING_REVIEW" };
+  }
+
+  const { data: photos } = await admin
+    .from("profile_photos")
+    .select("url")
+    .eq("profile_id", profile.id)
+    .order("sort_order", { ascending: true })
+    .limit(1);
+
+  const profilePhotoUrl = photos?.[0]?.url;
+  if (!profilePhotoUrl) {
+    return { error: "Upload at least one profile photo before face verification" };
+  }
+
+  const devBypass =
+    process.env.NODE_ENV !== "production" && process.env.FACE_VERIFY_DEV_BYPASS === "true";
+
+  let analysis;
+  if (devBypass) {
+    analysis = {
+      match: true,
+      liveness: true,
+      confidence: 95,
+      reason: "Dev bypass enabled",
+    };
+  } else {
+    try {
+      analysis = await analyzeFaceVerification(profilePhotoUrl, parsed.data.frames);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Face verification failed";
+      return { error: message, code: "FACE_REVIEW_AVAILABLE" };
+    }
+  }
+
+  if (!faceCheckPassed(analysis)) {
+    return {
+      error: analysis.reason || "Face did not match your profile photos. Try again in good lighting.",
+      code: "FACE_REVIEW_AVAILABLE",
+      analysis,
+    };
+  }
+
+  try {
+    const selfieUrl = await uploadSelfieVerification(admin, userId, parsed.data.frames[0]);
+    const { verification: updated, trustScore } = await markFaceVerified(
+      admin,
+      profile.id,
+      selfieUrl,
+      verification
+    );
+
+    revalidatePath("/trust-center");
+    revalidatePath("/onboarding/verification");
+    revalidatePath("/discover");
+
+    return {
+      success: true,
+      verification: updated,
+      trustScore,
+      analysis,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Could not save verification";
+    return { error: message };
+  }
+}
+
+export async function submitFaceVerification(data: unknown) {
+  const ctx = await getProfileContext();
+  if (!ctx) return { error: "Not authenticated" };
+
+  return submitFaceVerificationForUser(
+    { admin: ctx.admin, profile: ctx.profile, userId: ctx.profile.user_id },
+    data
+  );
+}
+
+export async function submitFaceVerificationReviewForUser(
+  ctx: { admin: SupabaseClient; profile: Profile; userId: string },
+  data: unknown
+) {
+  const parsed = faceSubmitSchema.safeParse(data);
+  if (!parsed.success) return { error: "Invalid selfie data" };
+
+  const { admin, profile, userId } = ctx;
+
+  const { data: verification } = await admin
+    .from("verification_status")
+    .select("face_verified")
+    .eq("profile_id", profile.id)
+    .maybeSingle();
+
+  if (verification?.face_verified) return { error: "Face already verified" };
+
+  const { data: photos } = await admin
+    .from("profile_photos")
+    .select("url")
+    .eq("profile_id", profile.id)
+    .order("sort_order", { ascending: true })
+    .limit(1);
+
+  const profilePhotoUrl = photos?.[0]?.url ?? null;
+  const aiReason = typeof (data as { ai_reason?: string }).ai_reason === "string"
+    ? (data as { ai_reason: string }).ai_reason
+    : undefined;
+  const aiConfidence = typeof (data as { ai_confidence?: number }).ai_confidence === "number"
+    ? (data as { ai_confidence: number }).ai_confidence
+    : undefined;
+
+  try {
+    const result = await submitFaceForReview(
+      admin,
+      profile.id,
+      userId,
+      parsed.data.frames[0],
+      profilePhotoUrl,
+      aiReason,
+      aiConfidence
+    );
+
+    if (result.error) return result;
+
+    revalidatePath("/trust-center");
+    revalidatePath("/onboarding/verification");
+
+    return { success: true, pendingReview: true, request: result.request };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Could not submit for review";
+    return { error: message };
+  }
 }
 
 export async function resendReferenceOtp(requestId: string) {

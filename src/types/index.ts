@@ -1,4 +1,7 @@
+import type { VipApprovalStatus, VipDetails } from "@/lib/vip/constants";
+
 export type Intent = "exploring" | "serious" | "marriage";
+export type Platform = "dating" | "matrimony" | "vip";
 export type Gender = "male" | "female" | "other";
 export type LookingFor = "male" | "female" | "everyone";
 export type Region = "garhwal" | "kumaon" | "both" | "diaspora";
@@ -41,6 +44,11 @@ export interface Profile {
   bio: string | null;
   ai_bio: string | null;
   intent: Intent;
+  platform: Platform;
+  cross_platform_visible: boolean;
+  vip_approval_status: VipApprovalStatus | null;
+  vip_details: VipDetails | null;
+  vip_invite_code: string | null;
   profile_status: ProfileStatus;
   trust_score: number;
   compatibility_score: number;
@@ -123,12 +131,27 @@ export interface ReferenceVerificationRequest {
   updated_at: string;
 }
 
+export interface FaceVerificationRequest {
+  id: string;
+  profile_id: string;
+  selfie_url: string;
+  profile_photo_url: string | null;
+  ai_confidence: number | null;
+  ai_reason: string | null;
+  status: VerificationRequestStatus;
+  rejection_reason: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface VerificationOverview {
   verification: VerificationStatus;
   trustScore: number;
   profileCompleteness: number;
   idRequest: IdVerificationRequest | null;
   referenceRequest: ReferenceVerificationRequest | null;
+  faceRequest: FaceVerificationRequest | null;
 }
 
 export interface CompatibilityResult {
@@ -194,6 +217,9 @@ export interface PrivacySettings {
 
 export interface OnboardingState {
   step: number;
+  platform: Platform | null;
+  vipInviteCode: string | null;
+  vipDetails: VipDetails;
   gender: Gender | null;
   looking_for: LookingFor | null;
   intent: Intent | null;

@@ -1,9 +1,11 @@
-export const APP_NAV_ITEMS = [
-  { href: "/discover", label: "Discover", icon: "compass" as const },
-  { href: "/compatibility", label: "Compatibility", icon: "heart-handshake" as const },
-  { href: "/chats", label: "Chats", icon: "message-circle" as const },
-  { href: "/activity", label: "Activity", icon: "bell" as const },
-  { href: "/profile", label: "Profile", icon: "user" as const },
-] as const;
+import type { Platform } from "@/lib/platform";
+import { getPrimaryNavItems, type PrimaryNavIcon } from "@/config/nav";
 
-export type AppNavIcon = (typeof APP_NAV_ITEMS)[number]["icon"];
+export function getNavItems(platform: Platform) {
+  return getPrimaryNavItems(platform);
+}
+
+/** @deprecated use getNavItems(platform) */
+export const APP_NAV_ITEMS = getNavItems("dating");
+
+export type AppNavIcon = PrimaryNavIcon;

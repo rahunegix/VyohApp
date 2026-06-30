@@ -87,7 +87,7 @@ export function ProfilesAdminPanel({ initialProfiles }: { initialProfiles: Admin
             key={s}
             type="button"
             onClick={() => setStatusFilter(s)}
-            className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+            className={`rounded-[6px] px-3 py-1 text-xs font-semibold capitalize ${
               statusFilter === s ? "bg-primary text-white" : "bg-muted text-muted-foreground"
             }`}
           >

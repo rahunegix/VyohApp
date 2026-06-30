@@ -30,7 +30,7 @@ interface MembershipUpsellModalProps {
 export function MembershipUpsellModal({
   open,
   onOpenChange,
-  reason = "Upgrade to call matches on WhatsApp securely",
+  reason = "Upgrade to view match contact details and connect on call or WhatsApp",
 }: MembershipUpsellModalProps) {
   const router = useRouter();
   const [featureIndex, setFeatureIndex] = useState(0);
@@ -93,10 +93,10 @@ export function MembershipUpsellModal({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 32 }}
             transition={{ type: "spring", stiffness: 420, damping: 36 }}
-            className="relative z-10 w-full max-w-[400px] overflow-hidden rounded-t-[1.75rem] bg-white shadow-[0_-8px_40px_rgba(0,0,0,0.18)] sm:max-w-[320px] sm:rounded-[1.25rem] sm:shadow-[var(--shadow-elevated)]"
+            className="relative z-10 w-full max-w-[400px] overflow-hidden rounded-t-[6px] bg-white shadow-[0_-8px_40px_rgba(0,0,0,0.18)] sm:max-w-[320px] sm:rounded-[6px] sm:shadow-[var(--shadow-elevated)]"
           >
             <div className="flex justify-center pt-3 sm:hidden">
-              <div className="h-1 w-10 rounded-full bg-border/80" />
+              <div className="h-1 w-10 rounded-[6px] bg-border/80" />
             </div>
 
             <button
@@ -113,7 +113,7 @@ export function MembershipUpsellModal({
               <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
               <div className="pointer-events-none absolute -left-4 top-8 h-16 w-16 rounded-full bg-[#D4AF37]/10 blur-xl" />
 
-              <div className="relative mx-auto mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-[#D4AF37]/30 bg-gradient-to-r from-[#FFF8E7] to-white px-3 py-1 shadow-sm">
+              <div className="relative mx-auto mb-2.5 inline-flex items-center gap-1.5 rounded-[6px] border border-[#D4AF37]/30 bg-gradient-to-r from-[#FFF8E7] to-white px-3 py-1 shadow-sm">
                 <Crown className="h-3.5 w-3.5 text-[#B8860B]" fill="#D4AF37" strokeWidth={1.5} />
                 <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8B6914]">
                   Premium
@@ -129,7 +129,7 @@ export function MembershipUpsellModal({
 
               {reason && (
                 <div className="relative mx-auto mt-2.5 flex max-w-[280px] items-start gap-2 rounded-xl border border-primary/10 bg-white/70 px-3 py-2 text-left shadow-sm backdrop-blur-sm sm:mt-2 sm:max-w-none sm:py-1.5">
-                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#25D366]/10 text-[#25D366]">
+                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] bg-[#25D366]/10 text-[#25D366]">
                     <WhatsAppIcon className="h-3.5 w-3.5" />
                   </span>
                   <p className="text-[11px] font-medium leading-snug text-foreground/85 sm:text-[10px]">
@@ -144,7 +144,7 @@ export function MembershipUpsellModal({
               {/* Feature hero */}
               <div className="relative mx-auto flex h-[4.5rem] w-[4.5rem] items-center justify-center sm:h-[4rem] sm:w-[4rem]">
                 <div className="absolute inset-0 rounded-full bg-primary/12 blur-lg" />
-                <div className="relative flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary to-[#8B1A1A] shadow-[0_6px_20px_rgba(198,40,40,0.3)]">
+                <div className="relative flex h-full w-full items-center justify-center rounded-[6px] bg-gradient-to-br from-primary to-[#8B1A1A] shadow-[0_6px_20px_rgba(198,40,40,0.3)]">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={featureIndex}
@@ -192,7 +192,7 @@ export function MembershipUpsellModal({
                     type="button"
                     onClick={() => setFeatureIndex(i)}
                     className={cn(
-                      "rounded-full transition-all duration-300",
+                      "rounded-[6px] transition-all duration-300",
                       i === featureIndex
                         ? "h-1.5 w-5 bg-primary"
                         : "h-1.5 w-1.5 bg-primary/20 hover:bg-primary/35"
@@ -218,7 +218,7 @@ export function MembershipUpsellModal({
                       )}
                     >
                       {tier.saveLabel && (
-                        <span className="absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary px-1.5 py-px text-[8px] font-bold uppercase text-white shadow-sm">
+                        <span className="absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-[6px] bg-primary px-1.5 py-px text-[8px] font-bold uppercase text-white shadow-sm">
                           {tier.saveLabel}
                         </span>
                       )}

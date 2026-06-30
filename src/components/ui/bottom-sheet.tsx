@@ -100,7 +100,7 @@ export function BottomSheet({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="shrink-0 bg-white px-5 pb-4 pt-3">
-              <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-muted-foreground/20" />
+              <div className="mx-auto mb-3 h-1 w-10 rounded-[6px] bg-muted-foreground/20" />
               <div
                 className={cn(
                   "flex items-start gap-3",
@@ -126,7 +126,7 @@ export function BottomSheet({
                   <button
                     type="button"
                     onClick={() => onOpenChange(false)}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted/80 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-muted/80 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                     aria-label="Close"
                   >
                     <X className="h-4 w-4" />

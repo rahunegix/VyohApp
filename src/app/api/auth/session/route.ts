@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const auth = await getAuthUser(request);
   if (auth?.user?.id) {
-    await logoutUser(auth.user.id);
+    await logoutUser(String(auth.user.id));
   }
   const response = NextResponse.json({ success: true });
   clearAuthCookies(response);

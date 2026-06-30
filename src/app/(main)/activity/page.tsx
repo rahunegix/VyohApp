@@ -32,10 +32,10 @@ export default function ActivityPage() {
           title="Activity"
           subtitle="Your recent updates"
           rightAction={
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-[6px] bg-primary/10 text-primary">
               <Bell className="h-5 w-5" />
               {items.some((i) => i.unread) && (
-                <span className="absolute right-2.5 top-2 h-2 w-2 animate-pulse rounded-full bg-primary ring-2 ring-white" />
+                <span className="absolute right-2.5 top-2 h-2 w-2 animate-pulse rounded-[6px] bg-primary ring-2 ring-white" />
               )}
             </div>
           }

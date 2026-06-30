@@ -5,6 +5,8 @@ import Cropper, { type Area } from "react-easy-crop";
 import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { PhotoUploadGrid } from "@/components/ui/photo-upload-grid";
+import { PhotoSourceSheet } from "@/components/profile/photo-source-sheet";
+import { PhotoCameraModal } from "@/components/profile/photo-camera-modal";
 import { getCroppedImageBlob } from "@/lib/images/crop-image";
 import { compressImageBlob } from "@/lib/images/compress-image";
 
@@ -99,7 +101,11 @@ export function ProfilePhotoCropModal({
 export async function uploadPhotoBlob(blob: Blob): Promise<string> {
   const form = new FormData();
   form.append("file", blob, "photo.jpg");
-  const res = await fetch("/api/profiles/photos", { method: "POST", body: form });
+  const res = await fetch("/api/profiles/photos", {
+    method: "POST",
+    body: form,
+    credentials: "same-origin",
+  });
   const json = await res.json();
   if (!json.success) throw new Error(json.error || "Upload failed");
   return json.data.url as string;
@@ -137,19 +143,24 @@ export function ProfilePhotoUploader({
   mainLabel = "Main",
   addLabel = "Add",
 }: ProfilePhotoUploaderProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const [sourceSheetOpen, setSourceSheetOpen] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
-  const pickFile = () => inputRef.current?.click();
+  const openSourceSheet = () => {
+    if (photos.length >= maxPhotos || uploading) return;
+    setSourceSheetOpen(true);
+  };
 
   const onFileSelected = (file: File | undefined) => {
     if (!file || !file.type.startsWith("image/")) return;
     const reader = new FileReader();
     reader.onload = () => setCropSrc(String(reader.result));
     reader.readAsDataURL(file);
-    if (inputRef.current) inputRef.current.value = "";
+    if (galleryInputRef.current) galleryInputRef.current.value = "";
   };
 
   const onCropConfirm = async (blob: Blob) => {
@@ -178,7 +189,10 @@ export function ProfilePhotoUploader({
 
   const removePhoto = async (url: string) => {
     if (uploadImmediately && /^https?:\/\//i.test(url)) {
-      await fetch(`/api/profiles/photos?url=${encodeURIComponent(url)}`, { method: "DELETE" });
+      await fetch(`/api/profiles/photos?url=${encodeURIComponent(url)}`, {
+        method: "DELETE",
+        credentials: "same-origin",
+      });
     }
     onChange(photos.filter((p) => p !== url));
   };
@@ -186,7 +200,7 @@ export function ProfilePhotoUploader({
   return (
     <>
       <input
-        ref={inputRef}
+        ref={galleryInputRef}
         type="file"
         accept="image/*"
         className="hidden"
@@ -194,13 +208,24 @@ export function ProfilePhotoUploader({
       />
       <PhotoUploadGrid
         photos={photos}
-        onAdd={photos.length < maxPhotos ? pickFile : () => {}}
+        onAdd={openSourceSheet}
         onRemove={removePhoto}
         uploading={uploading}
         mainLabel={mainLabel}
         addLabel={addLabel}
       />
       {error ? <p className="mt-2 text-sm text-destructive">{error}</p> : null}
+      <PhotoSourceSheet
+        open={sourceSheetOpen}
+        onOpenChange={setSourceSheetOpen}
+        onGallery={() => galleryInputRef.current?.click()}
+        onCamera={() => setCameraOpen(true)}
+      />
+      <PhotoCameraModal
+        open={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onCapture={(dataUrl) => setCropSrc(dataUrl)}
+      />
       <ProfilePhotoCropModal
         open={!!cropSrc}
         imageSrc={cropSrc}

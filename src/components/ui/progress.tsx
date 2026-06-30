@@ -20,10 +20,10 @@ export function ProgressBar({
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
   return (
     <div className={cn("space-y-1", className)}>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+      <div className="h-2 w-full overflow-hidden rounded-[6px] bg-muted">
         <div
           className={cn(
-            "h-full rounded-full transition-all duration-500",
+            "h-full rounded-[6px] transition-all duration-500",
             color === "primary" && "bg-primary",
             color === "success" && "bg-success",
             color === "warning" && "bg-warning"

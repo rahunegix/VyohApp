@@ -18,7 +18,7 @@ export function FloatingBackButton({ onClick, className }: FloatingBackButtonPro
       onClick={onClick ?? (() => router.back())}
       aria-label="Go back"
       className={cn(
-        "absolute top-12 left-5 z-50 h-11 w-11 flex items-center justify-center rounded-full",
+        "absolute top-12 left-5 z-50 h-11 w-11 flex items-center justify-center rounded-[6px]",
         "bg-black/40 backdrop-blur-md text-white border border-white/20 shadow-md",
         "transition-transform active:scale-95 hover:bg-black/50",
         className

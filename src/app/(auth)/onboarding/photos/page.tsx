@@ -5,24 +5,27 @@ import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OnboardingStepShell, OnboardingStepHeading } from "@/components/onboarding/onboarding-step-shell";
 import { ProfilePhotoUploader } from "@/components/profile/profile-photo-uploader";
+import { SaathiPresence } from "@/components/saathi/saathi-presence";
+import { SAATHI_COPY } from "@/config/ai";
 import { useOnboardingStore } from "@/store";
 import { useTranslation } from "@/hooks/use-translation";
+import { PageSkeleton } from "@/components/common/page-skeleton";
 
 export default function PhotosPage() {
   const router = useRouter();
   const { photos, setPhotos } = useOnboardingStore();
   const { t, hydrated } = useTranslation();
 
-  if (!hydrated) return null;
+  if (!hydrated) return <PageSkeleton variant="form" withHeader={false} className="min-h-dvh pb-0" />;
 
   return (
     <OnboardingStepShell
-      backHref="/onboarding/ai-chat"
+      backHref="/onboarding/basic-info"
       title={t("add_photos")}
-      currentStep={3}
+      currentStep={5}
       footer={
         <Button
-          onClick={() => router.push("/onboarding/verification")}
+          onClick={() => router.push("/onboarding/lifestyle")}
           disabled={photos.length < 1}
           className="h-13 w-full text-[17px] font-bold shadow-lg"
           size="lg"
@@ -31,6 +34,7 @@ export default function PhotosPage() {
         </Button>
       }
     >
+      <SaathiPresence message={SAATHI_COPY.onboarding.photoNudge} className="mb-6" />
       <OnboardingStepHeading title={t("photos_title")} subtitle={t("photos_subtitle")} />
 
       <ProfilePhotoUploader

@@ -1,11 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { getPlanWhatsAppCredits } from "@/lib/subscription/whatsapp-call";
+import { getPlanCredits } from "@/lib/subscription/whatsapp-call";
 
 interface SubscriptionCreditsState {
   planId: string;
   creditsRemaining: number;
   setPlanId: (planId: string) => void;
+  setCreditsRemaining: (credits: number) => void;
   resetCreditsForPlan: (planId: string) => void;
   deductCredit: (amount?: number) => boolean;
 }
@@ -17,11 +18,12 @@ export const useSubscriptionCreditsStore = create<SubscriptionCreditsState>()(
       creditsRemaining: 0,
       setPlanId: (planId) => {
         const state = get();
-        if (state.planId === planId) return;
-        set({ planId, creditsRemaining: getPlanWhatsAppCredits(planId) });
+        if (state.planId === planId && state.creditsRemaining > 0) return;
+        set({ planId, creditsRemaining: getPlanCredits(planId) });
       },
+      setCreditsRemaining: (creditsRemaining) => set({ creditsRemaining }),
       resetCreditsForPlan: (planId) => {
-        set({ planId, creditsRemaining: getPlanWhatsAppCredits(planId) });
+        set({ planId, creditsRemaining: getPlanCredits(planId) });
       },
       deductCredit: (amount = 1) => {
         const { creditsRemaining } = get();

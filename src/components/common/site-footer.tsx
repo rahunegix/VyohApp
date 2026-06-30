@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/helpers/utils";
 
 const HIDDEN_PREFIXES = ["/admin", "/welcome"];
+const HIDDEN_EXACT = ["/"];
 
 type Props = {
   className?: string;
@@ -12,7 +13,7 @@ type Props = {
 
 export function SiteFooter({ className, variant = "light" }: Props) {
   const pathname = usePathname();
-  if (HIDDEN_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+  if (HIDDEN_EXACT.includes(pathname) || HIDDEN_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     return null;
   }
 

@@ -54,7 +54,7 @@ export default function HelpPage() {
             if ("external" in item && item.external) {
               return (
                 <a key={item.label} href={item.href} className={className}>
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-[6px] bg-primary/10 text-primary">
                     <Icon className="h-5 w-5" />
                   </div>
                   <span className="text-center text-sm font-semibold">{item.label}</span>
@@ -64,7 +64,7 @@ export default function HelpPage() {
 
             return (
               <Link key={item.label} href={item.href} className={className}>
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <div className="flex h-11 w-11 items-center justify-center rounded-[6px] bg-primary/10 text-primary">
                   <Icon className="h-5 w-5" />
                 </div>
                 <span className="text-center text-sm font-semibold">{item.label}</span>
@@ -77,7 +77,7 @@ export default function HelpPage() {
             onClick={openHelpChat}
             className="flex flex-col items-center gap-2 rounded-2xl border border-primary/30 bg-primary/5 p-4 shadow-[var(--shadow-soft)] transition-transform active:scale-[0.98]"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-white">
+            <div className="flex h-11 w-11 items-center justify-center rounded-[6px] bg-primary text-white">
               <MessageCircle className="h-5 w-5" />
             </div>
             <span className="text-center text-sm font-semibold text-primary">Live chat</span>

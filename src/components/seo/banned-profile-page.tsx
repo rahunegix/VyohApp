@@ -21,7 +21,7 @@ export function BannedProfilePage({ profileId }: { profileId?: string }) {
           <Link href="/">
             <Button className="w-full rounded-xl sm:w-auto">Explore Saathini</Button>
           </Link>
-          <Link href="/welcome">
+          <Link href="/">
             <Button variant="outline" className="w-full rounded-xl sm:w-auto">
               Join Saathini
             </Button>

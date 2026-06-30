@@ -21,7 +21,7 @@ export function AuthBackButton({
       onClick={() => (href ? router.push(href) : router.back())}
       aria-label="Go back"
       className={cn(
-        "flex h-10 w-10 items-center justify-center rounded-full transition-transform active:scale-95",
+        "flex h-10 w-10 items-center justify-center rounded-[6px] transition-transform active:scale-95",
         dark
           ? "bg-white/10 text-white backdrop-blur-sm border border-white/20 hover:bg-white/20"
           : "text-primary hover:bg-primary/5",

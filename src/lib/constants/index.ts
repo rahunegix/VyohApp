@@ -214,6 +214,19 @@ export const SUBSCRIPTION_PLANS = [
       "Priority placement",
     ],
   },
+  {
+    id: "vip",
+    name: "Saathini VIP",
+    price: 20_000,
+    billing_cycle: "monthly",
+    features: [
+      "Access elite VIP circle",
+      "Meet verified public figures",
+      "100 contact credits / month",
+      "Private black-card experience",
+      "Uttarakhand influencers & leaders",
+    ],
+  },
 ] as const;
 
 export const BOTTOM_NAV_ITEMS = [

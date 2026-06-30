@@ -43,7 +43,7 @@ export function FloatingActions({
         <button
           type="button"
           onClick={(e) => { stopClick(e); onRewind(); }}
-          className="stagger-1 animate-scale-bounce flex h-[44px] w-[44px] items-center justify-center rounded-full border border-transparent glass text-muted-foreground shadow-[var(--shadow-glass)] transition-all duration-200 hover:border-warning hover:text-warning active:scale-90"
+          className="stagger-1 animate-scale-bounce flex h-[44px] w-[44px] items-center justify-center rounded-[6px] border border-transparent glass text-muted-foreground shadow-[var(--shadow-glass)] transition-all duration-200 hover:border-warning hover:text-warning active:scale-90"
           aria-label="Rewind"
         >
           <RotateCcw className="h-5 w-5" />
@@ -55,7 +55,7 @@ export function FloatingActions({
         <button
           type="button"
           onClick={(e) => { stopClick(e); onPass(); }}
-          className="stagger-2 animate-scale-bounce flex h-11 w-11 items-center justify-center rounded-full border border-border/60 bg-white text-muted-foreground shadow-md transition-all duration-200 hover:border-destructive hover:text-destructive hover:shadow-lg active:scale-90"
+          className="stagger-2 animate-scale-bounce flex h-11 w-11 items-center justify-center rounded-[6px] border border-border/60 bg-white text-muted-foreground shadow-md transition-all duration-200 hover:border-destructive hover:text-destructive hover:shadow-lg active:scale-90"
           aria-label="Pass"
         >
           <X className="h-5 w-5" strokeWidth={2.5} />
@@ -67,7 +67,7 @@ export function FloatingActions({
         <button
           type="button"
           onClick={(e) => { stopClick(e); onLike(); }}
-          className="stagger-3 animate-scale-bounce flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-[var(--shadow-float)] transition-all duration-200 hover:bg-primary/90 hover:shadow-lg active:scale-90"
+          className="stagger-3 animate-scale-bounce flex h-14 w-14 items-center justify-center rounded-[6px] bg-primary text-white shadow-[var(--shadow-float)] transition-all duration-200 hover:bg-primary/90 hover:shadow-lg active:scale-90"
           aria-label="Send interest"
         >
           <HeartHandshake className="h-6 w-6 animate-pulse-soft" />
@@ -79,7 +79,7 @@ export function FloatingActions({
         <button
           type="button"
           onClick={(e) => { stopClick(e); onInfo(); }}
-          className="stagger-4 animate-scale-bounce flex h-[44px] w-[44px] items-center justify-center rounded-full border border-transparent glass text-muted-foreground shadow-[var(--shadow-glass)] transition-all duration-200 hover:border-primary hover:text-primary active:scale-90"
+          className="stagger-4 animate-scale-bounce flex h-[44px] w-[44px] items-center justify-center rounded-[6px] border border-transparent glass text-muted-foreground shadow-[var(--shadow-glass)] transition-all duration-200 hover:border-primary hover:text-primary active:scale-90"
           aria-label="Info"
         >
           <Info className="h-5 w-5" />
@@ -92,7 +92,7 @@ export function FloatingActions({
           type="button"
           onClick={(e) => { stopClick(e); onBookmark(); }}
           className={cn(
-            "stagger-5 animate-scale-bounce flex h-11 w-11 items-center justify-center rounded-full border shadow-md transition-all duration-200 active:scale-90",
+            "stagger-5 animate-scale-bounce flex h-11 w-11 items-center justify-center rounded-[6px] border shadow-md transition-all duration-200 active:scale-90",
             isBookmarked
               ? "border-primary bg-primary/10 text-primary hover:bg-primary/15"
               : "border-border/60 bg-white text-muted-foreground hover:border-primary hover:text-primary hover:shadow-lg"

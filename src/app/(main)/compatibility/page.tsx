@@ -95,7 +95,7 @@ export default function CompatibilityPage() {
 
       {!loading && matches.length > 0 && (
         <div className="mx-4 mt-4 flex items-start gap-3 rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/5 to-transparent p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px] bg-primary/10 text-primary">
             <Shield className="h-5 w-5" />
           </div>
           <p className="text-sm leading-relaxed text-muted-foreground">
@@ -125,10 +125,10 @@ export default function CompatibilityPage() {
         >
           {matches.map((profile) => (
             <motion.div key={profile.id} variants={itemVariants}>
-              <div className="overflow-hidden rounded-[1.5rem] border border-border/50 bg-white shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)]">
+              <div className="overflow-hidden rounded-[6px] border border-border/50 bg-white shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)]">
                 <Link href={`/matches/${profile.id}`} className="block">
                   <div className="flex items-center gap-4 p-4 pb-3">
-                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-muted shadow-sm ring-2 ring-white">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[6px] bg-muted shadow-sm ring-2 ring-white">
                       {profile.photos[0] && (
                         <Image
                           src={profile.photos[0].url}
@@ -144,7 +144,7 @@ export default function CompatibilityPage() {
                         {profile.full_name}, {profile.age}
                       </p>
                       <p className="mt-0.5 truncate text-sm font-medium text-muted-foreground">{profile.district}</p>
-                      <span className="mt-2 inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                      <span className="mt-2 inline-block rounded-[6px] bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                         {getIntentLabel(profile.intent)}
                       </span>
                     </div>

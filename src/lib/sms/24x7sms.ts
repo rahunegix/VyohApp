@@ -146,7 +146,19 @@ export async function sendOTP(
     });
 
     const result = (await response.text()).trim();
-    return parseSmsResponse(result);
+    const parsed = parseSmsResponse(result);
+    if (process.env.NODE_ENV === "development") {
+      console.info("[24x7SMS]", {
+        client,
+        phone: formattedPhone,
+        dltTemplateId,
+        serviceName,
+        origin: client === "web" ? getWebOtpOrigin() : null,
+        raw: result,
+        parsed,
+      });
+    }
+    return parsed;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to send SMS";
     return { success: false, error: message };

@@ -33,7 +33,12 @@ export const useAuthStore = create<AuthState>()(
       setUser: (user) => set({ user, isAuthenticated: !!user }),
       setProfile: (profile) => set({ profile }),
       setLoading: (isLoading) => set({ isLoading }),
-      logout: () => set({ user: null, profile: null, isAuthenticated: false }),
+      logout: () => {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("saathini-onboarding");
+        }
+        set({ user: null, profile: null, isAuthenticated: false });
+      },
     }),
     { name: "saathini-auth", partialize: (s) => ({ user: s.user, profile: s.profile, isAuthenticated: s.isAuthenticated }) }
   )
@@ -41,6 +46,9 @@ export const useAuthStore = create<AuthState>()(
 
 interface OnboardingStore extends OnboardingState {
   setStep: (step: number) => void;
+  setPlatform: (platform: OnboardingState["platform"]) => void;
+  setVipInviteCode: (code: string | null) => void;
+  setVipDetails: (details: Partial<OnboardingState["vipDetails"]>) => void;
   setGender: (gender: OnboardingState["gender"]) => void;
   setLookingFor: (looking_for: OnboardingState["looking_for"]) => void;
   setIntent: (intent: OnboardingState["intent"]) => void;
@@ -57,6 +65,9 @@ interface OnboardingStore extends OnboardingState {
 
 const initialOnboarding: OnboardingState = {
   step: 0,
+  platform: null,
+  vipInviteCode: null,
+  vipDetails: {},
   gender: null,
   looking_for: null,
   intent: null,
@@ -73,6 +84,10 @@ export const useOnboardingStore = create<OnboardingStore>()(
     (set) => ({
       ...initialOnboarding,
       setStep: (step) => set({ step }),
+      setPlatform: (platform) => set({ platform }),
+      setVipInviteCode: (vipInviteCode) => set({ vipInviteCode }),
+      setVipDetails: (details) =>
+        set((s) => ({ vipDetails: { ...s.vipDetails, ...details } })),
       setGender: (gender) =>
         set({
           gender,
@@ -231,3 +246,6 @@ export const useDiscoverFiltersStore = create<DiscoverFiltersState>()(
     { name: "saathini-discover-filters" }
   )
 );
+
+export { useUIStore } from "./ui";
+export { useProgressStore } from "./progress";

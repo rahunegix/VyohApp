@@ -3,8 +3,7 @@ import { getSeoPageByPath } from "@/lib/seo/service";
 import { buildSeoMetadata } from "@/lib/seo/metadata";
 import { FALLBACK_HOME_SEO } from "@/lib/seo/defaults";
 import { getLatestSuccessStories } from "@/lib/success-stories/service";
-import { HomePageContent } from "@/components/seo/home-page-content";
-import { SeoJsonLdBundle } from "@/components/seo/json-ld-script";
+import { WelcomePageClient } from "@/app/(auth)/welcome/welcome-page-client";
 
 export const dynamic = "force-dynamic";
 
@@ -16,16 +15,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [page, latestStories] = await Promise.all([
-    getSeoPageByPath("/"),
-    getLatestSuccessStories(HOME_STORY_LIMIT),
-  ]);
-  const seoPage = page ?? FALLBACK_HOME_SEO;
-
-  return (
-    <>
-      <SeoJsonLdBundle page={seoPage} />
-      <HomePageContent page={seoPage} latestStories={latestStories} />
-    </>
-  );
+  const stories = await getLatestSuccessStories(HOME_STORY_LIMIT);
+  return <WelcomePageClient stories={stories} storyLimit={HOME_STORY_LIMIT} />;
 }

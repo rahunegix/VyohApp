@@ -32,7 +32,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <div className="relative h-dvh max-h-dvh overflow-hidden bg-muted/30 lg:min-h-dvh lg:max-h-none lg:overflow-visible lg:flex lg:items-stretch lg:justify-center lg:p-6">
+    <div className="relative min-h-dvh w-full overflow-hidden bg-gradient-to-br from-rose-50/50 via-[#eef0f3] to-white lg:min-h-dvh lg:flex lg:items-stretch">
       {showSwitcher && (
         <div className="pointer-events-none fixed right-0 top-4 z-50 p-4 lg:absolute lg:right-8 lg:top-8">
           <div className="pointer-events-auto flex items-center gap-2">
@@ -42,13 +42,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
       )}
 
-      <div className="mx-auto flex h-dvh max-h-dvh w-full max-w-[960px] flex-col overflow-hidden bg-white shadow-[var(--shadow-elevated)] lg:h-auto lg:min-h-[640px] lg:max-h-[90dvh] lg:flex-row lg:rounded-[2rem] lg:border lg:border-border/50">
+      <div className="mx-auto flex h-dvh max-h-dvh w-full flex-col overflow-hidden bg-white lg:h-auto lg:min-h-dvh lg:max-h-none lg:flex-row">
         <AuthVisualPanel
           variant={variant}
           featuredStories={stories}
-          className="hidden lg:flex lg:w-[min(420px,44%)] lg:shrink-0 lg:rounded-l-[2rem]"
+          className="hidden lg:flex lg:w-[min(420px,38vw)] lg:shrink-0"
         />
-        <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:max-h-[90dvh] lg:min-h-[640px] lg:rounded-r-[2rem]">
+        <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:min-h-dvh">
           {children}
         </div>
       </div>

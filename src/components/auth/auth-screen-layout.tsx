@@ -14,7 +14,7 @@ interface AuthScreenLayoutProps {
   className?: string;
 }
 
-/** Centered auth/onboarding screen — clean single-task flows like reference designs. */
+/** Premium auth/onboarding screen — Saathi-inspired single-task flows. */
 export function AuthScreenLayout({
   title,
   subtitle,
@@ -25,7 +25,7 @@ export function AuthScreenLayout({
   className,
 }: AuthScreenLayoutProps) {
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-white lg:overflow-y-auto">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-rose-50/30 via-white to-white lg:overflow-y-auto">
       <div
         className={cn(
           "flex flex-1 flex-col px-6 pb-8 pt-6 safe-top lg:px-10 lg:py-12",
@@ -40,7 +40,8 @@ export function AuthScreenLayout({
           animate={{ opacity: 1, y: 0 }}
           className={cn(centered && "text-center lg:text-left")}
         >
-          <h1 className="text-[1.75rem] font-extrabold leading-tight tracking-tight text-foreground lg:text-3xl">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Saathini</p>
+          <h1 className="mt-2 font-display text-[1.85rem] font-normal leading-tight tracking-tight text-foreground lg:text-4xl">
             {title}
           </h1>
           {subtitle && (

@@ -23,7 +23,7 @@ export function DiscoverFeedGridCard({
   const primaryPhoto = profile.photos?.find((p) => p.is_primary) ?? profile.photos?.[0];
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-[1.5rem] bg-card shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)] group">
+    <div className="flex flex-col overflow-hidden rounded-[6px] bg-card shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)] group">
       <Link href={`/matches/${profile.id}`} className="block relative">
         <div className="relative aspect-[4/5] w-full bg-muted overflow-hidden">
           {primaryPhoto ? (

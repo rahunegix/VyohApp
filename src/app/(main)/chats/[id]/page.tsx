@@ -7,8 +7,10 @@ import { useParams } from "next/navigation";
 import { ArrowLeft, Shield } from "lucide-react";
 import { MessageBubble, TypingIndicator } from "@/components/chat/chat-components";
 import { ChatComposer } from "@/components/chat/chat-composer";
-import { PremiumContactButton } from "@/components/chat/premium-contact-button";
+import { ContactDetailsButton } from "@/components/chat/contact-details-button";
 import { MembershipUpsellModal } from "@/components/subscription/membership-upsell-modal";
+import { AiCard } from "@/components/saathi";
+import { SAATHI_COPY } from "@/config/ai";
 import { ListSkeleton } from "@/components/ui/skeleton";
 import { useSubscriptionPlan } from "@/hooks/use-subscription-plan";
 import { FREE_CHAT_MESSAGE_LIMIT } from "@/lib/subscription/whatsapp-call";
@@ -50,6 +52,7 @@ export default function ChatDetailPage() {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [messageUpsellOpen, setMessageUpsellOpen] = useState(false);
+  const [conversationStarter, setConversationStarter] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -100,6 +103,43 @@ export default function ChatDetailPage() {
       cancelled = true;
     };
   }, [conversationId]);
+
+  useEffect(() => {
+    if (!profile || !myProfileId || messages.length > 0) return;
+    let cancelled = false;
+
+    async function loadStarters() {
+      try {
+        const meRes = await fetch("/api/auth/me");
+        const me = await meRes.json();
+        const myProf = me.data?.profile;
+        if (!myProf || cancelled) return;
+
+        const res = await fetch("/api/ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "conversation_starters",
+            profileA: myProf,
+            profileB: profile,
+          }),
+        });
+        const json = await res.json();
+        const starter =
+          json.data?.shared_interest_questions?.[0] ??
+          json.data?.ice_breakers?.[0] ??
+          null;
+        if (!cancelled && starter) setConversationStarter(starter);
+      } catch {
+        // silent
+      }
+    }
+
+    loadStarters();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile, myProfileId, messages.length]);
 
   const photoUrl = profile ? getProfilePhoto(profile) : null;
   const firstName = profile?.full_name.split(" ")[0] ?? "Chat";
@@ -172,7 +212,7 @@ export default function ChatDetailPage() {
         <div className="flex items-center gap-2">
           <Link
             href="/chats"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/5"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] text-primary transition-colors hover:bg-primary/5"
             aria-label="Back to chats"
           >
             <ArrowLeft className="h-5 w-5" strokeWidth={2.25} />
@@ -180,7 +220,7 @@ export default function ChatDetailPage() {
 
           {profile ? (
             <Link href={`/matches/${profile.id}`} className="flex min-w-0 flex-1 items-center gap-3">
-              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-primary/10 ring-2 ring-white">
+              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-[6px] bg-primary/10 ring-2 ring-white">
                 {photoUrl ? (
                   <Image src={photoUrl} alt={profile.full_name} fill className="object-cover" sizes="44px" />
                 ) : (
@@ -194,7 +234,7 @@ export default function ChatDetailPage() {
                   {firstName}, {profile.age}
                 </p>
                 <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                  <span className="h-2 w-2 rounded-full bg-success" />
+                  <span className="h-2 w-2 rounded-[6px] bg-success" />
                   Active
                 </p>
               </div>
@@ -206,18 +246,7 @@ export default function ChatDetailPage() {
           )}
 
           {profile ? (
-            <div className="flex shrink-0 items-center gap-1.5">
-              <PremiumContactButton
-                variant="phone"
-                profileId={profile.id}
-                profileName={profile.full_name}
-              />
-              <PremiumContactButton
-                variant="whatsapp"
-                profileId={profile.id}
-                profileName={profile.full_name}
-              />
-            </div>
+            <ContactDetailsButton profileId={profile.id} profileName={profile.full_name} />
           ) : null}
         </div>
       </header>
@@ -231,13 +260,26 @@ export default function ChatDetailPage() {
           </div>
 
           <div className="mb-3 flex justify-center">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/10 bg-white/80 px-3 py-1 text-[11px] font-medium text-muted-foreground">
+            <div className="inline-flex items-center gap-1.5 rounded-[6px] border border-primary/10 bg-white/80 px-3 py-1 text-[11px] font-medium text-muted-foreground">
               <Shield className="h-3 w-3 text-primary" />
               {isPaid
-                ? "Unlimited messages · Calls use credits"
-                : `Free plan: ${FREE_CHAT_MESSAGE_LIMIT} message · Premium for calls`}
+                ? "Unlimited messages · Contact uses credits"
+                : `Free plan: ${FREE_CHAT_MESSAGE_LIMIT} message · Premium for contact details`}
             </div>
           </div>
+
+          {conversationStarter && messages.length === 0 && (
+            <AiCard
+              variant="starter"
+              title={SAATHI_COPY.chat.starterIntro}
+              body={`${SAATHI_COPY.chat.starterPrompt}: "${conversationStarter}"`}
+              action={{
+                label: "Use this opener",
+                onClick: () => setInput(conversationStarter),
+              }}
+              className="mb-4"
+            />
+          )}
 
           {messages.map((msg) => (
             <MessageBubble

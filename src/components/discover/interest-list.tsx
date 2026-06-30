@@ -45,7 +45,7 @@ export function InterestList({
     const EmptyIcon = emptyIcon === "shortlist" ? Bookmark : HeartHandshake;
     return (
       <div className="px-6 py-16 text-center flex flex-col items-center justify-center">
-        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+        <div className="h-16 w-16 rounded-[6px] bg-muted flex items-center justify-center mb-4">
           <EmptyIcon className="h-8 w-8 text-muted-foreground/60" />
         </div>
         <p className="font-semibold text-lg">{emptyTitle}</p>

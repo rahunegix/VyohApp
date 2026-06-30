@@ -17,10 +17,10 @@ export function SelectionChip({ selected, onClick, label, className }: Selection
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition-all active:scale-[0.97]",
+        "inline-flex items-center gap-1.5 rounded-[6px] border px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.97]",
         selected
-          ? "border-primary bg-primary text-white shadow-[var(--shadow-float)]"
-          : "border-primary/25 bg-white text-primary hover:border-primary/50 hover:bg-primary/5",
+          ? "border-primary bg-primary text-white shadow-[var(--shadow-glow)]"
+          : "border-border/80 bg-white text-foreground shadow-sm hover:border-primary/30 hover:bg-primary/5",
         className
       )}
     >
@@ -45,7 +45,7 @@ export function SelectPillRow({ selected, onClick, label, description, className
       type="button"
       onClick={onClick}
       className={cn(
-        "flex w-full items-center justify-between gap-3 rounded-full border-2 px-5 py-4 text-left transition-all active:scale-[0.99]",
+        "flex w-full items-center justify-between gap-3 rounded-[6px] border-2 px-5 py-4 text-left transition-all active:scale-[0.99]",
         selected
           ? "border-primary bg-primary text-white shadow-[var(--shadow-float)]"
           : "border-border/70 bg-white text-foreground hover:border-primary/30",
@@ -62,7 +62,7 @@ export function SelectPillRow({ selected, onClick, label, description, className
       </div>
       <div
         className={cn(
-          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2",
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] border-2",
           selected ? "border-white bg-white/20" : "border-border/60"
         )}
       >

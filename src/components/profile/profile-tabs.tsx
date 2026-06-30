@@ -226,7 +226,7 @@ function PersonalTab({
               <Badge
                 key={tag}
                 variant="secondary"
-                className="rounded-full px-3 py-1 text-xs capitalize"
+                className="rounded-[6px] px-3 py-1 text-xs capitalize"
               >
                 {tag}
               </Badge>
@@ -246,7 +246,7 @@ function PersonalTab({
             {interestTags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center rounded-full border border-primary/20 bg-primary-muted px-3 py-1 text-xs font-medium text-primary capitalize"
+                className="inline-flex items-center rounded-[6px] border border-primary/20 bg-primary-muted px-3 py-1 text-xs font-medium text-primary capitalize"
               >
                 {tag}
               </span>
@@ -267,7 +267,7 @@ function PersonalTab({
               <Badge
                 key={tag}
                 variant="outline"
-                className="rounded-full px-3 py-1 text-xs capitalize"
+                className="rounded-[6px] px-3 py-1 text-xs capitalize"
               >
                 {tag}
               </Badge>
@@ -334,7 +334,7 @@ function FamilyTab({
               <Badge
                 key={tag}
                 variant="secondary"
-                className="rounded-full px-3 py-1 text-xs capitalize"
+                className="rounded-[6px] px-3 py-1 text-xs capitalize"
               >
                 {tag}
               </Badge>

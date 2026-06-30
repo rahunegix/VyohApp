@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/auth/api-auth";
+import { getAuthUserWithRefresh } from "@/lib/auth/api-auth";
+import { setAuthCookies } from "@/lib/auth/cookies";
 
 export async function GET(request: NextRequest) {
-  const auth = await getAuthUser(request);
+  const { auth, tokens } = await getAuthUserWithRefresh(request);
   if (!auth) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
@@ -10,8 +11,19 @@ export async function GET(request: NextRequest) {
   const { profiles, ...user } = auth.user as Record<string, unknown>;
   const profile = auth.profile ?? (Array.isArray(profiles) ? profiles[0] : profiles);
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     success: true,
-    data: { user, profile },
+    data: {
+      user,
+      profile,
+      active_platform: auth.platform,
+      platforms: auth.platforms,
+    },
   });
+
+  if (tokens) {
+    setAuthCookies(response, tokens.accessToken, tokens.refreshToken);
+  }
+
+  return response;
 }

@@ -41,7 +41,7 @@ export function PageHeader({
       {showBack && (
         <Link
           href={backHref}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/5"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px] text-primary transition-colors hover:bg-primary/5"
         >
           <ArrowLeft className="h-5 w-5" strokeWidth={2.25} />
         </Link>

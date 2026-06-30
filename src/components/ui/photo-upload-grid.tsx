@@ -35,7 +35,7 @@ export function PhotoUploadGrid({
         >
           <Image src={url} alt={`Photo ${i + 1}`} fill className="object-cover" sizes="120px" />
           {i === 0 && (
-            <span className="absolute bottom-2 left-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+            <span className="absolute bottom-2 left-2 rounded-[6px] bg-primary px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
               {mainLabel}
             </span>
           )}
@@ -61,7 +61,7 @@ export function PhotoUploadGrid({
             <span className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           ) : (
             <>
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white shadow-[var(--shadow-float)]">
+              <span className="flex h-10 w-10 items-center justify-center rounded-[6px] bg-primary text-white shadow-[var(--shadow-float)]">
                 <Plus className="h-5 w-5" strokeWidth={2.5} />
               </span>
               <span className="text-xs font-semibold text-primary">{addLabel}</span>

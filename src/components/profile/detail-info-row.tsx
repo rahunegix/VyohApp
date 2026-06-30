@@ -83,7 +83,7 @@ export function DetailInfoChip({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-sm font-medium",
+        "inline-flex items-center gap-1.5 rounded-[6px] bg-muted/60 px-2.5 py-1 text-sm font-medium",
         className
       )}
       title={label}

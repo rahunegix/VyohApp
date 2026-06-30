@@ -72,7 +72,7 @@ function StoryBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+        "inline-flex items-center gap-1 rounded-[6px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
         meta.badgeClass
       )}
     >
@@ -164,7 +164,7 @@ export function SuccessStoryShowcase({
               aria-label={`Show ${story.names} story`}
               onClick={() => setActiveIndex(i)}
               className={cn(
-                "h-1.5 rounded-full transition-all",
+                "h-1.5 rounded-[6px] transition-all",
                 i === activeIndex ? "w-4 bg-white" : "w-1.5 bg-white/40"
               )}
             />
@@ -221,7 +221,7 @@ export function SuccessStoryShowcase({
                 aria-label={`Show ${story.names} story`}
                 onClick={() => setActiveIndex(i)}
                 className={cn(
-                  "h-1.5 rounded-full transition-all",
+                  "h-1.5 rounded-[6px] transition-all",
                   i === activeIndex ? "w-5 bg-white" : "w-1.5 bg-white/45 hover:bg-white/70"
                 )}
               />

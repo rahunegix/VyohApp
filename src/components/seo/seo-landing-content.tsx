@@ -7,7 +7,7 @@ import { SuccessStoryShowcase } from "@/components/auth/success-story-showcase";
 import { Button } from "@/components/ui/button";
 import { AppLogo } from "@/components/common/app-logo";
 
-const ONBOARDING_START = "/onboarding/language";
+const ONBOARDING_START = "/";
 
 function HeroCtaBlock({ compact = false }: { compact?: boolean }) {
   return (
@@ -92,7 +92,7 @@ export function SeoLandingContent({
           {page.focus_keywords.map((keyword) => (
             <span
               key={keyword}
-              className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary"
+              className="rounded-[6px] border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary"
             >
               {keyword}
             </span>
@@ -111,7 +111,7 @@ export function SeoLandingContent({
             <ul className="mt-4 space-y-2">
               {section.bullets.map((bullet) => (
                 <li key={bullet} className="flex gap-2 text-sm text-foreground">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-[6px] bg-primary" />
                   {bullet}
                 </li>
               ))}

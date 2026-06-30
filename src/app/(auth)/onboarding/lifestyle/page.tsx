@@ -7,10 +7,12 @@ import { SelectionChip } from "@/components/ui/selection-chip";
 import { OnboardingStepShell, OnboardingStepHeading } from "@/components/onboarding/onboarding-step-shell";
 import { useOnboardingStore } from "@/store";
 import { useTranslation } from "@/hooks/use-translation";
+import { needsFamilyStep, getOnboardingTotalSteps } from "@/config/onboarding";
+import { PageSkeleton } from "@/components/common/page-skeleton";
 
 export default function LifestylePage() {
   const router = useRouter();
-  const { lifestyle, setLifestyle } = useOnboardingStore();
+  const { lifestyle, setLifestyle, platform, intent } = useOnboardingStore();
   const { t, hydrated } = useTranslation();
 
   const lifestyleOptions = useMemo(
@@ -65,16 +67,21 @@ export default function LifestylePage() {
     [t]
   );
 
-  if (!hydrated) return null;
+  if (!hydrated) return <PageSkeleton variant="form" withHeader={false} className="min-h-dvh pb-0" />;
 
   return (
     <OnboardingStepShell
-      backHref="/onboarding/basic-info"
+      backHref="/onboarding/photos"
       title={t("lifestyle")}
       currentStep={6}
+      totalSteps={getOnboardingTotalSteps(platform, intent)}
       footer={
         <Button
-          onClick={() => router.push("/onboarding/family")}
+          onClick={() =>
+            router.push(
+              needsFamilyStep(platform, intent) ? "/onboarding/family" : "/onboarding/preview"
+            )
+          }
           className="h-13 w-full text-[17px] font-bold shadow-lg"
           size="lg"
         >

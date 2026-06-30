@@ -14,11 +14,22 @@ import { REGIONS } from "@/lib/constants";
 import { getLocalizedIntents } from "@/lib/i18n";
 import { useDiscoverFiltersStore } from "@/store";
 import { useTranslation } from "@/hooks/use-translation";
+import { useSubscriptionPlan } from "@/hooks/use-subscription-plan";
+import { MembershipUpsellModal } from "@/components/subscription/membership-upsell-modal";
 import type { Intent, Region } from "@/types";
 import type { StringKey } from "@/lib/i18n";
 
 function toggleInList<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+}
+
+function usesAdvancedFilters(filters: DiscoverFilters): boolean {
+  return (
+    filters.regions.length > 0 ||
+    filters.intents.length > 0 ||
+    filters.verifiedOnly ||
+    filters.minCompatibility > 0
+  );
 }
 
 interface DiscoverFiltersSheetProps {
@@ -32,6 +43,8 @@ export function DiscoverFiltersSheet({ open, onOpenChange }: DiscoverFiltersShee
   const setApplied = useDiscoverFiltersStore((s) => s.setApplied);
   const resetApplied = useDiscoverFiltersStore((s) => s.resetApplied);
   const [draft, setDraft] = useState<DiscoverFilters>(applied);
+  const { isPaid } = useSubscriptionPlan();
+  const [upsellOpen, setUpsellOpen] = useState(false);
 
   useEffect(() => {
     if (open) setDraft(applied);
@@ -58,6 +71,10 @@ export function DiscoverFiltersSheet({ open, onOpenChange }: DiscoverFiltersShee
   };
 
   const handleApply = () => {
+    if (!isPaid && usesAdvancedFilters(draft)) {
+      setUpsellOpen(true);
+      return;
+    }
     setApplied(draft);
     onOpenChange(false);
   };
@@ -188,6 +205,12 @@ export function DiscoverFiltersSheet({ open, onOpenChange }: DiscoverFiltersShee
           />
         </section>
       </div>
+
+      <MembershipUpsellModal
+        open={upsellOpen}
+        onOpenChange={setUpsellOpen}
+        reason="Advanced filters are a Premium feature"
+      />
     </BottomSheet>
   );
 }

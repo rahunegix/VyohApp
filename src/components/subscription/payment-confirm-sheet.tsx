@@ -45,7 +45,7 @@ export function PaymentConfirmSheet({
       }
     >
       <div className="flex flex-col items-center pb-2 pt-2 text-center">
-        <div className="relative mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+        <div className="relative mb-5 flex h-20 w-20 items-center justify-center rounded-[6px] bg-primary/10">
           <Heart className="h-9 w-9 text-primary" fill="currentColor" />
         </div>
 

@@ -21,6 +21,7 @@ import {
   privacySettingsSchema,
 } from "@/lib/validation/schemas";
 import { formatAge } from "@/lib/helpers/utils";
+import { assertCanSendInterest } from "@/lib/verification/interest-limit";
 import type { Profile } from "@/types";
 
 async function getAuthContext() {
@@ -169,6 +170,28 @@ export async function updateProfileLifestyle(data: unknown) {
 
   if (error) return { error: error.message };
   revalidatePath("/profile/edit");
+  return { success: true };
+}
+
+export async function updateVipProfile(details: Record<string, string | undefined>) {
+  const profile = await getCurrentProfile();
+  if (!profile) return { error: "Not authenticated" };
+  if (profile.platform !== "vip") return { error: "VIP profile only" };
+
+  const ctx = await getAuthContext();
+  if (!ctx) return { error: "Not authenticated" };
+
+  const { error } = await ctx.admin
+    .from("profiles")
+    .update({
+      vip_details: details,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", profile.id);
+
+  if (error) return { error: error.message };
+  revalidatePath("/profile/edit");
+  revalidatePath("/vip/profile");
   return { success: true };
 }
 
@@ -350,6 +373,33 @@ export async function sendInterest(receiverProfileId: string) {
   const ctx = await getAuthContext();
   if (!ctx) return { error: "Not authenticated" };
   const { admin } = ctx;
+
+  const [{ data: existingLike }, { data: verification }] = await Promise.all([
+    admin
+      .from("likes")
+      .select("id")
+      .eq("sender_profile_id", profile.id)
+      .eq("receiver_profile_id", receiverProfileId)
+      .maybeSingle(),
+    admin
+      .from("verification_status")
+      .select("face_verified")
+      .eq("profile_id", profile.id)
+      .maybeSingle(),
+  ]);
+
+  if (!existingLike) {
+    const gate = await assertCanSendInterest(
+      admin,
+      profile.id,
+      Boolean(verification?.face_verified),
+      ctx.user.id
+    );
+    if (!gate.allowed) {
+      return { error: gate.error, code: gate.code };
+    }
+  }
+
   const { error } = await admin.from("likes").insert({
     sender_profile_id: profile.id,
     receiver_profile_id: receiverProfileId,

@@ -6,9 +6,12 @@ import { aiBuildProfile } from "@/services/ai";
 import { analyzeReadiness } from "@/lib/ai/readiness";
 import { compileOnboardingForProfileAI } from "@/lib/onboarding/profile-context";
 import { formatAge } from "@/lib/helpers/utils";
+import { createEvent, emitEvent } from "@/domains/events";
+import { ensureWorkflowsRegistered } from "@/domains/workflows/launch-workflows";
 import type { OnboardingState } from "@/types";
 
 export async function completeOnboarding(state: OnboardingState) {
+  ensureWorkflowsRegistered();
   const auth = await getServerAuth();
   if (!auth?.user) {
     return { error: "Not signed in. Please verify your phone number again." };
@@ -16,13 +19,18 @@ export async function completeOnboarding(state: OnboardingState) {
 
   const { admin, user: appUser } = auth;
 
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("id")
-    .eq("user_id", appUser.id)
-    .single();
+  const platform = state.platform ?? "dating";
+  const { findProfileIdByUserAndPlatform, hasPlatformColumn, withPlatformField } =
+    await import("@/lib/platform/profile-query");
 
-  if (!profile) {
+  let profileId =
+    (await findProfileIdByUserAndPlatform(admin, appUser.id, platform)) ?? undefined;
+  if (!profileId) {
+    const { createPlatformProfile } = await import("@/lib/platform/service");
+    profileId = await createPlatformProfile(admin, appUser.id, platform);
+  }
+
+  if (!profileId) {
     return { error: "Profile not found." };
   }
 
@@ -44,9 +52,9 @@ export async function completeOnboarding(state: OnboardingState) {
   const dob = state.basicInfo.dob;
   const age = dob ? formatAge(dob) : null;
 
-  const { error: profileError } = await admin
-    .from("profiles")
-    .update({
+  const platformReady = await hasPlatformColumn(admin);
+  const profileUpdate = withPlatformField(
+    {
       full_name: state.basicInfo.full_name ?? "",
       gender: state.gender,
       looking_for: state.looking_for,
@@ -75,9 +83,19 @@ export async function completeOnboarding(state: OnboardingState) {
         religious_preference: "hindu",
       },
       readiness_score: readiness?.overall ?? 0,
-      profile_status: "active",
-    })
-    .eq("id", profile.id);
+      profile_status: platform === "vip" ? "hidden" : "active",
+      vip_approval_status: platform === "vip" ? "pending" : null,
+      vip_invite_code: platform === "vip" ? state.vipInviteCode : null,
+      vip_details: platform === "vip" ? state.vipDetails : {},
+    },
+    platform,
+    platformReady
+  );
+
+  const { error: profileError } = await admin
+    .from("profiles")
+    .update(profileUpdate)
+    .eq("id", profileId);
 
   if (profileError) {
     return { error: profileError.message };
@@ -87,7 +105,7 @@ export async function completeOnboarding(state: OnboardingState) {
     await admin.from("ai_readiness").upsert(
       {
         user_id: appUser.id,
-        profile_id: profile.id,
+        profile_id: profileId,
         json_result: readiness,
         model_used: "openai",
       },
@@ -98,12 +116,12 @@ export async function completeOnboarding(state: OnboardingState) {
   await admin
     .from("verification_status")
     .update({ mobile_verified: true })
-    .eq("profile_id", profile.id);
+    .eq("profile_id", profileId);
 
   for (const [key, value] of Object.entries(state.aiAnswers)) {
     await admin.from("profile_answers").upsert(
       {
-        profile_id: profile.id,
+        profile_id: profileId,
         question_key: key,
         question_label: key,
         answer_value: value,
@@ -113,10 +131,10 @@ export async function completeOnboarding(state: OnboardingState) {
   }
 
   if (state.photos.length > 0) {
-    await admin.from("profile_photos").delete().eq("profile_id", profile.id);
+    await admin.from("profile_photos").delete().eq("profile_id", profileId);
     await admin.from("profile_photos").insert(
       state.photos.map((url, i) => ({
-        profile_id: profile.id,
+        profile_id: profileId,
         url,
         sort_order: i,
         is_primary: i === 0,
@@ -125,8 +143,20 @@ export async function completeOnboarding(state: OnboardingState) {
     );
   }
 
-  revalidatePath("/discover");
-  revalidatePath("/profile");
+  revalidatePath(`/${platform}/discover`);
+  revalidatePath(`/${platform}/profile`);
 
-  return { success: true, profileId: profile.id };
+  await emitEvent(
+    createEvent(
+      "ProfileCompleted",
+      { platform, intent: state.intent, profileId },
+      {
+        userId: appUser.id,
+        profileId,
+        idempotencyKey: `profile-completed-${profileId}`,
+      }
+    )
+  );
+
+  return { success: true, profileId };
 }

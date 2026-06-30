@@ -39,7 +39,7 @@ export default async function PublicProfilePage({
     return (
       <div className="min-h-dvh bg-muted/20 px-5 py-10">
         <div className="mx-auto max-w-lg rounded-3xl border border-border bg-white p-8 shadow-[var(--shadow-card)] text-center">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
+          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-[6px] bg-primary/10 text-2xl font-bold text-primary">
             {result.full_name.charAt(0)}
           </div>
           <h1 className="text-2xl font-bold text-foreground">{result.full_name}</h1>
@@ -49,14 +49,14 @@ export default async function PublicProfilePage({
               {location}
             </p>
           )}
-          <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-semibold text-success">
+          <div className="mt-4 inline-flex items-center gap-1.5 rounded-[6px] bg-success/10 px-3 py-1 text-xs font-semibold text-success">
             <Shield className="h-3.5 w-3.5" />
             Verified Saathini member
           </div>
           <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
             Sign in to Saathini to view full profile details, photos, compatibility, and connect securely.
           </p>
-          <Link href="/welcome" className="mt-6 block">
+          <Link href="/" className="mt-6 block">
             <Button size="lg" className="w-full rounded-2xl">
               Join Saathini to Connect
             </Button>

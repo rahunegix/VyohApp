@@ -49,9 +49,14 @@ export async function sendLoginOtp(phone: string, client: OtpSmsClient = "web") 
     throw new Error(sms.error || "Failed to send OTP SMS");
   }
 
+  const devReturnOtp =
+    process.env.NODE_ENV === "development" && process.env.SMS_DEV_RETURN_OTP === "true";
+
   return {
     phone: normalizedPhone,
     message: "OTP sent",
+    ...(devReturnOtp ? { devOtp: otp } : {}),
+    ...(devReturnOtp && sms.msgId ? { smsMsgId: sms.msgId } : {}),
   };
 }
 

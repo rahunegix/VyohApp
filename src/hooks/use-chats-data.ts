@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ChatRequest, Conversation, DiscoverProfile } from "@/types";
 import { mapDiscoverProfile } from "@/lib/profiles/map-api-profile";
+import { withProgress } from "@/lib/progress";
 
 export function useChatsData() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -70,12 +71,17 @@ export function useChatsData() {
   }, []);
 
   const respondToRequest = async (requestId: string, action: "accept" | "decline") => {
-    const res = await fetch("/api/chats", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ requestId, action }),
-    });
-    const json = await res.json();
+    const json = await withProgress(
+      action === "accept" ? "Accepting request…" : "Declining request…",
+      async () => {
+        const res = await fetch("/api/chats", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ requestId, action }),
+        });
+        return res.json();
+      }
+    );
     if (json.success) await load();
     return json;
   };

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { decodePhonePeResponse, verifyPhonePeCallback } from "@/lib/payments/phonepe";
+import { activateSubscriptionForPayment } from "@/lib/subscription/service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,8 +9,12 @@ export async function POST(request: NextRequest) {
     const base64Response = body.response as string;
     const checksum = request.headers.get("X-VERIFY") || "";
 
+    if (!base64Response) {
+      return NextResponse.json({ success: false, error: "Missing response" }, { status: 400 });
+    }
+
     if (!verifyPhonePeCallback(base64Response, checksum)) {
-      return NextResponse.json({ success: false }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Invalid checksum" }, { status: 400 });
     }
 
     const decoded = decodePhonePeResponse(base64Response);
@@ -24,43 +29,20 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (!payment) {
-      return NextResponse.json({ success: false }, { status: 404 });
+      return NextResponse.json({ success: false, error: "Payment not found" }, { status: 404 });
+    }
+
+    if (payment.payment_status === "completed") {
+      return NextResponse.json({ success: true });
     }
 
     if (code === "PAYMENT_SUCCESS") {
-      await admin
-        .from("payments")
-        .update({ payment_status: "completed", updated_at: new Date().toISOString() })
-        .eq("id", payment.id);
-
-      const endsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-      const { data: existingSub } = await admin
-        .from("subscriptions")
-        .select("id")
-        .eq("user_id", payment.user_id)
-        .maybeSingle();
-
-      if (existingSub) {
-        await admin
-          .from("subscriptions")
-          .update({
-            plan_id: payment.plan_id,
-            status: "active",
-            started_at: new Date().toISOString(),
-            ends_at: endsAt,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", existingSub.id);
-      } else {
-        await admin.from("subscriptions").insert({
-          user_id: payment.user_id,
-          plan_id: payment.plan_id,
-          status: "active",
-          started_at: new Date().toISOString(),
-          ends_at: endsAt,
-        });
-      }
+      await activateSubscriptionForPayment(
+        admin,
+        payment.user_id,
+        payment.plan_id,
+        payment.id
+      );
     } else {
       await admin
         .from("payments")

@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  User, Compass, Sparkles, Camera, Heart, Users, Lock,
+  User, Compass, Sparkles, Camera, Heart, Users, Lock, Crown,
   type LucideIcon,
 } from "lucide-react";
 import { SettingsMenuGroup, SettingsMenuDivider, SettingsMenuRow } from "@/components/ui/settings-menu";
@@ -33,7 +33,7 @@ export function EditProfileMenu({ profile }: { profile: Profile }) {
       <p className="px-4 pb-3 text-sm text-muted-foreground">{t("edit_menu_subtitle")}</p>
 
       <div className="mx-4 mb-4 flex items-center gap-3 rounded-2xl border border-border/50 bg-primary/5 px-4 py-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-muted-foreground shadow-sm">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-white text-muted-foreground shadow-sm">
           <Lock className="h-4 w-4" />
         </div>
         <div className="min-w-0">
@@ -43,6 +43,17 @@ export function EditProfileMenu({ profile }: { profile: Profile }) {
       </div>
 
       <SettingsMenuGroup className="mx-4">
+        {profile.platform === "vip" ? (
+          <>
+            <SettingsMenuRow
+              href="/profile/edit/vip"
+              icon={Crown}
+              label="VIP profile"
+              description="Elite category, role, and social links"
+            />
+            <SettingsMenuDivider />
+          </>
+        ) : null}
         {MENU_ITEMS.map((item, i) => {
           const Icon = item.icon;
           return (

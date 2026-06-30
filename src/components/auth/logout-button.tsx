@@ -41,7 +41,7 @@ export function LogoutButton({ variant = "button", className }: LogoutButtonProp
           className
         )}
       >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px] bg-destructive/10 text-destructive">
           <LogOut className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">

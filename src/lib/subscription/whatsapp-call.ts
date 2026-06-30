@@ -1,39 +1,24 @@
 import { SUBSCRIPTION_PLANS } from "@/lib/constants";
 
+export {
+  PLAN_CONTACT_CREDITS,
+  PLAN_WHATSAPP_CREDITS,
+  FREE_INTEREST_LIMIT,
+  FREE_CHAT_MESSAGE_LIMIT,
+  CONTACT_CREDIT_COST,
+  normalizePlanId,
+  getPlanCredits,
+  isPaidPlanId,
+} from "@/lib/subscription/service";
+
 export const WHATSAPP_CALL_CREDIT_COST = 1;
 
-/** Free plan: only this many chat messages per conversation */
-export const FREE_CHAT_MESSAGE_LIMIT = 1;
-
-/** Monthly WhatsApp call credits included per plan */
-export const PLAN_WHATSAPP_CREDITS: Record<string, number> = {
-  free: 0,
-  premium: 10,
-  premium_plus: 25,
-};
-
-/** Demo contact numbers unlocked after credit use (consent-based flow) */
+/** @deprecated Demo numbers only — use /api/payments/contact for real matches */
 export const DEMO_PROFILE_WHATSAPP: Record<string, string> = {
   "demo-1": "9876543210",
   "demo-2": "9876501234",
   "demo-3": "9876512345",
 };
-
-export function normalizePlanId(planName?: string | null): string {
-  if (!planName) return "free";
-  const lower = planName.toLowerCase();
-  if (lower.includes("plus")) return "premium_plus";
-  if (lower.includes("premium")) return "premium";
-  return "free";
-}
-
-export function isPaidPlan(planId: string): boolean {
-  return planId !== "free";
-}
-
-export function getPlanWhatsAppCredits(planId: string): number {
-  return PLAN_WHATSAPP_CREDITS[planId] ?? 0;
-}
 
 export function normalizePhoneForWhatsApp(phone: string): string {
   const digits = phone.replace(/\D/g, "");
@@ -62,8 +47,8 @@ export const MEMBERSHIP_UPSELL_FEATURES = [
     icon: "heart" as const,
   },
   {
-    title: "WhatsApp Call Access",
-    description: "Connect with verified Uttarakhand matches securely",
+    title: "Contact details",
+    description: "Unlock phone numbers to call or WhatsApp your matches",
     icon: "whatsapp" as const,
   },
   {
@@ -83,7 +68,6 @@ export const MEMBERSHIP_UPSELL_FEATURES = [
   },
 ] as const;
 
-/** Horizontal billing tiers — reference dating-app upsell pattern */
 export const UPSELL_BILLING_TIERS = [
   {
     id: "12_months",

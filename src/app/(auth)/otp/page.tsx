@@ -4,7 +4,10 @@ import { useCallback, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AuthScreenLayout } from "@/components/auth/auth-screen-layout";
+import { OtpInput } from "@/components/auth/otp-input";
 import { sendPhoneOtp, verifyPhoneOtp } from "@/lib/auth/phone";
+import { getPostAuthPath } from "@/lib/auth/profile";
+import { redirectAfterAuth } from "@/lib/auth/redirect-after-auth";
 import {
   extractOtpCode,
   getClientWebOtpOrigin,
@@ -15,6 +18,8 @@ import {
 import { OTP_LENGTH, OTP_TTL_MINUTES } from "@/lib/auth/otp-config";
 import { useTranslation } from "@/hooks/use-translation";
 import { useOtpAutofill } from "@/hooks/use-otp-autofill";
+import { withProgress, hideProgress } from "@/lib/progress";
+import { PageSkeleton } from "@/components/common/page-skeleton";
 
 const WEB_OTP_WAIT_MS = 90_000;
 /** SMS must arrive after credentials.get() — small delay avoids race with the API call. */
@@ -35,6 +40,7 @@ export default function OtpPage() {
   const webOtpAbortRef = useRef<AbortController | null>(null);
   const applyCodeRef = useRef<(code: string) => void>(() => {});
   const webOtpSessionRef = useRef(0);
+  const verifyInFlightRef = useRef(false);
 
   const startWebOtpListener = useCallback(() => {
     if (!phone || !supportsWebOtpApi() || !isWebOtpOriginMatch()) return;
@@ -76,23 +82,38 @@ export default function OtpPage() {
     setPhone(stored);
   }, [router]);
 
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/me", { credentials: "same-origin" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (cancelled || !json?.success || !json.data?.profile) return;
+        redirectAfterAuth(getPostAuthPath(json.data.profile as Record<string, unknown>));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const handleVerify = useCallback(
     async (codeOverride?: string) => {
       const otpCode = (codeOverride ?? code).replace(/\D/g, "").slice(0, OTP_LENGTH);
-      if (otpCode.length !== OTP_LENGTH || loading || !phone) return;
+      if (otpCode.length !== OTP_LENGTH || loading || !phone || verifyInFlightRef.current) return;
+      verifyInFlightRef.current = true;
       setLoading(true);
       setError("");
       try {
-        await verifyPhoneOtp(phone, otpCode);
+        const result = await withProgress("Verifying…", () => verifyPhoneOtp(phone, otpCode));
         sessionStorage.removeItem("saathini_otp_sent");
-        router.push("/onboarding/intent");
+        redirectAfterAuth(getPostAuthPath(result?.profile as Record<string, unknown> | undefined));
       } catch (err) {
+        verifyInFlightRef.current = false;
         setError(err instanceof Error ? err.message : t("invalid_code"));
-      } finally {
         setLoading(false);
       }
     },
-    [code, loading, phone, router, t]
+    [code, loading, phone, t]
   );
 
   const applyCode = useCallback(
@@ -147,12 +168,12 @@ export default function OtpPage() {
     setSending(true);
 
     const sendTimer = window.setTimeout(() => {
-      sendPhoneOtp(phone, "web")
-        .then(({ phone: e164 }) => {
-          if (cancelled) return;
-          sessionStorage.setItem("saathini_phone_e164", e164);
-          sessionStorage.setItem("saathini_otp_sent", phone);
-        })
+      void withProgress(t("sending"), async () => {
+        const { phone: e164 } = await sendPhoneOtp(phone, "web");
+        if (cancelled) return;
+        sessionStorage.setItem("saathini_phone_e164", e164);
+        sessionStorage.setItem("saathini_otp_sent", phone);
+      })
         .catch((err) => {
           if (cancelled) return;
           setError(err instanceof Error ? err.message : t("otp_failed"));
@@ -168,18 +189,9 @@ export default function OtpPage() {
     return () => {
       cancelled = true;
       window.clearTimeout(sendTimer);
+      hideProgress();
     };
   }, [phone, sessionKey, resetHandled, t]);
-
-  const handleChange = (value: string) => {
-    const digits = value.replace(/\D/g, "").slice(0, OTP_LENGTH);
-    setCode(digits);
-    setError("");
-    if (digits.length === OTP_LENGTH) {
-      handleAutofillInput(digits);
-      void handleVerify(digits);
-    }
-  };
 
   const handleResend = () => {
     if (!phone || sending) return;
@@ -193,7 +205,7 @@ export default function OtpPage() {
   const originOk = isWebOtpOriginMatch();
   const webOtpReady = supportsWebOtpApi() && originOk;
 
-  if (!hydrated) return null;
+  if (!hydrated) return <PageSkeleton variant="auth" withHeader={false} className="min-h-dvh" />;
 
   return (
     <AuthScreenLayout
@@ -247,7 +259,7 @@ export default function OtpPage() {
       <form
         ref={formRef}
         id="otp-form"
-        className="mx-auto w-full max-w-xs"
+        className="mx-auto w-full max-w-sm"
         onSubmit={(e) => {
           e.preventDefault();
           void handleVerify();
@@ -258,21 +270,20 @@ export default function OtpPage() {
           }
         }}
       >
-        <input
-          ref={inputRef}
-          id="otp-input"
-          type="text"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          name="one-time-code"
-          maxLength={OTP_LENGTH}
+        <OtpInput
           value={code}
-          onChange={(e) => handleChange(e.target.value)}
+          onChange={(next) => {
+            setCode(next);
+            setError("");
+            if (next.length === OTP_LENGTH) {
+              handleAutofillInput(next);
+            }
+          }}
+          onComplete={(next) => void handleVerify(next)}
           onFocus={() => startWebOtpListener()}
-          disabled={sending}
-          placeholder="Enter OTP"
-          className="ui-otp-box ui-otp-single w-full text-center text-2xl font-bold sm:h-[4.25rem]"
-          aria-label="One-time verification code"
+          disabled={sending || loading}
+          error={Boolean(error)}
+          autofillRef={inputRef}
         />
       </form>
 

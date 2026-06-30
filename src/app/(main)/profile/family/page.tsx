@@ -239,7 +239,7 @@ export default function FamilyAccessPage() {
                 <button
                   type="button"
                   onClick={() => removeMember(member.id)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                   aria-label={t("family_remove_member")}
                 >
                   <Trash2 className="h-4 w-4" />

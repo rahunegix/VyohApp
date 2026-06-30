@@ -14,13 +14,16 @@
   --color-destructive: #dc2626;
   --color-card: #ffffff;
   --color-card-foreground: #1a1a1a;
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
-  --radius-pill: 9999px;
-  --radius-sheet: 1.75rem;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-display), "Cormorant Garamond", Georgia, serif;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+  --radius-xl: 6px;
+  --radius-2xl: 6px;
+  --radius-3xl: 6px;
+  --radius-pill: 6px;
+  --radius-sheet: 6px;
   --shadow-soft: 0 2px 16px rgba(0, 0, 0, 0.06);
   --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.08);
   --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.12);
@@ -45,6 +48,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
+}
+
+.font-display {
+  font-family: var(--font-display);
 }
 
 .app-shell {
@@ -85,7 +92,13 @@ body {
   transform: translateX(-50%);
 }
 
-/* Full-width marketing homepage (/) */
+/* Full-width welcome home (/) */
+.app-shell:has(.welcome-home) {
+  max-width: none;
+  box-shadow: none;
+}
+
+/* Full-width marketing pages */
 .app-shell:has(.marketing-page) {
   max-width: none;
   box-shadow: none;
@@ -96,16 +109,18 @@ body {
     background: #eef0f3;
   }
 
-  html:has(.marketing-page) {
+  html:has(.marketing-page),
+  html:has(.welcome-home) {
     background: #ffffff;
   }
 
   .app-shell {
-    max-width: 960px;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 24px 48px rgba(0, 0, 0, 0.08);
+    max-width: none;
+    box-shadow: none;
   }
 
-  .app-shell:has(.marketing-page) {
+  .app-shell:has(.marketing-page),
+  .app-shell:has(.welcome-home) {
     max-width: none;
     box-shadow: none;
   }
@@ -115,8 +130,8 @@ body {
   }
 
   .app-dock {
-    left: calc((100vw - min(960px, 100vw)) / 2 + 240px);
-    width: calc(min(960px, 100vw) - 240px);
+    left: 240px;
+    width: calc(100vw - 240px);
     max-width: none;
     transform: none;
   }
@@ -279,28 +294,30 @@ body {
 }
 
 .ui-otp-box {
-  height: 4rem;
-  width: 3.25rem;
-  border-radius: 1rem;
+  height: 3.5rem;
+  width: 3rem;
+  border-radius: 6px;
   border: 2px solid var(--color-border);
   background: var(--color-background);
   text-align: center;
-  font-size: 1.5rem;
+  font-size: 1.375rem;
   font-weight: 800;
-  transition: all 0.2s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .ui-otp-box:focus {
   outline: none;
   border-color: var(--color-primary);
-  background: rgba(198, 40, 40, 0.04);
-  transform: scale(1.04);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.12);
+  transform: translateY(-1px);
 }
 
 .ui-otp-box-filled {
   border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: white;
+  background: rgba(198, 40, 40, 0.06);
+  color: var(--color-primary);
 }
 
 .ui-otp-single {
@@ -335,4 +352,46 @@ body {
     rgba(0, 0, 0, 0.35) 35%,
     transparent 70%
   );
+}
+
+.platform-dating {
+  --color-primary: #e11d48;
+  --color-primary-muted: #fff1f2;
+  --color-primary-rgb: 225, 29, 72;
+  --shadow-float: 0 6px 20px rgba(225, 29, 72, 0.22);
+  --shadow-glow: 0 0 24px rgba(225, 29, 72, 0.2);
+}
+
+.platform-matrimony {
+  --color-primary: #b45309;
+  --color-primary-muted: #fef3c7;
+  --color-primary-rgb: 180, 83, 9;
+  --shadow-float: 0 6px 20px rgba(180, 83, 9, 0.22);
+  --shadow-glow: 0 0 24px rgba(180, 83, 9, 0.2);
+}
+
+.platform-vip {
+  --color-primary: #d4af37;
+  --color-primary-foreground: #0a0a0a;
+  --color-primary-muted: #1a1a1a;
+  --color-primary-rgb: 212, 175, 55;
+  --color-background: #0a0a0a;
+  --color-foreground: #fafafa;
+  --color-muted: #141414;
+  --color-muted-foreground: #a3a3a3;
+  --color-border: #262626;
+  --color-card: #111111;
+  --color-card-foreground: #fafafa;
+  --shadow-float: 0 8px 28px rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
+}
+
+.platform-vip .app-sidebar,
+.platform-vip .app-dock {
+  background: rgba(10, 10, 10, 0.98) !important;
+  border-color: #262626 !important;
+}
+
+.platform-vip .app-main {
+  background: #0a0a0a;
 }

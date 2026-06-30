@@ -60,7 +60,7 @@ export function StorySubmissionsAdminPanel({
             key={s}
             type="button"
             onClick={() => setFilter(s)}
-            className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+            className={`rounded-[6px] px-3 py-1 text-xs font-semibold capitalize ${
               filter === s ? "bg-primary text-white" : "bg-muted text-muted-foreground"
             }`}
           >

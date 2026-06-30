@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Shield, MapPin, GraduationCap, Briefcase, Eye } from "lucide-react";
 import { FloatingBackButton } from "@/components/common/floating-back-button";
@@ -9,18 +10,81 @@ import { StaggerChildren, StaggerItem } from "@/components/common/page-transitio
 import { PhotoGallery } from "@/components/profile/photo-gallery";
 import { DetailInfoChip } from "@/components/profile/detail-info-row";
 import { ProfileTabs } from "@/components/profile/profile-tabs";
-import { DEMO_CURRENT_PROFILE, DEMO_CURRENT_PROFILE_PHOTOS, DEMO_VERIFICATION } from "@/services/demo-data";
+import { ProfileCardSkeleton } from "@/components/ui/skeleton";
+import { useEditProfile } from "@/hooks/use-edit-profile";
 import { getIntentLabel, formatProfileLocation } from "@/lib/helpers/formatters";
+import type { ProfilePhoto } from "@/types";
+
+function mapPhotoRows(rows: unknown[], profileId: string): ProfilePhoto[] {
+  return rows.map((raw, i) => {
+    const p = raw as Record<string, unknown>;
+    const now = new Date().toISOString();
+    return {
+      id: String(p.id ?? `photo-${i}`),
+      profile_id: String(p.profile_id ?? profileId),
+      url: String(p.url ?? ""),
+      sort_order: Number(p.sort_order ?? i),
+      is_private: Boolean(p.is_private ?? false),
+      is_primary: Boolean(p.is_primary ?? i === 0),
+      created_at: String(p.created_at ?? now),
+      updated_at: String(p.updated_at ?? now),
+    };
+  });
+}
 
 export default function ProfilePreviewPage() {
   const router = useRouter();
-  const profile = DEMO_CURRENT_PROFILE;
+  const { profile, loading } = useEditProfile();
+  const [photos, setPhotos] = useState<ProfilePhoto[]>([]);
+  const [faceVerified, setFaceVerified] = useState(false);
+  const [trustScore, setTrustScore] = useState<number | null>(null);
+  const [metaLoading, setMetaLoading] = useState(true);
 
-  const previewProfile = {
-    ...profile,
-    full_name: profile.full_name === "You" ? "Your Name" : profile.full_name,
-    verification: DEMO_VERIFICATION,
-  };
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    let cancelled = false;
+    setMetaLoading(true);
+
+    Promise.all([
+      fetch("/api/profiles/photos").then((r) => r.json()),
+      fetch("/api/verification").then((r) => r.json()),
+    ])
+      .then(([photosJson, verificationJson]) => {
+        if (cancelled) return;
+
+        const rows = Array.isArray(photosJson.data) ? photosJson.data : [];
+        setPhotos(mapPhotoRows(rows, profile.id));
+
+        if (verificationJson.success && verificationJson.data) {
+          setFaceVerified(Boolean(verificationJson.data.verification?.face_verified));
+          setTrustScore(
+            typeof verificationJson.data.trustScore === "number"
+              ? verificationJson.data.trustScore
+              : null,
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setMetaLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id]);
+
+  if (loading || metaLoading || !profile) {
+    return (
+      <div className="pb-24 bg-muted/20 min-h-screen relative">
+        <FloatingBackButton />
+        <ProfileCardSkeleton fill />
+      </div>
+    );
+  }
+
+  const displayTrust = trustScore ?? profile.trust_score;
+  const firstName = profile.full_name.split(" ")[0] || profile.full_name;
 
   return (
     <div className="pb-24 bg-muted/20 min-h-screen relative">
@@ -33,10 +97,7 @@ export default function ProfilePreviewPage() {
         </Badge>
       </div>
 
-      <PhotoGallery
-        photos={DEMO_CURRENT_PROFILE_PHOTOS}
-        name={previewProfile.full_name.split(" ")[0]}
-      />
+      <PhotoGallery photos={photos} name={firstName} />
 
       <StaggerChildren className="px-5 mt-4 space-y-5">
         <StaggerItem>
@@ -44,27 +105,31 @@ export default function ProfilePreviewPage() {
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h1 className="text-2xl font-bold text-foreground">
-                  {previewProfile.full_name}, {profile.age}
+                  {profile.full_name}, {profile.age}
                 </h1>
                 <p className="flex items-center gap-1.5 text-muted-foreground mt-1 text-sm">
                   <MapPin className="h-4 w-4 shrink-0" />
-                  {formatProfileLocation(previewProfile)}
+                  {formatProfileLocation(profile)}
                 </p>
               </div>
-              {DEMO_VERIFICATION.face_verified && (
+              {faceVerified && (
                 <Shield className="h-6 w-6 shrink-0 text-primary animate-scale-bounce" fill="currentColor" />
               )}
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              <DetailInfoChip
-                icon={<GraduationCap className="h-3.5 w-3.5" />}
-                value={profile.education}
-              />
-              <DetailInfoChip
-                icon={<Briefcase className="h-3.5 w-3.5" />}
-                value={profile.profession}
-              />
+              {profile.education ? (
+                <DetailInfoChip
+                  icon={<GraduationCap className="h-3.5 w-3.5" />}
+                  value={profile.education}
+                />
+              ) : null}
+              {profile.profession ? (
+                <DetailInfoChip
+                  icon={<Briefcase className="h-3.5 w-3.5" />}
+                  value={profile.profession}
+                />
+              ) : null}
             </div>
 
             <div className="mt-4 pt-4 border-t border-border/50">
@@ -77,7 +142,7 @@ export default function ProfilePreviewPage() {
                   <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Trust Score</p>
                   <div className="flex items-center gap-1.5 justify-end mt-0.5">
                     <Shield className="h-4 w-4 text-success" />
-                    <span className="text-sm font-bold text-success">{profile.trust_score}%</span>
+                    <span className="text-sm font-bold text-success">{displayTrust}%</span>
                   </div>
                 </div>
               </div>
@@ -98,7 +163,7 @@ export default function ProfilePreviewPage() {
 
         <StaggerItem>
           <ProfileTabs
-            bio={profile.bio}
+            bio={profile.bio ?? profile.ai_bio ?? null}
             city={profile.city}
             district={profile.district}
             region={profile.region}

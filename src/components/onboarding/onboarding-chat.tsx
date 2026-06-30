@@ -33,7 +33,7 @@ interface OnboardingChatProps {
 function TypingIndicator() {
   return (
     <div className="flex items-end gap-2">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] bg-primary/10 text-primary">
         <Sparkles className="h-3.5 w-3.5" />
       </div>
       <div className="rounded-2xl rounded-bl-md border border-border/40 bg-white px-3 py-2 shadow-sm">
@@ -41,7 +41,7 @@ function TypingIndicator() {
           {[0, 1, 2].map((i) => (
             <span
               key={i}
-              className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/50"
+              className="h-1.5 w-1.5 animate-bounce rounded-[6px] bg-primary/50"
               style={{ animationDelay: `${i * 0.15}s` }}
             />
           ))}
@@ -96,7 +96,7 @@ export function OnboardingChat({
                 className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}
               >
                 {msg.role === "ai" && (
-                  <div className="mr-1.5 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <div className="mr-1.5 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[6px] bg-primary/10 text-primary">
                     <Sparkles className="h-3.5 w-3.5" />
                   </div>
                 )}
@@ -159,7 +159,7 @@ export function OnboardingChat({
                 placeholder={currentPrompt.placeholder}
                 rows={1}
                 disabled={typing}
-                className="max-h-20 min-h-[44px] flex-1 resize-none rounded-full border border-border/60 bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+                className="max-h-20 min-h-[44px] flex-1 resize-none rounded-[6px] border border-border/60 bg-muted/30 px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
               />
               <Button
                 onClick={onSend}

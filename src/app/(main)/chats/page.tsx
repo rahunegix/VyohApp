@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/common/page-header";
 import { ChatListItem, ChatRequestCard } from "@/components/chat/chat-components";
 import { EmptyState } from "@/components/common/empty-states";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { ListSkeleton } from "@/components/ui/skeleton";
+import { ChatListSkeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/helpers/utils";
 import { useChatsData } from "@/hooks/use-chats-data";
 
@@ -40,7 +40,7 @@ function ChatPillTabs({
             type="button"
             onClick={() => onChange(tab.id)}
             className={cn(
-              "inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+              "inline-flex shrink-0 items-center gap-1.5 rounded-[6px] px-4 py-2 text-sm font-medium transition-colors",
               selected
                 ? "bg-primary text-white shadow-sm"
                 : "bg-white text-muted-foreground shadow-sm hover:bg-muted/80"
@@ -50,7 +50,7 @@ function ChatPillTabs({
             {tab.count > 0 && (
               <span
                 className={cn(
-                  "flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold",
+                  "flex h-5 min-w-5 items-center justify-center rounded-[6px] px-1 text-[10px] font-bold",
                   selected ? "bg-white/25 text-white" : "bg-primary/10 text-primary"
                 )}
               >
@@ -88,10 +88,10 @@ export default function ChatsPage() {
           title="Chats"
           subtitle="Consent-based conversations"
           rightAction={
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-[6px] bg-primary/10 text-primary">
               <MessageCircle className="h-5 w-5" />
               {unreadTotal > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white ring-2 ring-white">
+                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-[6px] bg-primary px-1 text-[10px] font-bold text-white ring-2 ring-white">
                   {unreadTotal > 9 ? "9+" : unreadTotal}
                 </span>
               )}
@@ -116,7 +116,7 @@ export default function ChatsPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search conversations…"
-                  className="h-11 w-full rounded-full border border-border/50 bg-white pl-10 pr-4 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="h-11 w-full rounded-[6px] border border-border/50 bg-white pl-10 pr-4 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
@@ -126,7 +126,7 @@ export default function ChatsPage() {
 
       <div className="flex-1 overflow-y-auto px-4 pb-24 pt-2">
         {loading ? (
-          <ListSkeleton count={4} />
+          <ChatListSkeleton />
         ) : tab === "chats" ? (
           <>
             <motion.div

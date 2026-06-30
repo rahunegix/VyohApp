@@ -10,12 +10,16 @@ import { getIntentLabelLocalized } from "@/lib/i18n";
 import { formatAge } from "@/lib/helpers/utils";
 import { useOnboardingStore } from "@/store";
 import { useTranslation } from "@/hooks/use-translation";
+import { needsFamilyStep } from "@/config/onboarding";
 import type { ProfileBuilderOutput } from "@/lib/ai/schemas";
+import { PageSkeleton } from "@/components/common/page-skeleton";
+import { ProfileCardSkeleton } from "@/components/ui/skeleton";
 
 export default function PreviewPage() {
   const router = useRouter();
   const onboarding = useOnboardingStore();
-  const { aiAnswers, intent, photos, basicInfo, aiGeneratedProfile, setAiGeneratedProfile } = onboarding;
+  const { aiAnswers, intent, photos, basicInfo, aiGeneratedProfile, setAiGeneratedProfile, platform } =
+    onboarding;
   const { t, language, hydrated } = useTranslation();
   const [aiProfile, setAiProfile] = useState<ProfileBuilderOutput | null>(aiGeneratedProfile);
   const [loading, setLoading] = useState(!aiGeneratedProfile);
@@ -54,7 +58,7 @@ export default function PreviewPage() {
       .finally(() => setLoading(false));
   }, [intent, language, aiGeneratedProfile, setAiGeneratedProfile, t]);
 
-  if (!hydrated) return null;
+  if (!hydrated) return <PageSkeleton variant="form" withHeader={false} className="min-h-dvh pb-0" />;
 
   const age = basicInfo.dob ? formatAge(basicInfo.dob) : null;
   const intentLabel = intent ? getIntentLabelLocalized(language, intent) : undefined;
@@ -63,7 +67,9 @@ export default function PreviewPage() {
 
   return (
     <OnboardingStepShell
-      backHref="/onboarding/family"
+      backHref={
+        needsFamilyStep(platform, intent) ? "/onboarding/family" : "/onboarding/lifestyle"
+      }
       title={t("profile_preview")}
       currentStep={8}
       flushContent
@@ -83,7 +89,9 @@ export default function PreviewPage() {
           <OnboardingStepHeading title={t("profile_preview")} subtitle={t("preview_as_others_see")} />
 
         {loading && (
-          <p className="mb-4 text-center text-xs text-muted-foreground animate-pulse">{t("generating_profile")}</p>
+          <div className="mb-4 px-2">
+            <ProfileCardSkeleton fill />
+          </div>
         )}
         {error && <p className="mb-4 text-center text-sm text-destructive">{error}</p>}
       </div>

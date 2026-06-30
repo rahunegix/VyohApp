@@ -19,7 +19,7 @@ export function EmptyState({ icon = "heart", title, description, action }: Empty
   const Icon = icons[icon];
   return (
     <div className="flex flex-col items-center justify-center px-8 py-16 text-center">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[6px] bg-primary/10">
         <Icon className="h-8 w-8 text-primary" />
       </div>
       <h3 className="text-lg font-semibold">{title}</h3>
@@ -40,7 +40,7 @@ export function ErrorState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center px-8 py-16 text-center">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[6px] bg-muted">
         <Frown className="h-8 w-8 text-muted-foreground" />
       </div>
       <h3 className="text-lg font-semibold">{title}</h3>

@@ -16,6 +16,7 @@ interface OnboardingStepShellProps {
   footerClassName?: string;
   contentClassName?: string;
   hideStepMeta?: boolean;
+  hideHeading?: boolean;
   /** Removes inner padding — for full-height chat layouts */
   flushContent?: boolean;
 }
@@ -30,13 +31,14 @@ export function OnboardingStepShell({
   footerClassName,
   contentClassName,
   hideStepMeta = false,
+  hideHeading = false,
   flushContent = false,
 }: OnboardingStepShellProps) {
   const progress = Math.round(((currentStep + 1) / totalSteps) * 100);
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="shrink-0 border-b border-border/40 bg-white/95 backdrop-blur-sm">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-gradient-to-b from-rose-50/40 via-white to-white">
+      <div className="shrink-0 border-b border-border/40 bg-white/90 backdrop-blur-md">
         <PageHeader
           showBack
           backHref={backHref}
@@ -51,10 +53,10 @@ export function OnboardingStepShell({
         {!hideStepMeta && (
           <div className="px-6 py-4">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
-                Step {currentStep + 1} / {totalSteps}
+              <span className="rounded-[6px] border border-primary/15 bg-primary/8 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-primary">
+                Step {currentStep + 1} of {totalSteps}
               </span>
-              <span className="text-xs font-semibold text-muted-foreground">{progress}% complete</span>
+              <span className="text-xs font-semibold text-muted-foreground">{progress}%</span>
             </div>
             <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
           </div>
@@ -74,7 +76,7 @@ export function OnboardingStepShell({
       {footer && (
         <div
           className={cn(
-            "shrink-0 border-t border-border/50 bg-white/95 px-6 py-4 shadow-[0_-8px_24px_rgba(0,0,0,0.06)] backdrop-blur-xl",
+            "shrink-0 border-t border-border/40 bg-white/95 px-6 py-4 shadow-[0_-12px_40px_rgba(0,0,0,0.06)] backdrop-blur-xl safe-bottom",
             footerClassName
           )}
         >
@@ -96,8 +98,12 @@ export function OnboardingStepHeading({
 }) {
   return (
     <div className={cn("mb-6", className)}>
-      <h2 className="text-2xl font-extrabold tracking-tight text-foreground lg:text-[1.65rem]">{title}</h2>
-      {subtitle && <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{subtitle}</p>}
+      <h2 className="font-display text-2xl font-normal tracking-tight text-foreground lg:text-[1.75rem]">
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{subtitle}</p>
+      )}
     </div>
   );
 }

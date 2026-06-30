@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatAge } from "@/lib/helpers/utils";
 
 export type MobileOnboardingPayload = {
+  platform?: string | null;
   intent?: string | null;
   gender?: string | null;
   basicInfo?: {
@@ -19,6 +20,8 @@ export type MobileOnboardingPayload = {
   family?: Record<string, string>;
   aiAnswers?: Record<string, string>;
   photos?: string[];
+  vipInviteCode?: string | null;
+  vipDetails?: Record<string, string>;
 };
 
 function deriveLookingFor(gender?: string | null): string {
@@ -37,6 +40,13 @@ export async function completeProfileFromMobilePayload(
   const age = dob ? formatAge(dob) : null;
   const httpPhotos = (payload.photos ?? []).filter((url) => /^https?:\/\//i.test(url));
 
+  const platform =
+    payload.platform === "vip"
+      ? "vip"
+      : payload.platform === "matrimony"
+        ? "matrimony"
+        : "dating";
+
   const { error: profileError } = await admin
     .from("profiles")
     .update({
@@ -44,6 +54,7 @@ export async function completeProfileFromMobilePayload(
       gender: payload.gender ?? null,
       looking_for: deriveLookingFor(payload.gender),
       intent: payload.intent ?? null,
+      platform,
       dob,
       age,
       city: basic.city?.trim() || null,
@@ -58,7 +69,10 @@ export async function completeProfileFromMobilePayload(
         ...(payload.family ?? {}),
         religious_preference: "hindu",
       },
-      profile_status: "active",
+      profile_status: platform === "vip" ? "hidden" : "active",
+      vip_approval_status: platform === "vip" ? "pending" : null,
+      vip_invite_code: platform === "vip" ? payload.vipInviteCode ?? null : null,
+      vip_details: platform === "vip" ? payload.vipDetails ?? {} : {},
     })
     .eq("id", profileId);
 

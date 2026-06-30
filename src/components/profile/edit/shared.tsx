@@ -2,12 +2,15 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { SelectionChip } from "@/components/ui/selection-chip";
+import { SelectField } from "@/components/ui/select-field";
 import { SIBLING_COUNT_SELECT_OPTIONS, PARENT_FIELD_OPTIONS } from "@/lib/constants";
 import type { StringKey } from "@/lib/i18n";
 
+/** @deprecated Use SelectField — kept for any legacy imports */
 export const selectClass =
-  "mt-1 flex h-12 w-full rounded-full border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
+  "mt-1 flex h-11 w-full rounded-[6px] border border-border/80 bg-background px-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20";
 
 export const FAMILY_TYPES = [
   { value: "nuclear", key: "family_nuclear" },
@@ -36,7 +39,7 @@ export function ChipGroup({
 }) {
   return (
     <div>
-      <label className="text-sm font-medium">{label}</label>
+      <Label>{label}</Label>
       <div className="mt-2 flex flex-wrap gap-2">
         {options.map((item) => (
           <SelectionChip
@@ -69,17 +72,13 @@ export function SiblingSelect({
     : SIBLING_COUNT_SELECT_OPTIONS;
 
   return (
-    <div>
-      <label className="text-sm font-medium">{label}</label>
-      <select value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={selectClass}>
-        <option value="">{t("select")}</option>
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {t(opt.key)}
-          </option>
-        ))}
-      </select>
-    </div>
+    <SelectField
+      label={label}
+      value={value}
+      onValueChange={onChange}
+      placeholder={t("select")}
+      options={options.map((opt) => ({ value: opt.value, label: t(opt.key) }))}
+    />
   );
 }
 
@@ -97,17 +96,13 @@ export function FieldSelect({
   t: (key: StringKey | string) => string;
 }) {
   return (
-    <div>
-      <label className="text-sm font-medium">{label}</label>
-      <select value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={selectClass}>
-        <option value="">{t("select")}</option>
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {t(opt.key)}
-          </option>
-        ))}
-      </select>
-    </div>
+    <SelectField
+      label={label}
+      value={value}
+      onValueChange={onChange}
+      placeholder={t("select")}
+      options={options.map((opt) => ({ value: opt.value, label: t(opt.key) }))}
+    />
   );
 }
 

@@ -1,3 +1,3 @@
 export const CACHE_NAME = "saathini-v1";
-export const OFFLINE_URL = "/welcome";
-export const PRECACHE_URLS = ["/welcome", "/discover", "/manifest.json"];
+export const OFFLINE_URL = "/";
+export const PRECACHE_URLS = ["/", "/discover", "/manifest.json"];

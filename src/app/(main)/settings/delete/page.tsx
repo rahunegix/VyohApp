@@ -17,7 +17,7 @@ export default function DeleteAccountPage() {
     if (confirm !== "DELETE") return;
     setLoading(true);
     await deleteAccount();
-    router.push("/welcome");
+    router.push("/");
   };
 
   return (
@@ -26,7 +26,7 @@ export default function DeleteAccountPage() {
 
       <div className="mx-4 mt-4 space-y-6 px-2">
         <div className="flex items-start gap-3 rounded-2xl border border-destructive/20 bg-destructive/5 p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[6px] bg-destructive/10 text-destructive">
             <AlertTriangle className="h-5 w-5" />
           </div>
           <p className="text-sm leading-relaxed text-destructive">
@@ -41,7 +41,7 @@ export default function DeleteAccountPage() {
           <Input
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            className="mt-3 rounded-full"
+            className="mt-3 rounded-[6px]"
             placeholder="DELETE"
           />
 

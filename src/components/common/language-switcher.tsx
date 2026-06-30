@@ -29,7 +29,7 @@ export function LanguageSwitcher({ className, compact = false }: LanguageSwitche
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-muted"
+        className="flex items-center gap-1.5 rounded-[6px] border border-border bg-white px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-muted"
         aria-label="Change language"
       >
         <Globe className="h-3.5 w-3.5 text-primary" />
@@ -70,18 +70,26 @@ export function LanguageOptionCard({
   lang,
   selected,
   onSelect,
+  theme = "light",
 }: {
   lang: AppLanguage;
   selected: boolean;
   onSelect: () => void;
+  theme?: "light" | "dark";
 }) {
   const item = LANGUAGES.find((l) => l.code === lang)!;
+  const isDark = theme === "dark";
   return (
     <SelectPillRow
       selected={selected}
       onClick={onSelect}
       label={item.nativeLabel}
       description={item.description}
+      className={
+        isDark && !selected
+          ? "border-white/20 bg-[#1a1014]/90 text-white hover:border-white/35 hover:bg-[#221018]"
+          : undefined
+      }
     />
   );
 }

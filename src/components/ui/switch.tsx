@@ -21,7 +21,7 @@ const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
         if (!e.defaultPrevented) onCheckedChange?.(!checked);
       }}
       className={cn(
-        "relative inline-flex h-7 w-[3.25rem] shrink-0 cursor-pointer rounded-full p-0.5",
+        "relative inline-flex h-7 w-[3.25rem] shrink-0 cursor-pointer rounded-[6px] p-0.5",
         "transition-colors duration-200 ease-in-out",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "disabled:cursor-not-allowed disabled:opacity-50",
@@ -33,7 +33,7 @@ const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
       <span
         aria-hidden
         className={cn(
-          "pointer-events-none block h-6 w-6 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.28)]",
+          "pointer-events-none block h-6 w-6 rounded-[6px] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.28)]",
           "transition-transform duration-200 ease-in-out will-change-transform",
           checked ? "translate-x-[1.375rem]" : "translate-x-0"
         )}

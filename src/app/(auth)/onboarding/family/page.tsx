@@ -17,8 +17,12 @@ import {
   MARRIAGE_TIMELINE_OPTIONS,
 } from "@/lib/constants";
 import { SelectionChip } from "@/components/ui/selection-chip";
+import { SelectField } from "@/components/ui/select-field";
+import { Label } from "@/components/ui/label";
 import { useOnboardingStore } from "@/store";
 import { useTranslation } from "@/hooks/use-translation";
+import { needsFamilyStep } from "@/config/onboarding";
+import { PageSkeleton } from "@/components/common/page-skeleton";
 import type { StringKey } from "@/lib/i18n";
 
 const FAMILY_TYPES = [
@@ -26,9 +30,6 @@ const FAMILY_TYPES = [
   { value: "joint", key: "family_joint" },
   { value: "extended", key: "family_extended" },
 ] as const;
-
-const selectClass =
-  "mt-1 flex h-12 w-full rounded-full border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
 
 function parseCount(value?: string): number {
   if (!value) return -1;
@@ -88,10 +89,10 @@ function ChipGroup({
 }) {
   return (
     <div>
-      <label className="text-sm font-medium">
+      <Label>
         {label}
         {required && <span className="ml-1 text-primary">*</span>}
-      </label>
+      </Label>
       <div className="mt-2 flex flex-wrap gap-2">
         {options.map((item) => (
           <SelectionChip
@@ -124,24 +125,13 @@ function OptionSelect({
   t: (key: StringKey | string) => string;
 }) {
   return (
-    <div>
-      <label className="text-sm font-medium">
-        {label}
-        {required && <span className="ml-1 text-primary">*</span>}
-      </label>
-      <select
-        value={value ?? ""}
-        onChange={(e) => onChange(e.target.value)}
-        className={selectClass}
-      >
-        <option value="">{placeholder}</option>
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {t(opt.key)}
-          </option>
-        ))}
-      </select>
-    </div>
+    <SelectField
+      label={`${label}${required ? " *" : ""}`}
+      value={value}
+      onValueChange={onChange}
+      placeholder={placeholder}
+      options={options.map((opt) => ({ value: opt.value, label: t(opt.key) }))}
+    />
   );
 }
 
@@ -268,11 +258,21 @@ function ParentSection({
 
 export default function FamilyPage() {
   const router = useRouter();
-  const { familyBackground, setFamilyBackground, intent } = useOnboardingStore();
+  const { familyBackground, setFamilyBackground, intent, platform } = useOnboardingStore();
   const { t, hydrated } = useTranslation();
 
+  useEffect(() => {
+    if (!needsFamilyStep(platform, intent)) {
+      router.replace("/onboarding/preview");
+    }
+  }, [platform, intent, router]);
+
   const isMarriage = intent === "marriage";
-  const canContinue = !isMarriage || isMarriageFamilyComplete(familyBackground);
+  const isSerious = intent === "serious";
+  const requireFullFamily = isMarriage || isSerious;
+  const canContinue = requireFullFamily
+    ? isMarriageFamilyComplete(familyBackground)
+    : Boolean(familyBackground.family_type);
 
   const setBrothersCount = (v: string) => {
     setFamilyBackground("brothers_count", v);
@@ -294,7 +294,7 @@ export default function FamilyPage() {
     }
   }, [familyBackground.religious_preference, setFamilyBackground]);
 
-  if (!hydrated) return null;
+  if (!hydrated) return <PageSkeleton variant="form" withHeader={false} className="min-h-dvh pb-0" />;
 
   return (
     <OnboardingStepShell
@@ -314,13 +314,16 @@ export default function FamilyPage() {
     >
       <OnboardingStepHeading
         title={t("family_title")}
-        subtitle={isMarriage ? t("family_subtitle_marriage") : t("family_subtitle_other")}
+        subtitle={
+          requireFullFamily ? t("family_subtitle_marriage") : t("family_subtitle_other")
+        }
       />
 
       <div className="space-y-5">
-          {isMarriage && (
-            <>
-              <p className="text-xs font-medium text-primary">{t("marriage_fields_required")}</p>
+          <>
+              {requireFullFamily && (
+                <p className="text-xs font-medium text-primary">{t("marriage_fields_required")}</p>
+              )}
 
               <ChipGroup
                 label={t("community")}
@@ -443,8 +446,7 @@ export default function FamilyPage() {
               />
 
               <div className="border-t border-border/60 pt-1" />
-            </>
-          )}
+          </>
 
           <div>
             <label className="text-sm font-medium">{t("family_type")}</label>
@@ -460,7 +462,7 @@ export default function FamilyPage() {
             </div>
           </div>
 
-          {!isMarriage && (
+          {intent === "exploring" && (
             <div>
               <label className="text-sm font-medium">{t("community_pref")}</label>
               <Input
@@ -472,7 +474,7 @@ export default function FamilyPage() {
             </div>
           )}
 
-          {isMarriage && (
+          {(isMarriage || isSerious) && (
             <>
               <OptionSelect
                 label={t("gotra")}

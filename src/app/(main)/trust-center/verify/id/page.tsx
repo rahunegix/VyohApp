@@ -13,7 +13,7 @@ import type { IdDocumentType } from "@/types";
 import { IdCard, Upload, ShieldCheck } from "lucide-react";
 
 const selectClass =
-  "mt-1 flex h-12 w-full rounded-full border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
+  "mt-1 flex h-12 w-full rounded-[6px] border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
 
 async function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {

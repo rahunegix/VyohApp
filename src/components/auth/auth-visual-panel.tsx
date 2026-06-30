@@ -23,9 +23,9 @@ const VARIANT_COPY: Record<
   { eyebrow: string; title: string; subtitle: string }
 > = {
   welcome: {
-    eyebrow: "Success stories",
-    title: "Real couples, real journeys",
-    subtitle: "Marriage, long-term love, and dating — all found here with trust and family in mind.",
+    eyebrow: "Premium maximalism",
+    title: "From connection to commitment",
+    subtitle: "Spark, Vivah, and Elite — one verified home for Uttarakhand relationships, guided by Saathi.",
   },
   login: {
     eyebrow: "Secure sign-in",
@@ -128,7 +128,7 @@ function PhotoCollage({
                 aria-label={`Show ${img.label}`}
                 onClick={() => setActiveIndex(i)}
                 className={cn(
-                  "h-1.5 rounded-full transition-all",
+                  "h-1.5 rounded-[6px] transition-all",
                   i === activeIndex ? "w-4 bg-white" : "w-1.5 bg-white/40"
                 )}
               />
@@ -167,7 +167,7 @@ function PhotoCollage({
                 aria-label={`Show ${img.label}`}
                 onClick={() => setActiveIndex(i)}
                 className={cn(
-                  "h-1.5 rounded-full transition-all",
+                  "h-1.5 rounded-[6px] transition-all",
                   i === activeIndex ? "w-5 bg-white" : "w-1.5 bg-white/45 hover:bg-white/70"
                 )}
               />
@@ -373,7 +373,7 @@ export function OnboardingDecorStrip({ className }: { className?: string }) {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: i * 0.08, type: "spring" }}
-              className="relative h-10 w-10 overflow-hidden rounded-full border-2 border-white shadow-sm"
+              className="relative h-10 w-10 overflow-hidden rounded-[6px] border-2 border-white shadow-sm"
             >
               <Image src={image.src} alt={image.alt} fill className="object-cover" sizes="40px" />
             </motion.div>

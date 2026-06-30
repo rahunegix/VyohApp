@@ -8,6 +8,7 @@ import {
 } from "@/lib/onboarding/complete-profile-mobile";
 
 const schema = z.object({
+  platform: z.enum(["dating", "matrimony", "vip"]).nullable().optional(),
   intent: z.string().nullable().optional(),
   gender: z.string().nullable().optional(),
   basicInfo: z
@@ -27,6 +28,8 @@ const schema = z.object({
   family: z.record(z.string(), z.string()).optional(),
   aiAnswers: z.record(z.string(), z.string()).optional(),
   photos: z.array(z.string()).optional(),
+  vipInviteCode: z.string().nullable().optional(),
+  vipDetails: z.record(z.string(), z.string()).optional(),
 });
 
 export async function POST(request: NextRequest) {

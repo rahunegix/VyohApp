@@ -69,7 +69,7 @@ export function ChatComposer({
         <button
           type="button"
           onClick={onLockedInteract}
-          className="mb-2.5 flex w-full items-center justify-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1.5 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/10"
+          className="mb-2.5 flex w-full items-center justify-center gap-1.5 rounded-[6px] border border-primary/20 bg-primary/5 px-3 py-1.5 text-[11px] font-semibold text-primary transition-colors hover:bg-primary/10"
         >
           <Crown className="h-3.5 w-3.5" />
           Upgrade to send more messages
@@ -89,7 +89,7 @@ export function ChatComposer({
             disabled={isDisabled}
             readOnly={locked}
             className={cn(
-              "block max-h-24 min-h-[46px] w-full resize-none rounded-full border border-border/70 bg-white",
+              "block max-h-24 min-h-[46px] w-full resize-none rounded-[6px] border border-border/70 bg-white",
               "py-3 pl-4 pr-11 text-[15px] leading-snug text-foreground shadow-sm",
               "placeholder:text-muted-foreground/70",
               "focus:border-primary/35 focus:outline-none focus:ring-2 focus:ring-primary/15",
@@ -100,7 +100,7 @@ export function ChatComposer({
           <button
             type="button"
             disabled={isDisabled}
-            className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground disabled:opacity-40"
+            className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[6px] text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground disabled:opacity-40"
             aria-label="Open emoji picker"
           >
             <Smile className="h-[18px] w-[18px]" strokeWidth={2} />
@@ -112,7 +112,7 @@ export function ChatComposer({
             type="button"
             onClick={handleSendClick}
             disabled={disabled}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-[var(--shadow-float)] transition-transform active:scale-95 disabled:opacity-50"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[6px] bg-primary text-white shadow-[var(--shadow-float)] transition-transform active:scale-95 disabled:opacity-50"
             aria-label="Send message"
           >
             <Send className="h-[18px] w-[18px]" strokeWidth={2.25} />
@@ -123,7 +123,7 @@ export function ChatComposer({
             onClick={locked ? onLockedInteract : undefined}
             disabled={disabled && !locked}
             className={cn(
-              "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/70 bg-white text-primary shadow-sm transition-colors active:scale-95 disabled:opacity-50",
+              "flex h-11 w-11 shrink-0 items-center justify-center rounded-[6px] border border-border/70 bg-white text-primary shadow-sm transition-colors active:scale-95 disabled:opacity-50",
               locked ? "border-primary/30 bg-primary/10" : "hover:border-primary/25 hover:bg-primary/5"
             )}
             aria-label={locked ? "Upgrade to send messages" : "Voice message"}

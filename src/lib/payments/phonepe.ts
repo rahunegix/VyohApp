@@ -84,10 +84,15 @@ export async function createPhonePePayment(params: {
   };
 }
 
+/** PhonePe server callback: sha256(response + saltKey) + ### + saltIndex */
 export function verifyPhonePeCallback(base64Response: string, receivedChecksum: string) {
   const config = getConfig();
   if (!config) return false;
-  const expected = generatePhonePeChecksum(base64Response, "/pg/v1/status", config);
+  const hash = crypto
+    .createHash("sha256")
+    .update(base64Response + config.saltKey)
+    .digest("hex");
+  const expected = `${hash}###${config.saltIndex}`;
   return expected === receivedChecksum;
 }
 

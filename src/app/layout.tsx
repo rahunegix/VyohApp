@@ -1,16 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { Inter, DM_Serif_Display } from "next/font/google";
 import "@/styles/globals.css";
 import { APP_NAME, APP_TAGLINE, LOGO_PATH } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/seo/config";
 import { PWAInstallPrompt } from "@/components/common/pwa-install";
-import { HelpChatWidget } from "@/components/common/help-chat-widget";
 import { SiteFooter } from "@/components/common/site-footer";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { ProgressDialog } from "@/components/common/progress-dialog";
 
-const geist = Geist({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-geist-sans",
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const dmSerif = DM_Serif_Display({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -41,14 +49,14 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${geist.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${dmSerif.variable} font-sans antialiased`}>
         <AuthProvider>
           <div className="app-shell flex min-h-dvh flex-col">
             <div className="flex min-h-0 flex-1 flex-col">{children}</div>
             <SiteFooter />
           </div>
           <PWAInstallPrompt />
-          <HelpChatWidget />
+          <ProgressDialog />
         </AuthProvider>
       </body>
     </html>

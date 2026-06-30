@@ -143,7 +143,7 @@ export function MatchDetailsClient({ profileId }: { profileId: string }) {
         <button
           type="button"
           onClick={() => setActionsOpen(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-full glass-dark text-white transition-colors hover:bg-black/40"
+          className="flex h-10 w-10 items-center justify-center rounded-[6px] glass-dark text-white transition-colors hover:bg-black/40"
           aria-label="More options"
         >
           <MoreHorizontal className="h-5 w-5" />
@@ -159,9 +159,9 @@ export function MatchDetailsClient({ profileId }: { profileId: string }) {
         isBookmarked={isShortlisted}
       />
 
-      <div className="relative z-10 -mt-10 rounded-t-[1.75rem] bg-white shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
+      <div className="relative z-10 -mt-10 rounded-t-[6px] bg-white shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
         <div className="mx-auto w-10 pt-3">
-          <div className="h-1 rounded-full bg-border/80" />
+          <div className="h-1 rounded-[6px] bg-border/80" />
         </div>
 
         <StaggerChildren className="space-y-5 px-5 pb-6 pt-4">

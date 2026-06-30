@@ -26,7 +26,7 @@ import { OTP_LENGTH } from "@/lib/auth/otp-config";
 type Step = "type" | "details" | "otp" | "done";
 
 const selectClass =
-  "mt-1 flex h-12 w-full rounded-full border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
+  "mt-1 flex h-12 w-full rounded-[6px] border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
 
 export default function ReferenceVerificationPage() {
   const router = useRouter();
@@ -216,7 +216,7 @@ export default function ReferenceVerificationPage() {
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, OTP_LENGTH))}
               inputMode="numeric"
-              className="mt-1 rounded-full text-center text-lg tracking-widest"
+              className="mt-1 rounded-[6px] text-center text-lg tracking-widest"
               placeholder={"0".repeat(OTP_LENGTH)}
             />
           </div>

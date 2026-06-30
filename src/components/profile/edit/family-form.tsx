@@ -41,6 +41,7 @@ export function EditFamilyForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const isMarriage = profile.intent === "marriage";
+  const showMatrimonyFields = isMarriage || profile.intent === "serious";
 
   const setFamily = (key: string, value: string) => {
     setFamilyBackground((prev) => ({ ...prev, [key]: value }));
@@ -77,7 +78,7 @@ export function EditFamilyForm({
   return (
     <form onSubmit={handleSave}>
       <EditSectionShell error={error} saving={saving} saveLabel={t("save_changes")}>
-        {isMarriage && (
+        {showMatrimonyFields && (
           <>
             <ChipGroup label={t("community")} options={COMMUNITY_OPTIONS} value={familyBackground.community} onSelect={(v) => setFamily("community", v)} t={t} />
             {familyBackground.community === "other" && (
@@ -145,7 +146,7 @@ export function EditFamilyForm({
             ))}
           </div>
         </div>
-        {!isMarriage && (
+        {!showMatrimonyFields && (
           <div>
             <label className="text-sm font-medium">{t("community_pref")}</label>
             <Input value={familyBackground.community_preference ?? ""} onChange={(e) => setFamily("community_preference", e.target.value)} className="mt-1" placeholder={t("community_ph")} />
