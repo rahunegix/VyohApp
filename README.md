@@ -1,82 +1,273 @@
-# Saathini
+# ❤️ Saathini
 
-**From Connection to Commitment**
+> From Connection to Commitment
 
-Uttarakhand's verified relationship platform where users can explore, connect, and move toward commitment at their own pace.
+Saathini is an AI-first relationship platform that transforms how people discover, build, and nurture meaningful relationships. Instead of navigating endless forms and filters, users simply talk to **Saathi**, an intelligent relationship assistant that understands preferences, learns over time, and provides personalized guidance throughout the relationship journey.
 
-## Tech Stack
+Saathini combines conversational AI, intelligent matchmaking, trust & safety systems, and personalized coaching into a single seamless experience.
 
-- Next.js 15 (App Router)
-- TypeScript
-- Tailwind CSS v4
-- Framer Motion
-- React Hook Form + Zod
-- Zustand
-- Supabase (Auth, PostgreSQL, Storage, Realtime)
+---
 
-## Getting Started
+# 🤖 AI at the Core
 
-```bash
-npm install
-cp .env.example .env.local
-npm run dev
+Unlike traditional dating or matrimony platforms where AI is an optional chatbot, **AI is the primary operating system of Saathini.**
+
+Every major interaction—from onboarding to matchmaking and conversations—is powered by AI.
+
+---
+
+# 🧠 Meet Saathi
+
+Saathi is your personal AI relationship companion.
+
+It assists users throughout every stage of the platform.
+
+### AI can help users:
+
+- Build better profiles
+- Understand compatibility
+- Discover meaningful matches
+- Improve conversations
+- Plan first dates
+- Resolve communication issues
+- Prepare for marriage
+- Maintain healthy relationships
+
+Instead of navigating dozens of screens, users simply ask.
+
+---
+
+# ✨ AI Features
+
+## 💬 Conversational Onboarding
+
+Users describe themselves naturally.
+
+Example:
+
+> "I'm a software engineer who loves travelling and wants someone ambitious but family-oriented."
+
+Saathi converts conversations into structured profiles automatically.
+
+No lengthy registration forms.
+
+---
+
+## 📝 AI Profile Generation
+
+The AI creates optimized profiles from natural conversations.
+
+Features include:
+
+- Bio generation
+- Interest extraction
+- Personality understanding
+- Profile optimization
+- Profile completeness scoring
+
+---
+
+## ❤️ Explainable Matchmaking
+
+Instead of simply showing a compatibility percentage, Saathi explains **why** two people are a good match.
+
+Example:
+
+> You both enjoy mountain trekking, prefer long-term commitment, and share similar career goals.
+
+---
+
+## 🎯 Intelligent Search
+
+Users can search naturally.
+
+Examples:
+
+- Find someone who loves trekking.
+- Looking for entrepreneurs in Bangalore.
+- Show people interested in serious relationships.
+
+AI converts natural language into intelligent search filters.
+
+---
+
+## 💬 AI Conversation Coach
+
+Saathi helps users communicate better by suggesting:
+
+- Ice breakers
+- Follow-up questions
+- Conversation starters
+- Reply improvements
+- Date planning ideas
+
+The goal is to create genuine and engaging conversations.
+
+---
+
+## 🚩 AI Trust & Safety
+
+Saathi actively promotes a safer platform through AI-powered analysis.
+
+Capabilities include:
+
+- Red flag detection
+- Scam awareness
+- Suspicious behavior identification
+- Toxic language detection
+- Profile authenticity signals
+
+---
+
+## 📸 AI Photo Analysis
+
+AI evaluates uploaded photos and provides suggestions such as:
+
+- Better lighting
+- Clear face visibility
+- Professional profile quality
+- Smile recommendations
+- Background improvements
+
+---
+
+## 🧠 Memory-Based Personalization
+
+Saathi remembers user preferences over time.
+
+Examples:
+
+- Preferred personality traits
+- Lifestyle choices
+- Religious preferences
+- Travel interests
+- Conversation style
+
+This enables increasingly personalized recommendations.
+
+---
+
+## 👨‍👩‍👧 Family AI
+
+For matrimony, families can interact with AI to:
+
+- Understand compatibility
+- Compare profiles
+- Ask relationship questions
+- Review recommendations
+- Shortlist candidates
+
+---
+
+## 📊 Daily AI Briefing
+
+Users receive personalized insights including:
+
+- New compatible matches
+- Profile improvement suggestions
+- Conversation opportunities
+- Relationship tips
+- Activity summaries
+
+---
+
+# 🌍 Three Experiences
+
+## ❤️ Spark
+
+Modern AI-powered dating experience.
+
+## 💍 Vivah
+
+AI-assisted matrimony platform focused on long-term compatibility.
+
+## 👑 Elite
+
+Invitation-only premium relationship experience with advanced AI concierge features.
+
+---
+
+# 🏗 AI Architecture
+
+```
+User
+     │
+     ▼
+Saathi AI Assistant
+     │
+     ▼
+Conversation Memory
+     │
+     ▼
+Profile Intelligence
+     │
+     ▼
+Matching Engine
+     │
+     ▼
+Safety & Trust AI
+     │
+     ▼
+Recommendation Engine
+     │
+     ▼
+Personalized Experience
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+---
 
-## Environment Variables
+# ⚡ AI Capabilities
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
+- Conversational UI
+- Context Memory
+- Prompt Engineering
+- Explainable AI
+- Intelligent Matchmaking
+- AI Search
+- Profile Generation
+- Recommendation Engine
+- Conversation Coaching
+- Trust & Safety AI
+- Family AI Assistant
+- Daily AI Insights
 
-## Database Setup
+---
 
-Run migrations in order via Supabase SQL Editor:
+# 🛠 Technology
 
-1. `src/database/migrations/001_initial_schema.sql`
-2. `src/database/migrations/002_rls_policies.sql`
-3. `src/database/migrations/003_storage_buckets.sql`
-4. `src/database/seeds/001_subscription_plans.sql`
+Next.js 15 (App Router)
+TypeScript
+Tailwind CSS v4
+Framer Motion
+React Hook Form + Zod
+Zustand
 
-## Project Structure
+### Database
 
-```
-src/
-  app/           # Next.js App Router pages
-  components/    # UI components
-  lib/           # Utilities, Supabase, AI, matching
-  hooks/         # Custom React hooks
-  store/         # Zustand state
-  types/         # TypeScript types
-  services/      # Server actions & demo data
-  database/      # SQL migrations & seeds
-```
+Supabase (Auth, PostgreSQL, Storage, Realtime)
 
-## Features
+### AI Stack
 
-- Mobile-first PWA (480px max width)
-- AI-assisted onboarding
-- Intent system (Exploring / Serious / Marriage)
-- Compatibility engine
-- Consent-based chat
-- Trust Center with verification badges
-- Subscription tiers
-- Full privacy controls & self-service account management
+- OpenAI
+- Claude
+- Gemini
+- OpenRouter
+- Self-hosted LLM Support
 
-## Deployment
+---
 
-Deploy to Vercel:
+# 🎯 Vision
 
-```bash
-npm run build
-```
+Saathini is not another dating or matrimony application.
 
-Set environment variables in Vercel dashboard.
+It is an AI-powered relationship platform where intelligent conversations replace forms, AI explains compatibility instead of showing percentages, and every interaction is designed to help users build genuine, meaningful relationships—from the first connection to lifelong commitment.
 
-## License
+---
 
-Private — All rights reserved.
+## 👨‍💻 Developer
+
+**Rahul Negi**
+
+AI & Full Stack Engineer
+
+Building AI-first products that replace traditional software experiences with intelligent conversational interfaces.
