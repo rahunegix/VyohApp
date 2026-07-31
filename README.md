@@ -258,7 +258,7 @@ Supabase (Auth, PostgreSQL, Storage, Realtime)
 
 # 🎯 Vision
 
-Saathini is not another dating or matrimony application.
+Saathini is not another dating or matrimony web application.
 
 It is an AI-powered relationship platform where intelligent conversations replace forms, AI explains compatibility instead of showing percentages, and every interaction is designed to help users build genuine, meaningful relationships—from the first connection to lifelong commitment.
 
